@@ -350,6 +350,62 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
   background:rgba(12,18,14,.72); backdrop-filter:blur(4px); border:1px solid rgba(var(--pc),.5); font:600 12px var(--body); color:var(--ink-dim); white-space:nowrap; }
 .lifePill b { color:rgb(var(--pc)); font-size:14px; }
 .lifePill.l { left:max(18px, env(safe-area-inset-left, 0px)); } .lifePill.r { right:max(18px, env(safe-area-inset-right, 0px)); }
+/* Écran de choix, version compacte : tout tient sur un écran, niveaux en badges, difficulté en étiquette */
+#start > .sheet { gap:10px; }
+#start #gameTitle { font-size:clamp(30px, 4.2vw, 46px); } #start #gameTitle br { display:none; }
+#start .lede#levelIntro { max-width:64ch; font-size:14px; line-height:1.4; }
+.introMore { margin-left:6px; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--panel-edge); background:var(--panel); color:var(--ink); font:700 12px var(--body); cursor:pointer; vertical-align:1px; }
+.introMore:hover { border-color:var(--accent); color:var(--accent); }
+/* frise de badges */
+#levelPick.badges { gap:4px 6px; align-items:flex-start; }
+#levelPick.badges .lvbtn:not(.regbtn) { display:flex; flex-direction:column; align-items:center; gap:4px; width:84px; padding:0; background:none; border:0; border-radius:12px; color:var(--ink-dim); }
+#levelPick.badges .bdg { position:relative; width:44px; height:44px; border-radius:50%; display:grid; place-items:center;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), rgba(var(--bc),1) 45%, rgba(var(--bc),.55) 100%);
+  border:3px solid #1c2620; box-shadow:0 0 0 2px rgba(var(--bc),.6), 0 4px 0 rgba(0,0,0,.4); font:700 15px var(--display); color:#fff; text-shadow:0 2px 0 rgba(0,0,0,.45); transition:transform .12s; }
+#levelPick.badges .lvbtn small { font:700 11px var(--body); line-height:1.15; max-width:84px; }
+#levelPick.badges .lvbtn:hover .bdg { transform:translateY(-2px) scale(1.06); }
+#levelPick.badges .lvbtn[aria-pressed="true"] .bdg { transform:scale(1.14); box-shadow:0 0 0 3px #ffe680, 0 0 18px rgba(255,230,128,.55), 0 4px 0 rgba(0,0,0,.4); }
+#levelPick.badges .lvbtn[aria-pressed="true"] small { color:var(--accent); }
+#levelPick.badges .lvbtn.lvlocked .bdg { background:radial-gradient(circle at 35% 30%, #5a6660, #2a332e); box-shadow:0 0 0 2px #3a4640, 0 4px 0 rgba(0,0,0,.4); color:#aab4ae; font-size:16px; }
+#levelPick.badges .lvbtn.lvlocked small { opacity:.55; }
+#levelPick.badges .won { position:absolute; right:-6px; top:-6px; font-size:14px; color:#ffe066; text-shadow:0 1px 0 #6a4a00, 0 0 6px rgba(255,220,80,.8); font-family:var(--body); }
+#levelPick.badges .regLbl, #levelPick.badges .regbtn { align-self:center; }
+#levelPick.badges .regbtn { padding:5px 12px; font-size:13px; }
+#levelPick.badges .regbtn:last-of-type { margin-right:10px; }
+/* scène et fiches plus compactes (les téléphones gardent leur mise en page) */
+@media (min-height: 600px) {
+#start .sStage { height:150px; } #start .sStage canvas { top:-30px; }
+#start .sName { font-size:28px; }
+#start .pk { margin-top:0; } #start .pkbox { padding:8px 12px; } #start .pkh { margin:-8px -12px 6px; padding:4px 12px; font-size:14px; }
+#start .tal { margin-top:5px; padding:4px 8px; }
+#start .mvs { gap:3px; } #start .mv { padding:2px 6px; }
+#start .sGo { margin-top:4px; }
+}
+/* difficulté */
+.sDiff { font:800 12px var(--body); padding:3px 10px; border-radius:99px; text-transform:none; letter-spacing:0; color:#14200f; }
+.sDiff.d-av { background:#7ed46a; } .sDiff.d-ne { background:#c8d0c4; } .sDiff.d-va { background:#f2b450; } .sDiff.d-di { background:#ef6a5a; color:#fff; }
+#start .sMu { max-width:70ch; }
+/* starters voisins */
+@media (min-height: 600px) {
+#start .sSide { opacity:.62; filter:saturate(.75); transition:opacity .15s, transform .15s, filter .15s; }
+#start .sSide canvas { width:180px; height:134px; }
+#start .sSide:hover, #start .sSide:focus-visible, #start .sSide.padfocus { opacity:1; filter:none; transform:scale(1.06); }
+#start .sSide:hover canvas { filter:drop-shadow(0 0 10px rgba(255,255,255,.35)); }
+}
+@media (max-width: 700px) { #levelPick.badges .lvbtn:not(.regbtn) { width:62px; } #levelPick.badges .bdg { width:32px; height:32px; font-size:11px; } #levelPick.badges .lvbtn small { font-size:9px; } #start .lede#levelIntro { font-size:12px; } }
+#start .sSide b { display:none; } /* le nom des voisins passe en infobulle : il chevauchait la ligne de difficulté */
+@media (min-width: 701px) and (min-height: 600px) and (max-height: 860px) { /* portables : on resserre encore pour éviter le défilement */
+  #start > .sheet { gap:7px; } #start #gameTitle { font-size:32px; }
+  #start .sStage { height:118px; } #start .sStage canvas { top:-50px; } #start .sAura { top:30%; }
+  #start .sSide { margin-top:22px; } #start .sArrow { margin-top:50px; }
+  #start .sName { font-size:24px; } #start .sMu { font-size:13px; }
+  #start .mvs { display:grid; grid-template-columns:1fr 1fr; } #start .mv small { display:none; }
+  #start .pst { padding:0; } #start .tal { font-size:11px; }
+}
+@media (max-height: 500px) { /* téléphone à l'horizontale */
+  #levelPick.badges .lvbtn:not(.regbtn) { width:64px; gap:2px; } #levelPick.badges .bdg { width:30px; height:30px; font-size:10px; border-width:2px; }
+  #levelPick.badges .lvbtn small { font-size:9px; } #start #gameTitle { font-size:24px; }
+}
 </style>
 <div class="rotateMsg" id="rotateMsg"><div class="phone">📱</div><div>Tourne ton téléphone<br>pour jouer en paysage</div></div>
 
@@ -6997,5 +7053,41 @@ function refreshSides(force) { if (force) LIFE.key = ""; drawDeco(); buildPanels
 addEventListener("resize", () => refreshSides(true));
 // à chaque ouverture de l'écran de choix : K.O. et boss vaincus à jour
 new MutationObserver(() => { if (!$("start").hidden) refreshSides(true); }).observe($("start"), { attributes:true, attributeFilter:["hidden"] });
+/* Écran de choix, version compacte : niveaux en badges d'arène, texte du niveau en une phrase (bouton « ? »),
+   difficulté du starter en étiquette colorée. Se greffe sur setLevel et renderCar (28-ecran-titre.js). */
+const BADGE_COL = lv => lv.league ? "224,176,64" : lv.secret ? "90,150,230" : lv.rocket ? "200,64,64" : lv.manor ? "210,100,50" : lv.safari ? "200,160,64" : lv.tower ? (lv.sprout ? "190,140,80" : "150,110,190") : lv.maps ? "90,170,220" : lv.cave ? "140,120,170" : "110,190,90";
+let introOpen = false;
+{ const br = $("gameTitle").querySelector("br"); if (br) br.before(" "); } // « Pokémon Survivor » sur une ligne : l'espace remplace le retour à la ligne
+function decorateLevels() {
+  $("levelPick").classList.add("badges");
+  levelBtns.forEach((b, k) => {
+    const lv = LEVELS[k], open = levelOpen(k), won = !!achs["win" + (k + 1)];
+    b.style.setProperty("--bc", BADGE_COL(lv));
+    b.innerHTML = `<span class="bdg">${open ? lvLabel(lv) : "🔒"}${won ? '<i class="won">★</i>' : ""}</span><small>${lv.name}</small>`;
+    b.title = `Niveau ${lvLabel(lv)} · ${lv.name}${open ? "" : " (bloqué)"}`;
+  });
+  const el = $("levelIntro"), full = el.textContent, m = full.match(/^.*?[.!?](?=\s|$)/), first = m ? m[0] : full;
+  el.dataset.full = full; el.dataset.first = first;
+  renderIntro();
+}
+function renderIntro() {
+  const el = $("levelIntro"), full = el.dataset.full || "", first = el.dataset.first || full;
+  if (first.length >= full.length - 2) { el.textContent = full; return; }
+  el.innerHTML = ""; el.append(introOpen ? full : first);
+  const q = document.createElement("button"); q.type = "button"; q.className = "introMore"; q.textContent = introOpen ? "−" : "?"; q.title = introOpen ? "Réduire" : "En savoir plus";
+  q.addEventListener("click", () => { introOpen = !introOpen; renderIntro(); }); el.append(q);
+}
+const DIFF_CLS = { "Avantagé":"d-av", "Neutre":"d-ne", "Variable":"d-va", "Difficile":"d-di" };
+function decorateStarter() {
+  const mu = $("sMu"), b = mu.querySelector("b"); if (!b) return;
+  const kind = b.textContent, rest = mu.innerHTML.replace(/^<b>.*?<\/b>\s*/, ""), cut = rest.indexOf(". ");
+  let d = $("sDiff"); if (!d) { d = document.createElement("span"); d.id = "sDiff"; $("sName").parentNode.appendChild(d); }
+  d.className = "sDiff " + (DIFF_CLS[kind] || "d-ne"); d.textContent = `${kind} ${LEVEL.where}`;
+  mu.innerHTML = cut >= 0 ? rest.slice(cut + 2) : rest;
+  for (const id of ["sPrev", "sNext"]) { const el = $(id), n = el.querySelector("b"); el.title = n ? n.textContent : ""; }
+}
+const _setLevel = setLevel; setLevel = i => { _setLevel(i); decorateLevels(); };
+const _renderCar = renderCar; renderCar = () => { _renderCar(); decorateStarter(); };
+setLevel(LEVELS.indexOf(LEVEL) < 0 ? 0 : LEVELS.indexOf(LEVEL));
 })();
 </script>
