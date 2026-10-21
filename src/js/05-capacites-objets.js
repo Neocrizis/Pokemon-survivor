@@ -82,7 +82,7 @@ const MOVES = {
     desc: lv => ["Un tourbillon autour de toi blesse les ennemis qui y entrent.", "Tourbillon plus large.", "Le courant attire les ennemis vers le centre.", "Dégâts +40 %.", "Tourbillon géant, dégâts plus fréquents."][lv-1] },
   // ---- Héricendre ----
   rouefeu:     { name:"Roue de Feu", type:"feu", line:"heri", max:5,
-    desc: lv => ["Toutes les 2,6 s, fonce en roulant dans ta direction : brûle tout ce que tu traverses et laisse un sillage de flammes. Intouchable pendant la roue.", "Roue plus longue.", "Dégâts +40 %, les flammes brûlent.", "Une roue toutes les 2 s.", "Un anneau de feu explose à l'arrivée."][lv-1] },
+    desc: lv => ["Une traîne de flammes en quart de cercle tourne autour de toi et brûle les ennemis qu'elle frôle.", "Cercle plus large.", "Dégâts +40 %, les ennemis touchés brûlent.", "Rotation plus rapide.", "Une deuxième traîne de flammes, à l'opposé."][lv-1] },
   nitrocharge: { name:"Nitrocharge", type:"feu", line:"heri", max:5,
     desc: lv => ["Lance une boule de feu vers l'ennemi le plus proche. Chaque coup te rend 4 % plus rapide pendant 4 s (jusqu'à 3 fois).", "+1 boule.", "Dégâts +40 %, jusqu'à 4 fois.", "+1 boule, recharge plus rapide.", "Jusqu'à 5 fois (+20 % de vitesse)."][lv-1] },
   brouillard:  { name:"Brouillard", type:"normal", line:"heri", max:5,

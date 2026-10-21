@@ -11,11 +11,21 @@ function fear(f, ch, T) { if (f.hp > 0 && !f.d.boss && Math.random() < ch * sere
 function charm(f, ch, T) { if (f.hp > 0 && !f.d.boss && Math.random() < ch * serene()) f.charmT = S.t + T; } // charmé : s'éloigne sans attaquer
 const nearAim = P => { const f = nearestFoes(1)[0]; return P.aiming || !f ? Math.atan2(P.fy, P.fx) : Math.atan2(f.y - P.y, f.x - P.x); };
 const JMOVE = {
-  rouefeu(P, m, lv) {
-    const [dx, dy] = dirFor(P), l = Math.hypot(dx, dy); if (!l || P.dashT > 0) { m.t = .3; return; }
-    m.t = (lv >= 4 ? 1.7 : 2.2) * P.cdMul;
-    const dist = 170 + 20 * lv + (lv >= 2 ? 40 : 0);
-    P.dashT = .3; P.dashBy = "rouefeu"; P.dvx = dx / l * dist / .3; P.dvy = dy / l * dist / .3; P.inv = Math.max(P.inv, .4); m.hit = new Set(); m.ring = lv >= 5; m.pt = 0;
+  rouefeu(P, m, lv, dt) { // un arc de flammes d'un quart de cercle tourne autour d'Héricendre (comme Tranch'Herbe)
+    m.t = 0; const spd = (lv >= 4 ? 4 : 3.2) * PSPD(), rad = ((lv >= 2 ? 62 : 52) + P.stage * 6) * AREA(), dmg = (12 + 3 * lv) * (lv >= 3 ? 1.4 : 1) * jBoost("feu");
+    m.a = ((m.a ?? 0) + spd * dt) % (Math.PI * 2); m.rad = rad; m.arcs = lv >= 5 ? 2 : 1;
+    for (const f of S.foes) {
+      if (f.prop || f.d.rare || f.hp <= 0 || f.wheelT > S.t) continue;
+      const dx = f.x - P.x, dy = f.y - P.y, d = Math.hypot(dx, dy) || 1; if (Math.abs(d - rad) > f.r + 16) continue;
+      const fa = Math.atan2(dy, dx);
+      for (let k = 0; k < m.arcs; k++) {
+        const rel = (((m.a + k * Math.PI - fa) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); // 0 = tête de la flamme, π/2 = bout de la traîne
+        if (rel > Math.PI / 2) continue;
+        f.wheelT = S.t + .4; hitFoe(f, dmg, "feu", dx / d * .4, dy / d * .4);
+        if (lv >= 3) { f.burnT = 2 * DUR(); f.burnDps = Math.max(f.burnDps || 0, 3 + lv); }
+        break;
+      }
+    }
   },
   nitrocharge(P, m, lv) {
     const n = 1 + (lv >= 2) + (lv >= 4) + EXTRA(), ts = nearestFoes(n);
@@ -300,6 +310,25 @@ function drawJohtoOver(t, CAM, vw, vh) { // au-dessus : fumée, boucliers, liane
     cx.fillStyle = g2; cx.beginPath(); cx.arc(P.x, P.y, r, 0, Math.PI * 2); cx.fill();
     cx.strokeStyle = `rgba(235,255,225,${.85 * k})`; cx.lineWidth = 2; cx.beginPath(); cx.arc(P.x, P.y, r, 0, Math.PI * 2); cx.stroke();
     for (let h = 0; h < 6; h++) { const a = h / 6 * Math.PI * 2 + t * .8; circ(cx, P.x + Math.cos(a) * r * .72, P.y + Math.sin(a) * r * .72, 2.2, `rgba(235,255,225,${.6 * k})`); }
+  }
+  for (const P of S.players) { const rw = P.moves.rouefeu; if (!rw?.rad || P.down) continue; // Roue de Feu : traîne de flammes en quart de cercle
+    cx.save(); cx.lineCap = "round";
+    for (let k = 0; k < rw.arcs; k++) {
+      const head = rw.a + k * Math.PI, N = 22;
+      for (let i = N - 1; i >= 0; i--) { // de la traîne (rouge, fine) vers la tête (jaune, épaisse)
+        const q = i / N, a0 = head - q * Math.PI / 2, a1 = head - (i + 1) / N * Math.PI / 2, w = 3 + 10 * (1 - q), fl = Math.sin(t * 30 + i) * 2;
+        const col = q < .2 ? `rgba(255,240,170,${1 - q})` : q < .5 ? `rgba(255,170,60,${1 - q * .5})` : `rgba(235,80,35,${.95 - q * .45})`;
+        cx.globalCompositeOperation = "lighter"; cx.strokeStyle = col; cx.lineWidth = w * 1.6; cx.globalAlpha = .2;
+        cx.beginPath(); cx.arc(P.x, P.y, rw.rad + fl, a1, a0); cx.stroke();
+        cx.globalCompositeOperation = "source-over"; cx.globalAlpha = 1; cx.lineWidth = w;
+        cx.beginPath(); cx.arc(P.x, P.y, rw.rad + fl, a1, a0); cx.stroke();
+      }
+      const hx = P.x + Math.cos(head) * rw.rad, hy = P.y + Math.sin(head) * rw.rad;
+      cx.globalCompositeOperation = "lighter"; glow(hx, hy, 15, "255,190,80", .55); cx.globalCompositeOperation = "source-over";
+      circ(cx, hx, hy, 4, "#fff6c8");
+      if (Math.random() < .6) emit(hx, hy, 1, "feu", { sp:40, life:.4, up:30, r:2.4 });
+    }
+    cx.restore();
   }
   for (const f of S.foes) if (f.vine) {
     const v = f.vine;
