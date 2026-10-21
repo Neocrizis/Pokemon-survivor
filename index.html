@@ -2392,28 +2392,21 @@ function updateOrme(dt) {
     banner("« Merci ! » L'assistant te confie l'Œuf du Prof. Orme. Termine la Tour Chétiflor : il pourrait bien éclore !");
   }
 }
-function drawOrme(t) { // l'assistant du Prof. Orme : blouse blanche, l'Œuf dans les bras
+const ORME_IMG = [new Image(), new Image()]; // pixel art 22×36 : avec l'Œuf, puis sans (Œuf brisé)
+ORME_IMG[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAkCAYAAACNBsqdAAACLElEQVR42sVWv0scQRh9O2xhgqQVYdOEuJyHaCcSQkgRUgQL4ZbjwMbSQlCsxH/ArcQiRUobCQiGFMHiuOIIHhxXHHqKLhOLQwdEsJDzWCzESRFm2R8zs7vHQV4137ezb958P2bGgAaWVeAyP2OegRSYOsJX4wX5ggBPW8CQkQpCe+Y9AICeHEl/7t14SnIyKKnYkSpcpuonHWEWmLqPza8LCd/cys/BiXs3HgCgWHID3/nBRsTWJTcR4zAaZxdonF1gc3tX6RcCUhUz5hkWwM8PNlCcmoyoDVTH/PFdaMtNEEUW/XMJa+JtxFcsucpyM1QNEiYXquK+XA0SJq+6TkJlFlLtGWFZBe77Pe77Pb7fvOfvVo/5fvM+8Ik5mcvNsgqc0lbq4mKObc9ymXqiIm13ugmyne9d/Oo8B3a70wWlLWlbkyyhmZ8m0rEORKW24pQTk2tbb4Kxbc9GwhJXTbImNEyaS3E4bhWnjLQEUtpCxSlLc5FLsQoVp4wXuMM1PYyEI0L8dPoD00Y7F/E1PcTt0hoA4MN6PSAnsjNBBtWWBRa/vcTesp9sEMY8o1hyed5QPJz+xtjuDvbg47X9JWh1U3at61o1nsB/ZecmngUmhoDUlh4mSJ6yypPQTMSifcNtPPD1H1fz8dNn1GvV1LLLdIOESQXqtWqmByJJy7QgFYTCZswzdNfT/60Kxq6k46GUW15okzc6OhLY/f4j4rYuxtqW7vcftbYOfwF42Bsuqnmz3QAAAABJRU5ErkJggg==";
+ORME_IMG[1].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAkCAYAAACNBsqdAAACDElEQVR42sVWPUvDQBh+78ggpXQXMomGWkS3KuLQQTo5CA2loz9AcBX/gJnEwR/QTShUHJxKBwcLtUPRKjZEhyIHXSWE4iCe04VLcne5lILPdO+by3PP+3UJAgVMs0hFfkJcBCkwVISF5aL4QACadgASkTJCa2sPAAC85wfhy/7UlZLjeUlZRLJ0GbKXVIQ6MFQP+1eHCd/O8e38xP7UBQCAUs0JfW/t04itKm4ixzx6r2PovY7h7KIp9TMBqYoJcZEJQN/ap1DaWI+oDVXH/PEolO3GiCKHvn+AubYa8ZVqjrTdkGxAeHKmKu7LNCA8ecexEyp1SJV3hGkW6Wzm09nMp63+F909eaKt/lfoY3u02800i9TzBqmHsz2WVaYi9VhGOhxNEmSX1xO4G/2G9nA0Ac8bCMca66TmYBML1ypgmdqGXU9s7p6vhGvLKkfSEleNdQvKk2ZSzOetYdchrYCeN4CGXRfWIpNiGRp2HXK5AiLERXw6IsQ/LzewiYaZiPlW48mx6E4QQRZy6oAQ4qJSzaFZU+E/Nmlh+wixzmIRGKKwVKMaL6BllcP9fFoMWABSR3qRwFnaKktBtYjZ+PJjPPfnP66msl+F+25Hu+2Qzg9hZb8a+u+7Ha0fRJxWaUbKCJlNiItUn6f/7QpCPoXrhbRbViiLl88vhXYQfEPcVuVYOdJB8K20VfgDDIAXb32nHGYAAAAASUVORK5CYII=";
+function drawOrme(t) { // l'assistant du Prof. Orme : blouse blanche, l'Œuf dans la main
   const o = S.orme; if (!o || (!o.on && !(o.leave > 0))) return;
-  const a = o.on ? 1 : Math.min(1, o.leave), run = !o.on || o.hit > 0, sx = o.hit > 0 ? Math.sin(t * 60) * 2 : 0, x = o.x + sx, y = o.y, st = run ? Math.sin(t * 18) * 3 : 0;
+  const a = o.on ? 1 : Math.min(1, o.leave), run = !o.on || o.hit > 0, x = o.x + (o.hit > 0 ? Math.sin(t * 60) * 2 : 0), y = o.y, hop = run ? Math.abs(Math.sin(t * 14)) * 3 : 0;
+  const img = ORME_IMG[o.fail ? 1 : 0], k = 1.7, w = 22 * k, h = 36 * k, flip = !o.on && o.lx < 0;
   cx.save(); cx.globalAlpha = a;
   if (o.on) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(x, y - 6, 44, o.hit > 0 ? "255,90,80" : "255,236,160", .35); cx.restore(); }
-  ell(cx, x, y + 19, 13, 4.5, "rgba(0,0,0,.32)");
-  cx.fillStyle = "#3a4466"; cx.fillRect(x - 6, y + 6 - st * .3, 5, 13 + st * .3); cx.fillRect(x + 1, y + 6 + st * .3, 5, 13 - st * .3); // pantalon
-  cx.fillStyle = "#2a2a30"; cx.fillRect(x - 7, y + 17, 6, 3); cx.fillRect(x + 1, y + 17, 6, 3);
-  poly(cx, [x - 10, y - 12, x + 10, y - 12, x + 12, y + 9, x - 12, y + 9], "#f4f4f0"); cx.strokeStyle = "#9aa0a8"; cx.lineWidth = 1.2; cx.stroke(); // blouse
-  cx.strokeStyle = "#b8bec6"; cx.beginPath(); cx.moveTo(x, y - 10); cx.lineTo(x, y + 8); cx.stroke();
-  circ(cx, x, y - 19, 8, "#f2c9a0"); // tête
-  cx.fillStyle = "#6a4426"; cx.beginPath(); cx.arc(x, y - 21, 8.5, Math.PI * 1.02, Math.PI * 1.98); cx.fill(); cx.fillRect(x - 8.5, y - 22, 3, 6); cx.fillRect(x + 5.5, y - 22, 3, 6);
-  cx.strokeStyle = "#333"; cx.lineWidth = 1; cx.strokeRect(x - 6, y - 20, 4.5, 3.5); cx.strokeRect(x + 1.5, y - 20, 4.5, 3.5); // lunettes
-  if (o.on || o.ok) { // l'Œuf (le Prof. Orme le lui a confié)
-    ell(cx, x, y - 2, 7, 8.5, "#fff6de"); cx.strokeStyle = "#5a4a3a"; cx.lineWidth = 1; cx.beginPath(); cx.ellipse(x, y - 2, 7, 8.5, 0, 0, Math.PI * 2); cx.stroke();
-    poly(cx, [x - 5, y - 5, x - 1, y - 7, x - 2, y - 2], "#e8564e"); poly(cx, [x + 2, y + 1, x + 6, y - 1, x + 4, y + 4], "#5a8ee8"); poly(cx, [x - 4, y + 3, x - 1, y + 2, x - 2, y + 5], "#e8564e");
-  }
-  circ(cx, x - 9, y - 1, 3, "#f2c9a0"); circ(cx, x + 9, y - 1, 3, "#f2c9a0"); // mains autour de l'Œuf
+  ell(cx, x, y + 22, 14, 4.5, "rgba(0,0,0,.32)");
+  if (img.complete) { cx.imageSmoothingEnabled = false; cx.save(); cx.translate(x, y + 24 - h - hop); if (flip) cx.scale(-1, 1); cx.drawImage(img, -w / 2, 0, w, h); cx.restore(); }
   if (o.on) { // jauge de l'Œuf et temps restant
-    const w = 54, k = Math.max(0, o.hp / ORME_HP), by = y - 42;
-    cx.fillStyle = "rgba(0,0,0,.6)"; cx.fillRect(x - w / 2 - 2, by - 2, w + 4, 9);
-    cx.fillStyle = k > .5 ? "#7fe08a" : k > .25 ? "#f6c845" : "#e2513f"; cx.fillRect(x - w / 2, by, w * k, 5);
+    const bw = 54, kk = Math.max(0, o.hp / ORME_HP), by = y - 52;
+    cx.fillStyle = "rgba(0,0,0,.6)"; cx.fillRect(x - bw / 2 - 2, by - 2, bw + 4, 9);
+    cx.fillStyle = kk > .5 ? "#7fe08a" : kk > .25 ? "#f6c845" : "#e2513f"; cx.fillRect(x - bw / 2, by, bw * kk, 5);
     cx.font = "700 13px 'Pixelify Sans', monospace"; cx.textAlign = "center"; cx.lineWidth = 3; cx.strokeStyle = "rgba(0,0,0,.75)";
     const txt = "Œuf · " + fmt(Math.max(0, o.t)); cx.strokeText(txt, x, by - 6); cx.fillStyle = "#fff3c8"; cx.fillText(txt, x, by - 6);
   }
