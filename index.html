@@ -912,8 +912,8 @@ window.addEventListener("resize", resize); resize();
 /* ---------- Types & table d'efficacité (Gen 1, simplifiée) ---------- */
 const METRO = [["tranchherbe", "flammeche", "pistolet", "combogriffe", "eclair", "dracorage"], ["poudretoxik", "lanceflammes", "surf", "morsure", "tonnerre", "ouragan"], ["vampigraine", "feufollet", "bullesdo", "viveattaque", "cageeclair", "dracoqueue"], ["fouetlianes", "danseflamme", "cascade", "tranche", "bouleelek", "dansedraco"], ["dansepetale", "siphon", "grozyeux", "meteores"], ["lancesoleil", "deflagration", "hydrocanon", "jackpot", "fatalfoudre", "ultralaser"]]; // Métronome de Mew : une catégorie d'attaques par emplacement
 const METRO_NAMES = k => METRO[k].map(id => MOVES[id].name).join(", ");
-const TYPE_COLORS = { feu:"#f0803c", eau:"#5a9ef0", plante:"#72c94e", electrik:"#f6d13a", normal:"#c8bf98", vol:"#a894f0", insecte:"#b0c22a", poison:"#b25ab8", roche:"#c4a845", sol:"#e0c068", combat:"#c0503a", fee:"#f0a0d0", dragon:"#7a5cf0", spectre:"#7058a0", psy:"#f05888", glace:"#7ad4e8", acier:"#a8b4c4" };
-const TYPE_NAMES = { feu:"Feu", eau:"Eau", plante:"Plante", electrik:"Électrik", normal:"Normal", vol:"Vol", insecte:"Insecte", poison:"Poison", roche:"Roche", sol:"Sol", combat:"Combat", fee:"Fée", dragon:"Dragon", spectre:"Spectre", psy:"Psy", glace:"Glace", acier:"Acier" };
+const TYPE_COLORS = { feu:"#f0803c", eau:"#5a9ef0", plante:"#72c94e", electrik:"#f6d13a", normal:"#c8bf98", vol:"#a894f0", insecte:"#b0c22a", poison:"#b25ab8", roche:"#c4a845", sol:"#e0c068", combat:"#c0503a", fee:"#f0a0d0", dragon:"#7a5cf0", spectre:"#7058a0", psy:"#f05888", glace:"#7ad4e8", acier:"#a8b4c4", tenebres:"#6a5468" };
+const TYPE_NAMES = { feu:"Feu", eau:"Eau", plante:"Plante", electrik:"Électrik", normal:"Normal", vol:"Vol", insecte:"Insecte", poison:"Poison", roche:"Roche", sol:"Sol", combat:"Combat", fee:"Fée", dragon:"Dragon", spectre:"Spectre", psy:"Psy", glace:"Glace", acier:"Acier", tenebres:"Ténèbres" };
 const CHART = {
   feu:      { plante:2, insecte:2, glace:2, acier:2, roche:.5, eau:.5, feu:.5, dragon:.5 },
   eau:      { feu:2, roche:2, sol:2, eau:.5, plante:.5, dragon:.5 },
@@ -926,7 +926,8 @@ const CHART = {
   spectre:  { spectre:2, normal:0 },    // Ball'Ombre (ennemis)
   psy:      { poison:2, combat:2, psy:.5, acier:.5 }, // Choc Mental (Noadkoko, Flagadoss)
   glace:    { plante:2, sol:2, vol:2, dragon:2, feu:.5, eau:.5, glace:.5, acier:.5 }, // Laser Glace (Lamantine)
-  combat:   { normal:2, roche:2, glace:2, acier:2, poison:.5, vol:.5, insecte:.5, psy:.5, fee:.5, spectre:0 },
+  combat:   { normal:2, roche:2, glace:2, acier:2, tenebres:2, poison:.5, vol:.5, insecte:.5, psy:.5, fee:.5, spectre:0 },
+  tenebres: { psy:2, spectre:2, combat:.5, tenebres:.5, fee:.5 }, // Mâchouille (Kaiminus)
   sol:      { feu:2, electrik:2, poison:2, roche:2, acier:2, plante:.5, insecte:.5, vol:0 }, // Os (ennemis)
 };
 const eff = (atk, defs) => defs.reduce((m, d) => m * (CHART[atk]?.[d] ?? 1), 1);
@@ -1066,7 +1067,7 @@ const MOVES = {
   eruption:    { name:"Éruption", type:"feu", line:"heri", rare:{ minLvl:8, w:.35 }, max:5,
     desc: lv => ["Une énorme explosion autour de toi. Plus tes PV sont hauts, plus elle frappe fort (jusqu'à ×2,5).", "Explosion plus large.", "Dégâts +40 %.", "Une éruption toutes les 5 s.", "Projette aussi six boules de feu."][lv-1] },
   // ---- Kaiminus ----
-  machouille:  { name:"Mâchouille", type:"eau", line:"kaiminus", max:5,
+  machouille:  { name:"Mâchouille", type:"tenebres", line:"kaiminus", max:5,
     desc: lv => ["Mord les 2 ennemis les plus proches. Enchaîner les morsures les accélère (Frénésie, jusqu'à −40 % de recharge).", "Mord 3 ennemis à la fois.", "Dégâts +40 %.", "+1 ennemi mordu, morsures plus rapides.", "Frénésie jusqu'à −56 %."][lv-1] },
   crocsgivre:  { name:"Crocs Givre", type:"glace", line:"kaiminus", max:5,
     desc: lv => ["Toutes les 3,2 s, mord en éventail devant toi et gèle les ennemis touchés 1 s.", "Morsure plus large.", "Dégâts +40 %, gel de 1,25 s.", "Toutes les 2,4 s.", "Gel de 1,75 s."][lv-1] },
@@ -1594,7 +1595,7 @@ function flameShape(x, y, w, h, col, sway = 0) {
 const PART_COL = { feu:["255,120,40","255,220,120"], eau:["80,150,240","210,240,255"], plante:["100,200,70","210,255,160"], electrik:["250,210,50","255,255,200"],
   poison:["180,80,200","240,170,250"], dragon:["130,100,250","215,205,255"], fee:["245,140,200","255,225,245"], normal:["230,220,190","255,255,255"],
   spectre:["150,100,230","220,190,255"], sol:["200,160,100","240,220,180"], glace:["150,220,255","235,250,255"], psy:["240,90,150","255,200,225"],
-  acier:["170,180,195","235,240,250"], combat:["200,80,60","255,190,160"], roche:["180,160,110","230,215,180"] };
+  acier:["170,180,195","235,240,250"], combat:["200,80,60","255,190,160"], roche:["180,160,110","230,215,180"], tenebres:["70,40,80","170,130,190"] };
 function emit(x, y, n, type, o = {}) {
   if (!S || S.parts.length > 650) return;
   const [c1, c2] = PART_COL[type] || PART_COL.normal;
@@ -2715,7 +2716,7 @@ const JMOVE = {
     m.fr = S.t - (m.last ?? -9) < 1.6 ? Math.min(lv >= 5 ? 7 : 5, (m.fr || 0) + 1) : 0; m.last = S.t; P.frenzy = m.fr;
     m.t = (lv >= 4 ? .75 : .9) * (1 - .08 * m.fr) * P.cdMul;
     const dmg = (16 + 5 * lv) * (lv >= 3 ? 1.4 : 1);
-    for (const f of ts) { hitFoe(f, dmg, "eau"); S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25 }); emit(f.x, f.y, 4, "eau", { sp:120, life:.3 }); }
+    for (const f of ts) { hitFoe(f, dmg, "tenebres"); S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25, dark:true }); emit(f.x, f.y, 5, "tenebres", { sp:120, life:.35 }); }
   },
   crocsgivre(P, m, lv) {
     const a0 = nearAim(P), range = (100 + 12 * lv + (lv >= 2 ? 20 : 0)) * AREA();
@@ -2723,8 +2724,8 @@ const JMOVE = {
     if (!hit.length) { m.t = .2; return; }
     m.t = (lv >= 4 ? 2.4 : 3.2) * P.cdMul;
     const dmg = (20 + 6 * lv) * (lv >= 3 ? 1.4 : 1), frz = (lv >= 5 ? 1.75 : lv >= 3 ? 1.25 : 1) * DUR();
-    for (const f of hit) { const ft = f.d.boss ? .3 : frz; hitFoe(f, dmg, "glace"); f.stunT = Math.max(f.stunT || 0, ft); f.frozeT = S.t + ft; S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25 }); emit(f.x, f.y, 6, "glace", { sp:140, life:.4 }); }
-    S.fxs.push({ x:P.x + Math.cos(a0) * range * .5, y:P.y + Math.sin(a0) * range * .5, r:0, max:range * .55, life:.25, col:"rgba(170,230,255," });
+    for (const f of hit) { const ft = f.d.boss ? .3 : frz; hitFoe(f, dmg, "glace"); f.stunT = Math.max(f.stunT || 0, ft); f.frozeT = S.t + ft; S.bites.push({ x:f.x, y:f.y, r:f.r + 14, life:.4, max:.4, ice:true }); emit(f.x, f.y, 12, "glace", { sp:180, life:.5, r:3 }); }
+    (S.frostFangs ||= []).push({ o:P, a:a0, range, life:.45, max:.45 }); S.shake = Math.max(S.shake, .1); // grande mâchoire de glace qui se referme devant Kaiminus
   },
   hydroqueue(P, m, lv) {
     const rad = (85 + 12 * lv + (lv >= 2 ? 15 : 0)) * AREA();
@@ -3761,6 +3762,7 @@ function update(dt) {
   for (const e of S.claws) e.life -= dt; S.claws = S.claws.filter(e => e.life > 0);
   for (const e of S.eclaws) e.life -= dt; S.eclaws = S.eclaws.filter(e => e.life > 0);
   for (const e of S.bites) e.life -= dt; S.bites = S.bites.filter(e => e.life > 0);
+  if (S.frostFangs) { for (const e of S.frostFangs) e.life -= dt; S.frostFangs = S.frostFangs.filter(e => e.life > 0); }
   for (const e of S.ghosts) e.life -= dt; S.ghosts = S.ghosts.filter(e => e.life > 0);
   S.slashes = S.slashes.filter(sl => sl.life > 0);
   // Danse Flamme
@@ -6148,12 +6150,31 @@ function render(now) {
       for (let q = -1; q <= 1; q++) { const ox = px * q * 13, oy = py * q * 13; cx.beginPath(); cx.moveTo(c0x + ox - ux * L / 2, c0y + oy - uy * L / 2); cx.quadraticCurveTo(c0x + ox + px * 8, c0y + oy + py * 8, c0x + ox + ux * L / 2, c0y + oy + uy * L / 2); cx.stroke(); }
     }
   }
+  for (const ff of S.frostFangs || []) { // Crocs Givre : cône de givre + grande mâchoire de glace qui claque
+    const P = ff.o, p = 1 - ff.life / ff.max, k = Math.min(1, ff.life / ff.max * 2.2), R = ff.range;
+    cx.save(); cx.translate(P.x, P.y); cx.rotate(ff.a); cx.globalAlpha = k;
+    const g = cx.createRadialGradient(0, 0, R * .2, 0, 0, R); g.addColorStop(0, "rgba(200,240,255,.05)"); g.addColorStop(1, "rgba(150,220,255,.38)");
+    cx.fillStyle = g; cx.beginPath(); cx.moveTo(0, 0); cx.arc(0, 0, R, -.7, .7); cx.closePath(); cx.fill();
+    cx.strokeStyle = "rgba(225,248,255,.8)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(0, 0, R, -.7, .7); cx.stroke();
+    const shut = Math.min(1, p / .35) ** 2, gap = R * .42 * (1 - shut), x0 = R * .25, L = R * .8, n = 6;
+    for (const s of [-1, 1]) { // mâchoire du haut (s=-1) et du bas (s=1)
+      const y0 = s * (gap + 6);
+      cx.fillStyle = "rgba(120,200,240,.85)"; cx.beginPath(); cx.moveTo(x0, y0); cx.quadraticCurveTo(x0 + L * .5, y0 + s * 22, x0 + L, y0); cx.lineTo(x0 + L, y0 + s * 9); cx.quadraticCurveTo(x0 + L * .5, y0 + s * 32, x0, y0 + s * 9); cx.closePath(); cx.fill();
+      for (let i = 0; i < n; i++) { const x = x0 + L * (i + .5) / n, h = (i === 0 || i === n - 1 ? 18 : 12) * (R / 120);
+        poly(cx, [x - 6, y0, x + 6, y0, x, y0 - s * h], "#f2fcff"); cx.strokeStyle = "rgba(90,170,220,.9)"; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(x - 6, y0); cx.lineTo(x, y0 - s * h); cx.lineTo(x + 6, y0); cx.stroke(); }
+    }
+    if (shut >= 1) { cx.globalAlpha = k * (1 - (p - .35) / .65); circ(cx, x0 + L * .5, 0, R * .45 * (1 + (p - .35)), "rgba(220,250,255,.35)"); }
+    cx.restore();
+  }
   for (const b of S.bites) {
-    const k = b.life / .25, o = b.r * .55 * k;
-    cx.strokeStyle = `rgba(255,255,255,${.4 + .6 * k})`; cx.lineWidth = 3;
+    const k = b.life / (b.max || .25), o = b.r * .55 * k, w = b.ice ? 4 : 3;
+    const col = b.dark ? `rgba(80,40,100,${.5 + .5 * k})` : b.ice ? `rgba(200,245,255,${.5 + .5 * k})` : `rgba(255,255,255,${.4 + .6 * k})`, fang = b.dark ? "#f4ecff" : b.ice ? "#e8faff" : "#fff";
+    if (b.dark) circ(cx, b.x, b.y, b.r * 1.1, `rgba(40,20,60,${.35 * k})`);
+    if (b.ice) circ(cx, b.x, b.y, b.r * 1.15, `rgba(140,215,255,${.35 * k})`);
+    cx.strokeStyle = col; cx.lineWidth = w;
     cx.beginPath(); cx.arc(b.x, b.y - o, b.r * .8, Math.PI * .15, Math.PI * .85); cx.stroke();
     cx.beginPath(); cx.arc(b.x, b.y + o, b.r * .8, Math.PI * 1.15, Math.PI * 1.85); cx.stroke();
-    for (let q = -1; q <= 1; q++) { poly(cx, [b.x + q * 7 - 3, b.y - o + b.r * .7, b.x + q * 7 + 3, b.y - o + b.r * .7, b.x + q * 7, b.y - o + b.r * .7 + 6], "#fff"); poly(cx, [b.x + q * 7 - 3, b.y + o - b.r * .7, b.x + q * 7 + 3, b.y + o - b.r * .7, b.x + q * 7, b.y + o - b.r * .7 - 6], "#fff"); }
+    for (let q = -1; q <= 1; q++) { poly(cx, [b.x + q * 7 - 3, b.y - o + b.r * .7, b.x + q * 7 + 3, b.y - o + b.r * .7, b.x + q * 7, b.y - o + b.r * .7 + 6], fang); poly(cx, [b.x + q * 7 - 3, b.y + o - b.r * .7, b.x + q * 7 + 3, b.y + o - b.r * .7, b.x + q * 7, b.y + o - b.r * .7 - 6], fang); }
   }
   for (const sn of S.suns) { // charge de Lance-Soleil
     const k = 1 - sn.t / sn.max, P = sn.o || S.P;
@@ -7322,7 +7343,7 @@ const TYPE_ICON = { // pictogrammes 24×24, en blanc sur la couleur du type
   roche:"M7 4h10l4 8-4 8H7l-4-8z", sol:"M2 20l7-12 4 6 3-4 6 10z", combat:"M6 9h12v7a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4zM6 5h12v3H6z",
   fee:"M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z", dragon:"M4 4c6 0 12 4 16 16-5-4-9-5-12-4 1-4 0-8-4-12z",
   spectre:"M12 3a7 7 0 0 1 7 7v11l-2.5-2-2.3 2-2.2-2-2.2 2-2.3-2L5 21V10a7 7 0 0 1 7-7z", psy:"M2 12c3-5 7-7 10-7s7 2 10 7c-3 5-7 7-10 7s-7-2-10-7zm10-3a3 3 0 1 0 0 6 3 3 0 1 0 0-6z",
-  glace:"M11 2h2v20h-2zM2.3 7l1-1.7 18.4 10.6-1 1.7zM2.3 17L20.7 6.3l1 1.7L3.3 18.7z", acier:"M12 2l9 5v10l-9 5-9-5V7zm0 6a4 4 0 1 0 0 8 4 4 0 1 0 0-8z" };
+  tenebres:"M15 3a9 9 0 1 0 6 15A7 7 0 0 1 15 3z", glace:"M11 2h2v20h-2zM2.3 7l1-1.7 18.4 10.6-1 1.7zM2.3 17L20.7 6.3l1 1.7L3.3 18.7z", acier:"M12 2l9 5v10l-9 5-9-5V7zm0 6a4 4 0 1 0 0 8 4 4 0 1 0 0-8z" };
 const typeIcon = t => `<span class="tyi" style="--t:${TYPE_COLORS[t] || "#888"}" title="${TYPE_NAMES[t] || t}"><svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="${TYPE_ICON[t] || TYPE_ICON.normal}"/></svg></span>`;
 const FICHE = { evo:[], ef:null, line:null };
 function drawRadar(cv, L) {

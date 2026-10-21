@@ -642,12 +642,31 @@ function render(now) {
       for (let q = -1; q <= 1; q++) { const ox = px * q * 13, oy = py * q * 13; cx.beginPath(); cx.moveTo(c0x + ox - ux * L / 2, c0y + oy - uy * L / 2); cx.quadraticCurveTo(c0x + ox + px * 8, c0y + oy + py * 8, c0x + ox + ux * L / 2, c0y + oy + uy * L / 2); cx.stroke(); }
     }
   }
+  for (const ff of S.frostFangs || []) { // Crocs Givre : cône de givre + grande mâchoire de glace qui claque
+    const P = ff.o, p = 1 - ff.life / ff.max, k = Math.min(1, ff.life / ff.max * 2.2), R = ff.range;
+    cx.save(); cx.translate(P.x, P.y); cx.rotate(ff.a); cx.globalAlpha = k;
+    const g = cx.createRadialGradient(0, 0, R * .2, 0, 0, R); g.addColorStop(0, "rgba(200,240,255,.05)"); g.addColorStop(1, "rgba(150,220,255,.38)");
+    cx.fillStyle = g; cx.beginPath(); cx.moveTo(0, 0); cx.arc(0, 0, R, -.7, .7); cx.closePath(); cx.fill();
+    cx.strokeStyle = "rgba(225,248,255,.8)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(0, 0, R, -.7, .7); cx.stroke();
+    const shut = Math.min(1, p / .35) ** 2, gap = R * .42 * (1 - shut), x0 = R * .25, L = R * .8, n = 6;
+    for (const s of [-1, 1]) { // mâchoire du haut (s=-1) et du bas (s=1)
+      const y0 = s * (gap + 6);
+      cx.fillStyle = "rgba(120,200,240,.85)"; cx.beginPath(); cx.moveTo(x0, y0); cx.quadraticCurveTo(x0 + L * .5, y0 + s * 22, x0 + L, y0); cx.lineTo(x0 + L, y0 + s * 9); cx.quadraticCurveTo(x0 + L * .5, y0 + s * 32, x0, y0 + s * 9); cx.closePath(); cx.fill();
+      for (let i = 0; i < n; i++) { const x = x0 + L * (i + .5) / n, h = (i === 0 || i === n - 1 ? 18 : 12) * (R / 120);
+        poly(cx, [x - 6, y0, x + 6, y0, x, y0 - s * h], "#f2fcff"); cx.strokeStyle = "rgba(90,170,220,.9)"; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(x - 6, y0); cx.lineTo(x, y0 - s * h); cx.lineTo(x + 6, y0); cx.stroke(); }
+    }
+    if (shut >= 1) { cx.globalAlpha = k * (1 - (p - .35) / .65); circ(cx, x0 + L * .5, 0, R * .45 * (1 + (p - .35)), "rgba(220,250,255,.35)"); }
+    cx.restore();
+  }
   for (const b of S.bites) {
-    const k = b.life / .25, o = b.r * .55 * k;
-    cx.strokeStyle = `rgba(255,255,255,${.4 + .6 * k})`; cx.lineWidth = 3;
+    const k = b.life / (b.max || .25), o = b.r * .55 * k, w = b.ice ? 4 : 3;
+    const col = b.dark ? `rgba(80,40,100,${.5 + .5 * k})` : b.ice ? `rgba(200,245,255,${.5 + .5 * k})` : `rgba(255,255,255,${.4 + .6 * k})`, fang = b.dark ? "#f4ecff" : b.ice ? "#e8faff" : "#fff";
+    if (b.dark) circ(cx, b.x, b.y, b.r * 1.1, `rgba(40,20,60,${.35 * k})`);
+    if (b.ice) circ(cx, b.x, b.y, b.r * 1.15, `rgba(140,215,255,${.35 * k})`);
+    cx.strokeStyle = col; cx.lineWidth = w;
     cx.beginPath(); cx.arc(b.x, b.y - o, b.r * .8, Math.PI * .15, Math.PI * .85); cx.stroke();
     cx.beginPath(); cx.arc(b.x, b.y + o, b.r * .8, Math.PI * 1.15, Math.PI * 1.85); cx.stroke();
-    for (let q = -1; q <= 1; q++) { poly(cx, [b.x + q * 7 - 3, b.y - o + b.r * .7, b.x + q * 7 + 3, b.y - o + b.r * .7, b.x + q * 7, b.y - o + b.r * .7 + 6], "#fff"); poly(cx, [b.x + q * 7 - 3, b.y + o - b.r * .7, b.x + q * 7 + 3, b.y + o - b.r * .7, b.x + q * 7, b.y + o - b.r * .7 - 6], "#fff"); }
+    for (let q = -1; q <= 1; q++) { poly(cx, [b.x + q * 7 - 3, b.y - o + b.r * .7, b.x + q * 7 + 3, b.y - o + b.r * .7, b.x + q * 7, b.y - o + b.r * .7 + 6], fang); poly(cx, [b.x + q * 7 - 3, b.y + o - b.r * .7, b.x + q * 7 + 3, b.y + o - b.r * .7, b.x + q * 7, b.y + o - b.r * .7 - 6], fang); }
   }
   for (const sn of S.suns) { // charge de Lance-Soleil
     const k = 1 - sn.t / sn.max, P = sn.o || S.P;

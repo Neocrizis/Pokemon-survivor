@@ -316,6 +316,7 @@ function update(dt) {
   for (const e of S.claws) e.life -= dt; S.claws = S.claws.filter(e => e.life > 0);
   for (const e of S.eclaws) e.life -= dt; S.eclaws = S.eclaws.filter(e => e.life > 0);
   for (const e of S.bites) e.life -= dt; S.bites = S.bites.filter(e => e.life > 0);
+  if (S.frostFangs) { for (const e of S.frostFangs) e.life -= dt; S.frostFangs = S.frostFangs.filter(e => e.life > 0); }
   for (const e of S.ghosts) e.life -= dt; S.ghosts = S.ghosts.filter(e => e.life > 0);
   S.slashes = S.slashes.filter(sl => sl.life > 0);
   // Danse Flamme

@@ -13,7 +13,7 @@ const TYPE_ICON = { // pictogrammes 24×24, en blanc sur la couleur du type
   roche:"M7 4h10l4 8-4 8H7l-4-8z", sol:"M2 20l7-12 4 6 3-4 6 10z", combat:"M6 9h12v7a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4zM6 5h12v3H6z",
   fee:"M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z", dragon:"M4 4c6 0 12 4 16 16-5-4-9-5-12-4 1-4 0-8-4-12z",
   spectre:"M12 3a7 7 0 0 1 7 7v11l-2.5-2-2.3 2-2.2-2-2.2 2-2.3-2L5 21V10a7 7 0 0 1 7-7z", psy:"M2 12c3-5 7-7 10-7s7 2 10 7c-3 5-7 7-10 7s-7-2-10-7zm10-3a3 3 0 1 0 0 6 3 3 0 1 0 0-6z",
-  glace:"M11 2h2v20h-2zM2.3 7l1-1.7 18.4 10.6-1 1.7zM2.3 17L20.7 6.3l1 1.7L3.3 18.7z", acier:"M12 2l9 5v10l-9 5-9-5V7zm0 6a4 4 0 1 0 0 8 4 4 0 1 0 0-8z" };
+  tenebres:"M15 3a9 9 0 1 0 6 15A7 7 0 0 1 15 3z", glace:"M11 2h2v20h-2zM2.3 7l1-1.7 18.4 10.6-1 1.7zM2.3 17L20.7 6.3l1 1.7L3.3 18.7z", acier:"M12 2l9 5v10l-9 5-9-5V7zm0 6a4 4 0 1 0 0 8 4 4 0 1 0 0-8z" };
 const typeIcon = t => `<span class="tyi" style="--t:${TYPE_COLORS[t] || "#888"}" title="${TYPE_NAMES[t] || t}"><svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="${TYPE_ICON[t] || TYPE_ICON.normal}"/></svg></span>`;
 const FICHE = { evo:[], ef:null, line:null };
 function drawRadar(cv, L) {

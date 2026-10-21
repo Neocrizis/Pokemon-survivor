@@ -64,7 +64,7 @@ const JMOVE = {
     m.fr = S.t - (m.last ?? -9) < 1.6 ? Math.min(lv >= 5 ? 7 : 5, (m.fr || 0) + 1) : 0; m.last = S.t; P.frenzy = m.fr;
     m.t = (lv >= 4 ? .75 : .9) * (1 - .08 * m.fr) * P.cdMul;
     const dmg = (16 + 5 * lv) * (lv >= 3 ? 1.4 : 1);
-    for (const f of ts) { hitFoe(f, dmg, "eau"); S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25 }); emit(f.x, f.y, 4, "eau", { sp:120, life:.3 }); }
+    for (const f of ts) { hitFoe(f, dmg, "tenebres"); S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25, dark:true }); emit(f.x, f.y, 5, "tenebres", { sp:120, life:.35 }); }
   },
   crocsgivre(P, m, lv) {
     const a0 = nearAim(P), range = (100 + 12 * lv + (lv >= 2 ? 20 : 0)) * AREA();
@@ -72,8 +72,8 @@ const JMOVE = {
     if (!hit.length) { m.t = .2; return; }
     m.t = (lv >= 4 ? 2.4 : 3.2) * P.cdMul;
     const dmg = (20 + 6 * lv) * (lv >= 3 ? 1.4 : 1), frz = (lv >= 5 ? 1.75 : lv >= 3 ? 1.25 : 1) * DUR();
-    for (const f of hit) { const ft = f.d.boss ? .3 : frz; hitFoe(f, dmg, "glace"); f.stunT = Math.max(f.stunT || 0, ft); f.frozeT = S.t + ft; S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25 }); emit(f.x, f.y, 6, "glace", { sp:140, life:.4 }); }
-    S.fxs.push({ x:P.x + Math.cos(a0) * range * .5, y:P.y + Math.sin(a0) * range * .5, r:0, max:range * .55, life:.25, col:"rgba(170,230,255," });
+    for (const f of hit) { const ft = f.d.boss ? .3 : frz; hitFoe(f, dmg, "glace"); f.stunT = Math.max(f.stunT || 0, ft); f.frozeT = S.t + ft; S.bites.push({ x:f.x, y:f.y, r:f.r + 14, life:.4, max:.4, ice:true }); emit(f.x, f.y, 12, "glace", { sp:180, life:.5, r:3 }); }
+    (S.frostFangs ||= []).push({ o:P, a:a0, range, life:.45, max:.45 }); S.shake = Math.max(S.shake, .1); // grande mâchoire de glace qui se referme devant Kaiminus
   },
   hydroqueue(P, m, lv) {
     const rad = (85 + 12 * lv + (lv >= 2 ? 15 : 0)) * AREA();

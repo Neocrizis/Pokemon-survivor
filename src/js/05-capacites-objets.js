@@ -92,7 +92,7 @@ const MOVES = {
   eruption:    { name:"Éruption", type:"feu", line:"heri", rare:{ minLvl:8, w:.35 }, max:5,
     desc: lv => ["Une énorme explosion autour de toi. Plus tes PV sont hauts, plus elle frappe fort (jusqu'à ×2,5).", "Explosion plus large.", "Dégâts +40 %.", "Une éruption toutes les 5 s.", "Projette aussi six boules de feu."][lv-1] },
   // ---- Kaiminus ----
-  machouille:  { name:"Mâchouille", type:"eau", line:"kaiminus", max:5,
+  machouille:  { name:"Mâchouille", type:"tenebres", line:"kaiminus", max:5,
     desc: lv => ["Mord les 2 ennemis les plus proches. Enchaîner les morsures les accélère (Frénésie, jusqu'à −40 % de recharge).", "Mord 3 ennemis à la fois.", "Dégâts +40 %.", "+1 ennemi mordu, morsures plus rapides.", "Frénésie jusqu'à −56 %."][lv-1] },
   crocsgivre:  { name:"Crocs Givre", type:"glace", line:"kaiminus", max:5,
     desc: lv => ["Toutes les 3,2 s, mord en éventail devant toi et gèle les ennemis touchés 1 s.", "Morsure plus large.", "Dégâts +40 %, gel de 1,25 s.", "Toutes les 2,4 s.", "Gel de 1,75 s."][lv-1] },
