@@ -11,7 +11,7 @@
     -.045em .07em #b0661e, 0 .07em #b0661e, .045em .07em #b0661e, -.045em .095em #b0661e, 0 .095em #b0661e, .045em .095em #b0661e,
     -.045em .14em #3a2410, 0 .14em #3a2410, .045em .14em #3a2410; }
 .logoArc span { display: inline-block; transform: translateY(calc(var(--k) * var(--k) * .024em)) rotate(calc(var(--k) * 3deg)); }
-#gameTitle { display: flex; flex-direction: column; align-items: center; font-size: clamp(36px, 6.5vw, 64px); line-height: 1; text-shadow: none; margin-bottom: .15em; } /* même logo sur l'écran de choix */
+#gameTitle { display: flex; flex-direction: column; align-items: center; font-size: clamp(30px, 3.4vw, 44px); line-height: 1; text-shadow: none; margin-bottom: .15em; } /* même logo sur l'écran de choix */
 #gameTitle.shinyOn .logoArc { color: #ffe680; filter: drop-shadow(0 0 .25em rgba(255,220,120,.7)); }
 .logoBan { margin-top: .5em; padding: .32em .5em .26em; text-shadow: 0 .14em 0 #1a120a; font: .25em/1 "Press Start 2P", var(--display); letter-spacing: .18em; color: #f6c845;
   background: #2a3f30; border: .17em solid #f6c845; box-shadow: 0 .25em 0 #b0661e, 0 0 0 .17em #1a120a, 0 .5em .4em rgba(0,0,0,.35); }

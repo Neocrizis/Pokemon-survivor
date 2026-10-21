@@ -10,6 +10,12 @@ const rtCard = document.createElement("div"); rtCard.className = "rtCard";
 rtCard.innerHTML = `<b class="rtNum"></b><div class="rtBody"><b class="rtName"></b><div class="rtIntro"></div><div class="rtTags"></div></div>`;
 $("levelPick").before(rtRegs, rtRoute, rtCard); $("levelPick").hidden = true;
 rtCard.querySelector(".rtIntro").appendChild($("levelIntro"));
+const rtMore = document.createElement("button"); rtMore.type = "button"; rtMore.className = "rtMore"; rtCard.querySelector(".rtIntro").appendChild(rtMore);
+rtMore.addEventListener("click", () => { const box = rtCard.querySelector(".rtIntro"); box.classList.toggle("short"); rtMore.textContent = box.classList.contains("short") ? "Lire la suite" : "Réduire"; });
+function rtClamp() { // description longue : 2 lignes et « Lire la suite »
+  const box = rtCard.querySelector(".rtIntro"), p = $("levelIntro"); box.classList.add("short"); rtMore.textContent = "Lire la suite";
+  requestAnimationFrame(() => { rtMore.hidden = p.scrollHeight <= p.clientHeight + 2; });
+}
 $("levelTag").classList.add("rtTagHidden");
 const rtRegBtns = Object.entries(RT_REG).map(([r, R]) => {
   const b = document.createElement("button"); b.type = "button"; b.className = "rtReg"; b.dataset.r = r;
@@ -44,6 +50,7 @@ function renderRoute() {
   rtCard.querySelector(".rtName").textContent = LEVEL.name;
   const tags = [rtDone(cur) ? "✔ Terminé" : "Pas encore terminé"];
   if (LEVEL.league) tags.push("5 salles, sans chrono"); if (LEVEL.secret) tags.push("✦ Niveau secret");
+  rtClamp();
   rtCard.querySelector(".rtTags").innerHTML = tags.map(t => `<span>${t}</span>`).join("") + (rtMsg ? `<span class="warn">${rtMsg}</span>` : "");
 }
 const _setLevelRoute = setLevel;

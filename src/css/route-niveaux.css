@@ -47,3 +47,5 @@
   .rtNode .lbl { font-size: 9px; bottom: 20px; } .rtNode.low .lbl { top: 20px; } .rtNode.sel .lbl { font-size: 10px; bottom: 25px; } .rtNode.sel.low .lbl { top: 25px; }
   .rtCard { padding: 8px 12px; gap: 10px; } .rtNum { font-size: 22px; } .rtName { font-size: 15px; } .rtIntro .lede { font-size: 12px; } .rtTags { margin-top: 4px; }
 }
+.rtIntro.short .lede { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rtMore { font: 600 12px var(--body); color: var(--accent); background: none; border: 0; padding: 2px 0 0; cursor: pointer; text-decoration: underline; }
