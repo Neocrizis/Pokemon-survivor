@@ -14,7 +14,7 @@
 .logoBan { margin-top: .5em; padding: .32em .5em .26em; text-shadow: 0 .14em 0 #1a120a; font: .25em/1 "Press Start 2P", var(--display); letter-spacing: .18em; color: #f6c845;
   background: #2a3f30; border: .17em solid #f6c845; box-shadow: 0 .25em 0 #b0661e, 0 0 0 .17em #1a120a, 0 .5em .4em rgba(0,0,0,.35); }
 .homeLogo::before { /* Poké Ball en fond : moitiés teintées, bande et bouton, lente rotation */
-  content: ""; position: absolute; left: 50%; top: 46%; width: 3.3em; height: 3.3em; margin: -1.65em 0 0 -1.65em; z-index: -1; border-radius: 50%;
+  content: ""; position: absolute; left: 50%; top: 50%; width: 2.8em; height: 2.8em; margin: -1.4em 0 0 -1.4em; z-index: -1; border-radius: 50%;
   border: .05em solid rgba(246,200,69,.16); animation: logoBall 60s linear infinite;
   background:
     radial-gradient(circle, rgba(246,200,69,.22) 0 .13em, transparent .13em .19em, rgba(246,200,69,.16) .19em .25em, transparent .25em),
@@ -23,7 +23,7 @@
   box-shadow: 0 0 .6em rgba(246,200,69,.08), inset 0 0 .4em rgba(0,0,0,.25); }
 @keyframes logoBall { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .homeLogo::before { animation: none; } }
-.homeLogo { margin-bottom: .45em; }
+.homeLogo { margin: .3em 0 1.2em; }
 .homeMenu { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
 .homeBtn { display: flex; align-items: center; justify-content: center; gap: 10px; font: 700 19px var(--display); letter-spacing: .02em;
   color: var(--ink); background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 12px; padding: 12px 18px; cursor: pointer;
@@ -51,7 +51,7 @@
 
 @media (max-height: 520px) { /* téléphone en paysage : menu sur deux colonnes */
   .forkHome .sheet { gap: 14px; }
-  .homeLogo { font-size: 38px; margin-bottom: .1em; } .homeLogo::before { width: 2.5em; height: 2.5em; margin: -1.25em 0 0 -1.25em; top: 50%; }
+  .homeLogo { font-size: 38px; margin: .15em 0 .35em; } .homeLogo::before { width: 2.2em; height: 2.2em; margin: -1.1em 0 0 -1.1em; }
   .homeMenu { display: grid; grid-template-columns: 1fr 1fr; width: min(520px, 100%); gap: 8px; }
   .homeBtn { font-size: 16px; padding: 8px 12px; } .homeBtn.small { grid-column: 1 / -1; }
 }
