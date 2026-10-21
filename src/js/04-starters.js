@@ -20,7 +20,7 @@ const LINES = {
   germignon:{ names:["Germignon","Macronium","Méganium"], secret:true, own:true, type:"plante", move:"feuillemagik", hp:50, speed:152,
             blurb:"Le soutien de l'équipe. Feuille Garde : une aura soigne les alliés proches (et un peu Germignon) et ralentit les ennemis. Feuillemagik lance des feuilles qui vont chercher leur cible." },
   heri:     { names:["Héricendre","Feurisson","Typhlosion"], secret:true, own:true, type:"feu", move:"rouefeu", hp:40, speed:172,
-            blurb:"Toujours en mouvement. Torche : courir remplit sa jauge de Chaleur, qui rend ses attaques Feu jusqu'à 40 % plus fortes ; elle retombe s'il s'arrête. Roue de Feu le fait foncer en roulant dans un sillage de flammes." },
+            blurb:"Toujours en mouvement. Torche : courir remplit sa jauge de Chaleur, qui rend ses attaques Feu jusqu'à 40 % plus fortes ; elle retombe s'il s'arrête. Roue de Feu fait tourner autour de lui une traîne de flammes." },
   kaiminus: { names:["Kaiminus","Crocrodil","Aligatueur"], secret:true, own:true, type:"eau", move:"machouille", hp:52, speed:158,
             blurb:"Combat au corps-à-corps. Sans Limite : +15 % de dégâts au contact, et chaque coup le soigne un peu. Mâchouille mord les ennemis les plus proches, de plus en plus vite si tu enchaînes (Frénésie)." },
   togepi:   { names:["Togepi","Togetic","Togekiss"], secret:true, own:true, type:"fee", move:"ventfeerique", hp:42, speed:160, evo:"évolue N.10 et N.22, Togetic et Togekiss volent",

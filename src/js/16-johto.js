@@ -11,36 +11,43 @@ function fear(f, ch, T) { if (f.hp > 0 && !f.d.boss && Math.random() < ch * sere
 function charm(f, ch, T) { if (f.hp > 0 && !f.d.boss && Math.random() < ch * serene()) f.charmT = S.t + T; } // charmé : s'éloigne sans attaquer
 const nearAim = P => { const f = nearestFoes(1)[0]; return P.aiming || !f ? Math.atan2(P.fy, P.fx) : Math.atan2(f.y - P.y, f.x - P.x); };
 const JMOVE = {
-  rouefeu(P, m, lv) {
+  rouefeu(P, m, lv, dt) { // un arc de flammes d'un quart de cercle tourne autour d'Héricendre (comme Tranch'Herbe)
+    m.t = 0; const spd = (lv >= 4 ? 5.5 : 4.5) * PSPD(), rad = ((lv >= 2 ? 62 : 52) + P.stage * 6) * AREA(), dmg = (14 + 3 * lv) * (lv >= 3 ? 1.4 : 1) * jBoost("feu");
+    m.a = ((m.a ?? 0) + spd * dt) % (Math.PI * 2); m.rad = rad; m.arcs = lv >= 5 ? 2 : 1;
+    for (const f of S.foes) {
+      if (f.prop || f.d.rare || f.hp <= 0 || f.wheelT > S.t) continue;
+      const dx = f.x - P.x, dy = f.y - P.y, d = Math.hypot(dx, dy) || 1; if (Math.abs(d - rad) > f.r + 16) continue;
+      const fa = Math.atan2(dy, dx);
+      for (let k = 0; k < m.arcs; k++) {
+        const rel = (((m.a + k * Math.PI - fa) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); // 0 = tête de la flamme, π/2 = bout de la traîne
+        if (rel > Math.PI / 2) continue;
+        f.wheelT = S.t + .3; hitFoe(f, dmg, "feu", dx / d * .4, dy / d * .4);
+        if (lv >= 3) { f.burnT = 2 * DUR(); f.burnDps = Math.max(f.burnDps || 0, 3 + lv); }
+        break;
+      }
+    }
+  },
+  nitrocharge(P, m, lv) { // ruée enflammée : brûle sur son passage, chaque ennemi touché accélère Héricendre
     const [dx, dy] = dirFor(P), l = Math.hypot(dx, dy); if (!l || P.dashT > 0) { m.t = .3; return; }
     m.t = (lv >= 4 ? 1.7 : 2.2) * P.cdMul;
     const dist = 170 + 20 * lv + (lv >= 2 ? 40 : 0);
-    P.dashT = .3; P.dashBy = "rouefeu"; P.dvx = dx / l * dist / .3; P.dvy = dy / l * dist / .3; P.inv = Math.max(P.inv, .4); m.hit = new Set(); m.ring = lv >= 5; m.pt = 0;
-  },
-  nitrocharge(P, m, lv) {
-    const n = 1 + (lv >= 2) + (lv >= 4) + EXTRA(), ts = nearestFoes(n);
-    if (!ts.length && !P.aiming) { m.t = .2; return; }
-    m.t = (lv >= 4 ? 1 : 1.3) * P.cdMul;
-    const dmg = (10 + 3 * lv) * (lv >= 3 ? 1.4 : 1), max = 3 + (lv >= 3) + (lv >= 5);
-    for (let i = 0; i < n; i++) {
-      const f = ts[i % Math.max(1, ts.length)], a = f && !P.aiming ? Math.atan2(f.y - P.y, f.x - P.x) : Math.atan2(P.fy, P.fx) + (i - (n - 1) / 2) * .2;
-      S.shots.push({ kind:"fire", x:P.x, y:P.y, vx:Math.cos(a) * 420, vy:Math.sin(a) * 420, r:9 + P.stage, dmg, life:1.3, pierce:1, type:"feu",
-        onHit:() => { P.nitro = Math.min(max, (P.nitro || 0) + 1); P.nitroT = 4; } });
-    }
+    P.dashT = .3; P.dashBy = "nitrocharge"; P.dvx = dx / l * dist / .3; P.dvy = dy / l * dist / .3; P.inv = Math.max(P.inv, .4);
+    m.hit = new Set(); m.ring = lv >= 5; m.pt = 0; m.nmax = 3 + (lv >= 3) + (lv >= 5);
   },
   brouillard(P, m, lv) {
     m.t = (lv >= 4 ? 6 : 8) * P.cdMul;
     const life = (lv >= 3 ? 4 : 3) * DUR();
     (S.smokes ||= []).push({ x:P.x, y:P.y, r:(120 + 18 * lv) * AREA(), life, max:life, miss:lv >= 3 ? .5 : .4, slow:lv >= 5, o:P, ph:Math.random() * 6 });
   },
-  rebondifeu(P, m, lv) {
+  rebondifeu(P, m, lv) { // une boule de feu qui rebondit d'ennemi en ennemi et les brûle
     const pool = nearestFoes(12).filter(f => Math.hypot(f.x - P.x, f.y - P.y) < 420);
     if (!pool.length) { m.t = .3; return; }
     m.t = (lv >= 4 ? 1.6 : 2) * P.cdMul;
-    const n = 1 + (lv >= 3) + (lv >= 5) + EXTRA(), dmg = (18 + 5 * lv) * (lv >= 3 ? 1.4 : 1);
+    const n = 1 + (lv >= 3) + (lv >= 5) + EXTRA(), dmg = (16 + 4 * lv) * (lv >= 3 ? 1.4 : 1), bounce = 2 + (lv >= 2 ? 2 : 0) + (lv >= 5 ? 2 : 0);
     for (let i = 0; i < n; i++) {
       const f = pool[i % pool.length], a = Math.atan2(f.y - P.y, f.x - P.x) + (i ? (Math.random() - .5) * .3 : 0);
-      S.shots.push({ kind:"blast", x:P.x, y:P.y, vx:Math.cos(a) * 340, vy:Math.sin(a) * 340, r:9 + P.stage, dmg, life:1.4, pierce:1, type:"feu", boom:true, boomR:(55 + 10 * lv + (lv >= 2 ? 15 : 0)) * AREA(), boomMul:.7, burn:{ t:2.5, dps:4 + lv } });
+      S.shots.push({ kind:"blast", x:P.x, y:P.y, vx:Math.cos(a) * 380, vy:Math.sin(a) * 380, r:9 + P.stage, dmg, life:1.4, pierce:1, bounce, hit:new Set(), type:"feu",
+        onHit:g => { g.burnT = 2.5 * DUR(); g.burnDps = Math.max(g.burnDps || 0, 4 + lv); emit(g.x, g.y, 6, "feu", { sp:120, life:.35 }); } });
     }
   },
   eruption(P, m, lv) {
@@ -184,13 +191,13 @@ function updateJohto(P, dt) { // talents et effets continus des starters de Joht
     for (const q of S.players) if (!q.down && Math.hypot(q.x - P.x, q.y - P.y) < R0) q.hp = Math.min(q.maxHp, q.hp + (q === P ? .3 : .8) * dt);
     for (const f of S.foes) if (!f.d.boss && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (R0 + f.r) ** 2 && !(f.slowT > .2 && f.slowMul < .85)) { f.slowT = .2; f.slowMul = .85; }
   }
-  const rf = P.moves.rouefeu;
-  if (rf?.hit) { // Roue de Feu : brûle sur son passage et sème des flammes
-    HIT_SRC = "rouefeu";
-    if (P.dashT > 0 && P.dashBy === "rouefeu") {
+  const rf = P.moves.nitrocharge;
+  if (rf?.hit) { // Nitrocharge : brûle sur son passage, sème des flammes et accélère à chaque ennemi touché
+    HIT_SRC = "nitrocharge";
+    if (P.dashT > 0 && P.dashBy === "nitrocharge") {
       const dmg = (14 + 4 * rf.lv) * (rf.lv >= 3 ? 1.4 : 1);
-      for (const f of S.foes) if (!rf.hit.has(f) && f.hp > 0 && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (f.r + P.r + 14) ** 2) { rf.hit.add(f); hitFoe(f, dmg, "feu", P.dvx / 900, P.dvy / 900); }
-      if ((rf.pt -= dt) <= 0) { rf.pt = .035; S.patches.push({ x:P.x, y:P.y + P.r * .5, r:16 * AREA(), life:1.6 * DUR(), max:1.6 * DUR(), dmg:3 + rf.lv, burn:rf.lv >= 3, ph:Math.random() * 6, src:"rouefeu", o:P }); }
+      for (const f of S.foes) if (!rf.hit.has(f) && f.hp > 0 && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (f.r + P.r + 14) ** 2) { rf.hit.add(f); hitFoe(f, dmg, "feu", P.dvx / 900, P.dvy / 900); P.nitro = Math.min(rf.nmax || 3, (P.nitro || 0) + 1); P.nitroT = 4; }
+      if ((rf.pt -= dt) <= 0) { rf.pt = .035; S.patches.push({ x:P.x, y:P.y + P.r * .5, r:16 * AREA(), life:1.6 * DUR(), max:1.6 * DUR(), dmg:3 + rf.lv, burn:rf.lv >= 3, ph:Math.random() * 6, src:"nitrocharge", o:P }); }
       if (Math.random() < .8) emit(P.x, P.y, 2, "feu", { sp:80, life:.35, r:2.6 });
     } else {
       if (rf.ring) {
@@ -300,6 +307,25 @@ function drawJohtoOver(t, CAM, vw, vh) { // au-dessus : fumée, boucliers, liane
     cx.fillStyle = g2; cx.beginPath(); cx.arc(P.x, P.y, r, 0, Math.PI * 2); cx.fill();
     cx.strokeStyle = `rgba(235,255,225,${.85 * k})`; cx.lineWidth = 2; cx.beginPath(); cx.arc(P.x, P.y, r, 0, Math.PI * 2); cx.stroke();
     for (let h = 0; h < 6; h++) { const a = h / 6 * Math.PI * 2 + t * .8; circ(cx, P.x + Math.cos(a) * r * .72, P.y + Math.sin(a) * r * .72, 2.2, `rgba(235,255,225,${.6 * k})`); }
+  }
+  for (const P of S.players) { const rw = P.moves.rouefeu; if (!rw?.rad || P.down) continue; // Roue de Feu : traîne de flammes en quart de cercle
+    cx.save(); cx.lineCap = "round";
+    for (let k = 0; k < rw.arcs; k++) {
+      const head = rw.a + k * Math.PI, N = 22;
+      for (let i = N - 1; i >= 0; i--) { // de la traîne (rouge, fine) vers la tête (jaune, épaisse)
+        const q = i / N, a0 = head - q * Math.PI / 2, a1 = head - (i + 1) / N * Math.PI / 2, w = 3 + 10 * (1 - q), fl = Math.sin(t * 30 + i) * 2;
+        const col = q < .2 ? `rgba(255,240,170,${1 - q})` : q < .5 ? `rgba(255,170,60,${1 - q * .5})` : `rgba(235,80,35,${.95 - q * .45})`;
+        cx.globalCompositeOperation = "lighter"; cx.strokeStyle = col; cx.lineWidth = w * 1.6; cx.globalAlpha = .2;
+        cx.beginPath(); cx.arc(P.x, P.y, rw.rad + fl, a1, a0); cx.stroke();
+        cx.globalCompositeOperation = "source-over"; cx.globalAlpha = 1; cx.lineWidth = w;
+        cx.beginPath(); cx.arc(P.x, P.y, rw.rad + fl, a1, a0); cx.stroke();
+      }
+      const hx = P.x + Math.cos(head) * rw.rad, hy = P.y + Math.sin(head) * rw.rad;
+      cx.globalCompositeOperation = "lighter"; glow(hx, hy, 15, "255,190,80", .55); cx.globalCompositeOperation = "source-over";
+      circ(cx, hx, hy, 4, "#fff6c8");
+      if (Math.random() < .6) emit(hx, hy, 1, "feu", { sp:40, life:.4, up:30, r:2.4 });
+    }
+    cx.restore();
   }
   for (const f of S.foes) if (f.vine) {
     const v = f.vine;

@@ -535,7 +535,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v177)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v178)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -953,7 +953,7 @@ const LINES = {
   germignon:{ names:["Germignon","Macronium","Méganium"], secret:true, own:true, type:"plante", move:"feuillemagik", hp:50, speed:152,
             blurb:"Le soutien de l'équipe. Feuille Garde : une aura soigne les alliés proches (et un peu Germignon) et ralentit les ennemis. Feuillemagik lance des feuilles qui vont chercher leur cible." },
   heri:     { names:["Héricendre","Feurisson","Typhlosion"], secret:true, own:true, type:"feu", move:"rouefeu", hp:40, speed:172,
-            blurb:"Toujours en mouvement. Torche : courir remplit sa jauge de Chaleur, qui rend ses attaques Feu jusqu'à 40 % plus fortes ; elle retombe s'il s'arrête. Roue de Feu le fait foncer en roulant dans un sillage de flammes." },
+            blurb:"Toujours en mouvement. Torche : courir remplit sa jauge de Chaleur, qui rend ses attaques Feu jusqu'à 40 % plus fortes ; elle retombe s'il s'arrête. Roue de Feu fait tourner autour de lui une traîne de flammes." },
   kaiminus: { names:["Kaiminus","Crocrodil","Aligatueur"], secret:true, own:true, type:"eau", move:"machouille", hp:52, speed:158,
             blurb:"Combat au corps-à-corps. Sans Limite : +15 % de dégâts au contact, et chaque coup le soigne un peu. Mâchouille mord les ennemis les plus proches, de plus en plus vite si tu enchaînes (Frénésie)." },
   togepi:   { names:["Togepi","Togetic","Togekiss"], secret:true, own:true, type:"fee", move:"ventfeerique", hp:42, speed:160, evo:"évolue N.10 et N.22, Togetic et Togekiss volent",
@@ -1014,7 +1014,7 @@ const MOVES = {
     desc: lv => ["Deux lianes fouettent l'ennemi le plus proche et repoussent ceux autour.", "Lianes plus longues.", "Dégâts +40 %.", "Coups plus rapides.", "Fouette aussi un second groupe d'ennemis dans ton dos."][lv-1] },
   feufollet:   { name:"Feu Follet", type:"feu", only:"feu", max:5,
     desc: lv => ["Deux flammes flottent autour de toi et foncent brûler un ennemi proche, puis se consument et renaissent 3 s plus tard.", "+1 flamme.", "Brûlure +40 %.", "+1 flamme, elles renaissent plus vite (2,2 s).", "La brûlure se propage aux ennemis voisins."][lv-1] },
-  lanceflammes:{ name:"Lance-Flammes", type:"feu", only:"feu", max:5,
+  lanceflammes:{ name:"Lance-Flammes", type:"feu", only:"feu", also:["heri"], max:5,
     desc: lv => ["Crache un jet de flammes continu vers l'ennemi le plus proche.", "Jet plus long.", "Les flammes brûlent les ennemis.", "Jet plus long et plus durable.", "Dégâts +50 %, cône plus large."][lv-1] },
   deflagration:{ name:"Déflagration", type:"feu", only:"feu", rare:{ minLvl:8, w:.35 }, max:5,
     desc: lv => ["Une énorme boule de feu explose en étoile sur un groupe d'ennemis et les brûle.", "Explosion plus large.", "Dégâts +40 %.", "Une déflagration toutes les 4 s.", "Deux déflagrations à la fois."][lv-1] },
@@ -1038,7 +1038,7 @@ const MOVES = {
     desc: lv => ["Lance une pièce d'or qui rebondit sur 3 ennemis. Un ennemi K.O. par une pièce lâche un Bonbon Exp. en plus.", "+1 pièce.", "Dégâts +40 %, +1 rebond.", "+1 pièce, recharge plus rapide.", "Les Bonbons des pièces valent triple."][lv-1] },
   morsure:     { name:"Morsure", type:"normal", only:"normal", max:5,
     desc: lv => ["Mord l'ennemi le plus proche, avec 30 % de chances de l'étourdir 1 s.", "Mord 2 ennemis à la fois.", "Dégâts +40 %.", "Morsures plus rapides.", "60 % de chances d'étourdir."][lv-1] },
-  viveattaque: { name:"Vive-Attaque", type:"normal", only:"normal", also:["heri"], max:5,
+  viveattaque: { name:"Vive-Attaque", type:"normal", only:"normal", max:5,
     desc: lv => ["Toutes les 3 s, tu fonces dans ta direction et blesses tout ce que tu traverses. Invincible pendant le sprint.", "Sprint plus long.", "Dégâts +40 %.", "Un sprint toutes les 2,2 s.", "Le sprint étourdit les ennemis touchés."][lv-1] },
   grozyeux:    { name:"Groz'Yeux", type:"normal", only:"normal", also:["kaiminus"], max:5,
     desc: lv => ["Les ennemis proches de toi prennent +20 % de dégâts de toutes tes capacités.", "Aura plus large.", "Bonus porté à +30 %.", "Aura encore plus large.", "Les ennemis dans l'aura sont aussi ralentis de 25 %."][lv-1] },
@@ -1056,13 +1056,13 @@ const MOVES = {
     desc: lv => ["Un tourbillon autour de toi blesse les ennemis qui y entrent.", "Tourbillon plus large.", "Le courant attire les ennemis vers le centre.", "Dégâts +40 %.", "Tourbillon géant, dégâts plus fréquents."][lv-1] },
   // ---- Héricendre ----
   rouefeu:     { name:"Roue de Feu", type:"feu", line:"heri", max:5,
-    desc: lv => ["Toutes les 2,6 s, fonce en roulant dans ta direction : brûle tout ce que tu traverses et laisse un sillage de flammes. Intouchable pendant la roue.", "Roue plus longue.", "Dégâts +40 %, les flammes brûlent.", "Une roue toutes les 2 s.", "Un anneau de feu explose à l'arrivée."][lv-1] },
+    desc: lv => ["Une traîne de flammes en quart de cercle tourne autour de toi et brûle les ennemis qu'elle frôle.", "Cercle plus large.", "Dégâts +40 %, les ennemis touchés brûlent.", "Rotation plus rapide.", "Une deuxième traîne de flammes, à l'opposé."][lv-1] },
   nitrocharge: { name:"Nitrocharge", type:"feu", line:"heri", max:5,
-    desc: lv => ["Lance une boule de feu vers l'ennemi le plus proche. Chaque coup te rend 4 % plus rapide pendant 4 s (jusqu'à 3 fois).", "+1 boule.", "Dégâts +40 %, jusqu'à 4 fois.", "+1 boule, recharge plus rapide.", "Jusqu'à 5 fois (+20 % de vitesse)."][lv-1] },
+    desc: lv => ["Toutes les 2,2 s, fonce en roulant dans ta direction : brûle tout ce que tu traverses et laisse un sillage de flammes, intouchable pendant la charge. Chaque ennemi touché te rend 4 % plus rapide pendant 4 s (jusqu'à 3 fois).", "Charge plus longue.", "Dégâts +40 %, les flammes brûlent, jusqu'à 4 fois.", "Une charge toutes les 1,7 s.", "Un anneau de feu explose à l'arrivée, jusqu'à 5 fois."][lv-1] },
   brouillard:  { name:"Brouillard", type:"normal", line:"heri", max:5,
     desc: lv => ["Toutes les 8 s, un nuage de fumée : les ennemis dedans ratent 40 % de leurs coups.", "Nuage plus large.", "Dure plus longtemps, 50 % de coups ratés.", "Un nuage toutes les 6 s.", "Les ennemis perdus dans la fumée sont ralentis de 30 %."][lv-1] },
   rebondifeu:  { name:"Rebondifeu", type:"feu", line:"heri", max:5,
-    desc: lv => ["Une boule de feu éclate sur un ennemi et éclabousse ses voisins de flammes qui brûlent.", "Éclaboussure plus large.", "Dégâts +40 %, +1 boule.", "Recharge plus rapide.", "+1 boule."][lv-1] },
+    desc: lv => ["Une boule de feu rebondit d'ennemi en ennemi (3 cibles) et brûle chacun d'eux.", "+2 rebonds.", "Dégâts +40 %, +1 boule.", "Recharge plus rapide.", "+1 boule, +2 rebonds."][lv-1] },
   eruption:    { name:"Éruption", type:"feu", line:"heri", rare:{ minLvl:8, w:.35 }, max:5,
     desc: lv => ["Une énorme explosion autour de toi. Plus tes PV sont hauts, plus elle frappe fort (jusqu'à ×2,5).", "Explosion plus large.", "Dégâts +40 %.", "Une éruption toutes les 5 s.", "Projette aussi six boules de feu."][lv-1] },
   // ---- Kaiminus ----
@@ -2662,36 +2662,43 @@ function fear(f, ch, T) { if (f.hp > 0 && !f.d.boss && Math.random() < ch * sere
 function charm(f, ch, T) { if (f.hp > 0 && !f.d.boss && Math.random() < ch * serene()) f.charmT = S.t + T; } // charmé : s'éloigne sans attaquer
 const nearAim = P => { const f = nearestFoes(1)[0]; return P.aiming || !f ? Math.atan2(P.fy, P.fx) : Math.atan2(f.y - P.y, f.x - P.x); };
 const JMOVE = {
-  rouefeu(P, m, lv) {
+  rouefeu(P, m, lv, dt) { // un arc de flammes d'un quart de cercle tourne autour d'Héricendre (comme Tranch'Herbe)
+    m.t = 0; const spd = (lv >= 4 ? 5.5 : 4.5) * PSPD(), rad = ((lv >= 2 ? 62 : 52) + P.stage * 6) * AREA(), dmg = (14 + 3 * lv) * (lv >= 3 ? 1.4 : 1) * jBoost("feu");
+    m.a = ((m.a ?? 0) + spd * dt) % (Math.PI * 2); m.rad = rad; m.arcs = lv >= 5 ? 2 : 1;
+    for (const f of S.foes) {
+      if (f.prop || f.d.rare || f.hp <= 0 || f.wheelT > S.t) continue;
+      const dx = f.x - P.x, dy = f.y - P.y, d = Math.hypot(dx, dy) || 1; if (Math.abs(d - rad) > f.r + 16) continue;
+      const fa = Math.atan2(dy, dx);
+      for (let k = 0; k < m.arcs; k++) {
+        const rel = (((m.a + k * Math.PI - fa) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); // 0 = tête de la flamme, π/2 = bout de la traîne
+        if (rel > Math.PI / 2) continue;
+        f.wheelT = S.t + .3; hitFoe(f, dmg, "feu", dx / d * .4, dy / d * .4);
+        if (lv >= 3) { f.burnT = 2 * DUR(); f.burnDps = Math.max(f.burnDps || 0, 3 + lv); }
+        break;
+      }
+    }
+  },
+  nitrocharge(P, m, lv) { // ruée enflammée : brûle sur son passage, chaque ennemi touché accélère Héricendre
     const [dx, dy] = dirFor(P), l = Math.hypot(dx, dy); if (!l || P.dashT > 0) { m.t = .3; return; }
     m.t = (lv >= 4 ? 1.7 : 2.2) * P.cdMul;
     const dist = 170 + 20 * lv + (lv >= 2 ? 40 : 0);
-    P.dashT = .3; P.dashBy = "rouefeu"; P.dvx = dx / l * dist / .3; P.dvy = dy / l * dist / .3; P.inv = Math.max(P.inv, .4); m.hit = new Set(); m.ring = lv >= 5; m.pt = 0;
-  },
-  nitrocharge(P, m, lv) {
-    const n = 1 + (lv >= 2) + (lv >= 4) + EXTRA(), ts = nearestFoes(n);
-    if (!ts.length && !P.aiming) { m.t = .2; return; }
-    m.t = (lv >= 4 ? 1 : 1.3) * P.cdMul;
-    const dmg = (10 + 3 * lv) * (lv >= 3 ? 1.4 : 1), max = 3 + (lv >= 3) + (lv >= 5);
-    for (let i = 0; i < n; i++) {
-      const f = ts[i % Math.max(1, ts.length)], a = f && !P.aiming ? Math.atan2(f.y - P.y, f.x - P.x) : Math.atan2(P.fy, P.fx) + (i - (n - 1) / 2) * .2;
-      S.shots.push({ kind:"fire", x:P.x, y:P.y, vx:Math.cos(a) * 420, vy:Math.sin(a) * 420, r:9 + P.stage, dmg, life:1.3, pierce:1, type:"feu",
-        onHit:() => { P.nitro = Math.min(max, (P.nitro || 0) + 1); P.nitroT = 4; } });
-    }
+    P.dashT = .3; P.dashBy = "nitrocharge"; P.dvx = dx / l * dist / .3; P.dvy = dy / l * dist / .3; P.inv = Math.max(P.inv, .4);
+    m.hit = new Set(); m.ring = lv >= 5; m.pt = 0; m.nmax = 3 + (lv >= 3) + (lv >= 5);
   },
   brouillard(P, m, lv) {
     m.t = (lv >= 4 ? 6 : 8) * P.cdMul;
     const life = (lv >= 3 ? 4 : 3) * DUR();
     (S.smokes ||= []).push({ x:P.x, y:P.y, r:(120 + 18 * lv) * AREA(), life, max:life, miss:lv >= 3 ? .5 : .4, slow:lv >= 5, o:P, ph:Math.random() * 6 });
   },
-  rebondifeu(P, m, lv) {
+  rebondifeu(P, m, lv) { // une boule de feu qui rebondit d'ennemi en ennemi et les brûle
     const pool = nearestFoes(12).filter(f => Math.hypot(f.x - P.x, f.y - P.y) < 420);
     if (!pool.length) { m.t = .3; return; }
     m.t = (lv >= 4 ? 1.6 : 2) * P.cdMul;
-    const n = 1 + (lv >= 3) + (lv >= 5) + EXTRA(), dmg = (18 + 5 * lv) * (lv >= 3 ? 1.4 : 1);
+    const n = 1 + (lv >= 3) + (lv >= 5) + EXTRA(), dmg = (16 + 4 * lv) * (lv >= 3 ? 1.4 : 1), bounce = 2 + (lv >= 2 ? 2 : 0) + (lv >= 5 ? 2 : 0);
     for (let i = 0; i < n; i++) {
       const f = pool[i % pool.length], a = Math.atan2(f.y - P.y, f.x - P.x) + (i ? (Math.random() - .5) * .3 : 0);
-      S.shots.push({ kind:"blast", x:P.x, y:P.y, vx:Math.cos(a) * 340, vy:Math.sin(a) * 340, r:9 + P.stage, dmg, life:1.4, pierce:1, type:"feu", boom:true, boomR:(55 + 10 * lv + (lv >= 2 ? 15 : 0)) * AREA(), boomMul:.7, burn:{ t:2.5, dps:4 + lv } });
+      S.shots.push({ kind:"blast", x:P.x, y:P.y, vx:Math.cos(a) * 380, vy:Math.sin(a) * 380, r:9 + P.stage, dmg, life:1.4, pierce:1, bounce, hit:new Set(), type:"feu",
+        onHit:g => { g.burnT = 2.5 * DUR(); g.burnDps = Math.max(g.burnDps || 0, 4 + lv); emit(g.x, g.y, 6, "feu", { sp:120, life:.35 }); } });
     }
   },
   eruption(P, m, lv) {
@@ -2835,13 +2842,13 @@ function updateJohto(P, dt) { // talents et effets continus des starters de Joht
     for (const q of S.players) if (!q.down && Math.hypot(q.x - P.x, q.y - P.y) < R0) q.hp = Math.min(q.maxHp, q.hp + (q === P ? .3 : .8) * dt);
     for (const f of S.foes) if (!f.d.boss && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (R0 + f.r) ** 2 && !(f.slowT > .2 && f.slowMul < .85)) { f.slowT = .2; f.slowMul = .85; }
   }
-  const rf = P.moves.rouefeu;
-  if (rf?.hit) { // Roue de Feu : brûle sur son passage et sème des flammes
-    HIT_SRC = "rouefeu";
-    if (P.dashT > 0 && P.dashBy === "rouefeu") {
+  const rf = P.moves.nitrocharge;
+  if (rf?.hit) { // Nitrocharge : brûle sur son passage, sème des flammes et accélère à chaque ennemi touché
+    HIT_SRC = "nitrocharge";
+    if (P.dashT > 0 && P.dashBy === "nitrocharge") {
       const dmg = (14 + 4 * rf.lv) * (rf.lv >= 3 ? 1.4 : 1);
-      for (const f of S.foes) if (!rf.hit.has(f) && f.hp > 0 && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (f.r + P.r + 14) ** 2) { rf.hit.add(f); hitFoe(f, dmg, "feu", P.dvx / 900, P.dvy / 900); }
-      if ((rf.pt -= dt) <= 0) { rf.pt = .035; S.patches.push({ x:P.x, y:P.y + P.r * .5, r:16 * AREA(), life:1.6 * DUR(), max:1.6 * DUR(), dmg:3 + rf.lv, burn:rf.lv >= 3, ph:Math.random() * 6, src:"rouefeu", o:P }); }
+      for (const f of S.foes) if (!rf.hit.has(f) && f.hp > 0 && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (f.r + P.r + 14) ** 2) { rf.hit.add(f); hitFoe(f, dmg, "feu", P.dvx / 900, P.dvy / 900); P.nitro = Math.min(rf.nmax || 3, (P.nitro || 0) + 1); P.nitroT = 4; }
+      if ((rf.pt -= dt) <= 0) { rf.pt = .035; S.patches.push({ x:P.x, y:P.y + P.r * .5, r:16 * AREA(), life:1.6 * DUR(), max:1.6 * DUR(), dmg:3 + rf.lv, burn:rf.lv >= 3, ph:Math.random() * 6, src:"nitrocharge", o:P }); }
       if (Math.random() < .8) emit(P.x, P.y, 2, "feu", { sp:80, life:.35, r:2.6 });
     } else {
       if (rf.ring) {
@@ -2951,6 +2958,25 @@ function drawJohtoOver(t, CAM, vw, vh) { // au-dessus : fumée, boucliers, liane
     cx.fillStyle = g2; cx.beginPath(); cx.arc(P.x, P.y, r, 0, Math.PI * 2); cx.fill();
     cx.strokeStyle = `rgba(235,255,225,${.85 * k})`; cx.lineWidth = 2; cx.beginPath(); cx.arc(P.x, P.y, r, 0, Math.PI * 2); cx.stroke();
     for (let h = 0; h < 6; h++) { const a = h / 6 * Math.PI * 2 + t * .8; circ(cx, P.x + Math.cos(a) * r * .72, P.y + Math.sin(a) * r * .72, 2.2, `rgba(235,255,225,${.6 * k})`); }
+  }
+  for (const P of S.players) { const rw = P.moves.rouefeu; if (!rw?.rad || P.down) continue; // Roue de Feu : traîne de flammes en quart de cercle
+    cx.save(); cx.lineCap = "round";
+    for (let k = 0; k < rw.arcs; k++) {
+      const head = rw.a + k * Math.PI, N = 22;
+      for (let i = N - 1; i >= 0; i--) { // de la traîne (rouge, fine) vers la tête (jaune, épaisse)
+        const q = i / N, a0 = head - q * Math.PI / 2, a1 = head - (i + 1) / N * Math.PI / 2, w = 3 + 10 * (1 - q), fl = Math.sin(t * 30 + i) * 2;
+        const col = q < .2 ? `rgba(255,240,170,${1 - q})` : q < .5 ? `rgba(255,170,60,${1 - q * .5})` : `rgba(235,80,35,${.95 - q * .45})`;
+        cx.globalCompositeOperation = "lighter"; cx.strokeStyle = col; cx.lineWidth = w * 1.6; cx.globalAlpha = .2;
+        cx.beginPath(); cx.arc(P.x, P.y, rw.rad + fl, a1, a0); cx.stroke();
+        cx.globalCompositeOperation = "source-over"; cx.globalAlpha = 1; cx.lineWidth = w;
+        cx.beginPath(); cx.arc(P.x, P.y, rw.rad + fl, a1, a0); cx.stroke();
+      }
+      const hx = P.x + Math.cos(head) * rw.rad, hy = P.y + Math.sin(head) * rw.rad;
+      cx.globalCompositeOperation = "lighter"; glow(hx, hy, 15, "255,190,80", .55); cx.globalCompositeOperation = "source-over";
+      circ(cx, hx, hy, 4, "#fff6c8");
+      if (Math.random() < .6) emit(hx, hy, 1, "feu", { sp:40, life:.4, up:30, r:2.4 });
+    }
+    cx.restore();
   }
   for (const f of S.foes) if (f.vine) {
     const v = f.vine;
@@ -6629,7 +6655,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v177";
+const NET_VER = "v178";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
