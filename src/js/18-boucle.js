@@ -518,7 +518,9 @@ function update(dt) {
       g.hp -= 45 * (1 + S.t / 300); g.hurt = .12; s.life = 0; emit(s.x, s.y, 5, "psy", { sp:100, life:.35 }); break;
     }
     if (s.life <= 0) { if (s.puddle && S.sludge.length < 240) S.sludge.push({ x:s.x, y:s.y, r:42, life:7, max:7, ph:Math.random() * 6 }); continue; } // Bomb-Beurk : flaque à l'atterrissage
-    if (P.inv <= 0 && (s.x-P.x)**2 + (s.y-P.y)**2 < (P.r + s.r)**2) {
+    if (P.inv <= 0 && !s.fogMiss && (s.x-P.x)**2 + (s.y-P.y)**2 < (P.r + s.r)**2) {
+      const sm = S.smokes && S.smokes.find(c => (P.x-c.x)**2 + (P.y-c.y)**2 < c.r*c.r); // Brouillard : le tireur rate sa cible
+      if (sm && Math.random() < sm.miss) { s.fogMiss = true; S.texts.push({ x:P.x, y:P.y - P.r - 18, txt:"Raté !", col:"#c9c9c9", life:.8, label:true }); continue; }
       const m = eff(s.type, [ptype()]); s.life = 0;
       if (m === 0) { S.texts.push({ x:P.x, y:P.y - P.r - 18, txt:"Aucun effet !", col:"#c8c8c8", life:1, label:true }); continue; }
       S.shake = .18;

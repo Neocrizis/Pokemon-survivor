@@ -86,7 +86,7 @@ const MOVES = {
   nitrocharge: { name:"Nitrocharge", type:"feu", line:"heri", max:5,
     desc: lv => ["Toutes les 2,2 s, fonce en roulant dans ta direction : brûle tout ce que tu traverses et laisse un sillage de flammes, intouchable pendant la charge. Chaque ennemi touché te rend 4 % plus rapide pendant 4 s (jusqu'à 3 fois).", "Charge plus longue.", "Dégâts +40 %, les flammes brûlent, jusqu'à 4 fois.", "Une charge toutes les 1,7 s.", "Un anneau de feu explose à l'arrivée, jusqu'à 5 fois."][lv-1] },
   brouillard:  { name:"Brouillard", type:"normal", line:"heri", max:5,
-    desc: lv => ["Toutes les 8 s, un nuage de fumée : les ennemis dedans ratent 40 % de leurs coups.", "Nuage plus large.", "Dure plus longtemps, 50 % de coups ratés.", "Un nuage toutes les 6 s.", "Les ennemis perdus dans la fumée sont ralentis de 30 %."][lv-1] },
+    desc: lv => ["Toutes les 8 s, un nuage de fumée : les ennemis dedans ratent 40 % de leurs coups, et leurs projectiles te ratent aussi quand tu es dedans.", "Nuage plus large.", "Dure plus longtemps, 50 % de coups ratés.", "Un nuage toutes les 6 s.", "Les ennemis perdus dans la fumée sont ralentis de 30 %."][lv-1] },
   rebondifeu:  { name:"Rebondifeu", type:"feu", line:"heri", max:5,
     desc: lv => ["Une boule de feu rebondit d'ennemi en ennemi (3 cibles) et brûle chacun d'eux.", "+2 rebonds.", "Dégâts +40 %, +1 boule.", "Recharge plus rapide.", "+1 boule, +2 rebonds."][lv-1] },
   eruption:    { name:"Éruption", type:"feu", line:"heri", rare:{ minLvl:8, w:.35 }, max:5,

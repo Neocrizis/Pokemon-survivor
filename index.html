@@ -535,7 +535,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v178)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v179)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -1060,7 +1060,7 @@ const MOVES = {
   nitrocharge: { name:"Nitrocharge", type:"feu", line:"heri", max:5,
     desc: lv => ["Toutes les 2,2 s, fonce en roulant dans ta direction : brûle tout ce que tu traverses et laisse un sillage de flammes, intouchable pendant la charge. Chaque ennemi touché te rend 4 % plus rapide pendant 4 s (jusqu'à 3 fois).", "Charge plus longue.", "Dégâts +40 %, les flammes brûlent, jusqu'à 4 fois.", "Une charge toutes les 1,7 s.", "Un anneau de feu explose à l'arrivée, jusqu'à 5 fois."][lv-1] },
   brouillard:  { name:"Brouillard", type:"normal", line:"heri", max:5,
-    desc: lv => ["Toutes les 8 s, un nuage de fumée : les ennemis dedans ratent 40 % de leurs coups.", "Nuage plus large.", "Dure plus longtemps, 50 % de coups ratés.", "Un nuage toutes les 6 s.", "Les ennemis perdus dans la fumée sont ralentis de 30 %."][lv-1] },
+    desc: lv => ["Toutes les 8 s, un nuage de fumée : les ennemis dedans ratent 40 % de leurs coups, et leurs projectiles te ratent aussi quand tu es dedans.", "Nuage plus large.", "Dure plus longtemps, 50 % de coups ratés.", "Un nuage toutes les 6 s.", "Les ennemis perdus dans la fumée sont ralentis de 30 %."][lv-1] },
   rebondifeu:  { name:"Rebondifeu", type:"feu", line:"heri", max:5,
     desc: lv => ["Une boule de feu rebondit d'ennemi en ennemi (3 cibles) et brûle chacun d'eux.", "+2 rebonds.", "Dégâts +40 %, +1 boule.", "Recharge plus rapide.", "+1 boule, +2 rebonds."][lv-1] },
   eruption:    { name:"Éruption", type:"feu", line:"heri", rare:{ minLvl:8, w:.35 }, max:5,
@@ -3963,7 +3963,9 @@ function update(dt) {
       g.hp -= 45 * (1 + S.t / 300); g.hurt = .12; s.life = 0; emit(s.x, s.y, 5, "psy", { sp:100, life:.35 }); break;
     }
     if (s.life <= 0) { if (s.puddle && S.sludge.length < 240) S.sludge.push({ x:s.x, y:s.y, r:42, life:7, max:7, ph:Math.random() * 6 }); continue; } // Bomb-Beurk : flaque à l'atterrissage
-    if (P.inv <= 0 && (s.x-P.x)**2 + (s.y-P.y)**2 < (P.r + s.r)**2) {
+    if (P.inv <= 0 && !s.fogMiss && (s.x-P.x)**2 + (s.y-P.y)**2 < (P.r + s.r)**2) {
+      const sm = S.smokes && S.smokes.find(c => (P.x-c.x)**2 + (P.y-c.y)**2 < c.r*c.r); // Brouillard : le tireur rate sa cible
+      if (sm && Math.random() < sm.miss) { s.fogMiss = true; S.texts.push({ x:P.x, y:P.y - P.r - 18, txt:"Raté !", col:"#c9c9c9", life:.8, label:true }); continue; }
       const m = eff(s.type, [ptype()]); s.life = 0;
       if (m === 0) { S.texts.push({ x:P.x, y:P.y - P.r - 18, txt:"Aucun effet !", col:"#c8c8c8", life:1, label:true }); continue; }
       S.shake = .18;
@@ -6655,7 +6657,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v178";
+const NET_VER = "v179";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
