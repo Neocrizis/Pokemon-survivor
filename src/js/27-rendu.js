@@ -642,12 +642,9 @@ function render(now) {
       for (let q = -1; q <= 1; q++) { const ox = px * q * 13, oy = py * q * 13; cx.beginPath(); cx.moveTo(c0x + ox - ux * L / 2, c0y + oy - uy * L / 2); cx.quadraticCurveTo(c0x + ox + px * 8, c0y + oy + py * 8, c0x + ox + ux * L / 2, c0y + oy + uy * L / 2); cx.stroke(); }
     }
   }
-  for (const ff of S.frostFangs || []) { // Crocs Givre : cône de givre + grande mâchoire de glace qui claque
+  for (const ff of S.frostFangs || []) { // Crocs Givre : grande mâchoire de glace qui claque
     const P = ff.o, p = 1 - ff.life / ff.max, k = Math.min(1, ff.life / ff.max * 2.2), R = ff.range;
     cx.save(); cx.translate(P.x, P.y); cx.rotate(ff.a); cx.globalAlpha = k;
-    const g = cx.createRadialGradient(0, 0, R * .2, 0, 0, R); g.addColorStop(0, "rgba(200,240,255,.05)"); g.addColorStop(1, "rgba(150,220,255,.38)");
-    cx.fillStyle = g; cx.beginPath(); cx.moveTo(0, 0); cx.arc(0, 0, R, -.7, .7); cx.closePath(); cx.fill();
-    cx.strokeStyle = "rgba(225,248,255,.8)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(0, 0, R, -.7, .7); cx.stroke();
     const shut = Math.min(1, p / .35) ** 2, gap = R * .42 * (1 - shut), x0 = R * .25, L = R * .8, n = 6;
     for (const s of [-1, 1]) { // mâchoire du haut (s=-1) et du bas (s=1)
       const y0 = s * (gap + 6);
