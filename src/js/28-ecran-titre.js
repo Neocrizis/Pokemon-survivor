@@ -123,6 +123,43 @@ function drawBall(g, x, y, R, master, open, now) {
   g.drawImage(img, 0, 0, 32, cut, -24 * s, -cut * s, 32 * s, cut * s);
   g.restore();
 }
+// Envoi du starter, façon jeux Game Boy Advance : lancer en cloche, trois secousses, « clic » et étoiles,
+// puis la balle s'ouvre dans un éclair blanc et le Pokémon en sort en silhouette blanche avant de prendre ses couleurs
+const BALL_TMP = document.createElement("canvas");
+function pixStar(g, x, y, s, a, col) { g.globalAlpha = a; g.fillStyle = col; g.fillRect(x - s / 2, y - s * 1.5, s, s * 3); g.fillRect(x - s * 1.5, y - s / 2, s * 3, s); g.fillStyle = "#fff"; g.fillRect(x - s / 2, y - s / 2, s, s); g.globalAlpha = 1; }
+function drawBallAnim(g, t, line, MX, MY, MR, now) {
+  const m = ballAnim.master, bx = 140, by = 166, R = 24, ball = (x, y, open, rot = 0) => { g.save(); g.translate(x, y); g.rotate(rot); g.scale(.7, .7); drawBall(g, 0, 0, R / .7, m, open, now); g.restore(); };
+  if (t < .55) { // lancer : arc depuis la gauche, la balle tourne sur elle-même
+    const k = t / .55, x = -20 + (bx + 20) * k, y = by - Math.sin(k * Math.PI) * 120 * (1 - k * .35) - (1 - k) * 40;
+    ball(x, y, 0, k * Math.PI * 4);
+  } else if (t < .75) { const k = (t - .55) / .2; ball(bx, by - Math.sin(k * Math.PI) * 14, 0); } // petit rebond
+  else if (t < 1.85) { // trois secousses, avec une pause entre chacune
+    const u = (t - .75) / .37, n = Math.floor(u), f = u - n, rot = f < .55 ? Math.sin(f / .55 * Math.PI * 2) * .32 : 0;
+    if (n !== ballAnim.wob && n < 3) { ballAnim.wob = n; sfx("chest"); }
+    g.save(); g.translate(bx, by + R); g.rotate(rot); g.translate(-bx, -by - R); ball(bx, by, 0); g.restore();
+  } else if (t < 2.2) { // clic : étoiles qui jaillissent
+    if (!ballAnim.click) { ballAnim.click = true; sfx("ach"); }
+    const k = (t - 1.85) / .35; ball(bx, by, 0);
+    for (const [dx, dy, c] of [[-1, -1, "#ffe066"], [0, -1.3, "#ffffff"], [1, -1, "#9ad8ff"]]) pixStar(g, bx + dx * 34 * k, by - 10 + dy * 30 * k, 3, 1 - k * k, m ? "#e0a8ff" : c);
+  } else { // ouverture : éclair, rayons, puis le Pokémon sort
+    if (!ballAnim.opened) { ballAnim.opened = true; sfx("evo"); }
+    const k = Math.min(1, (t - 2.2) / .35), e = Math.min(1, (t - 2.3) / .45), w = Math.min(1, Math.max(0, (t - 2.75) / .35));
+    ball(bx, by, Math.min(1, k * 1.6));
+    const fc = m ? "200,140,255" : "255,255,255";
+    g.save(); g.globalCompositeOperation = "lighter"; g.translate(bx, by - 8);
+    for (let i = 0; i < 8; i++) { g.rotate(Math.PI / 4); g.fillStyle = `rgba(${fc},${.5 * (1 - e)})`; g.fillRect(-1.5, 0, 3, 30 + 110 * k); } // rayons
+    const fl = g.createRadialGradient(0, 0, 0, 0, 0, 30 + 120 * k); fl.addColorStop(0, `rgba(${fc},${.95 * (1 - e)})`); fl.addColorStop(1, `rgba(${fc},0)`); g.fillStyle = fl; g.fillRect(-200, -200, 400, 400); g.restore();
+    if (t > 2.3) { // silhouette blanche qui grandit, puis les couleurs reviennent
+      const c = BALL_TMP, sc = .2 + .8 * (1 - Math.pow(1 - e, 3)), dpr = g.getTransform().a;
+      if (c.width !== g.canvas.width) { c.width = g.canvas.width; c.height = g.canvas.height; }
+      const tg = c.getContext("2d"); tg.setTransform(dpr, 0, 0, dpr, 0, 0); tg.globalCompositeOperation = "source-over"; tg.clearRect(0, 0, 280, 210);
+      tg.save(); tg.translate(MX, by - (by - MY) * e); tg.scale(sc, sc); tg.translate(-MX, -MY); drawMon(tg, line, MX, MY, MR, false, now / 1000, 0, 1, true); tg.restore();
+      if (w < 1) { tg.setTransform(1, 0, 0, 1, 0, 0); tg.globalCompositeOperation = "source-atop"; tg.fillStyle = `rgba(${m ? "235,215,255" : "255,255,255"},${1 - w})`; tg.fillRect(0, 0, c.width, c.height); }
+      g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(c, 0, 0); g.restore();
+    }
+    if (t > 3.2) { const l = ballAnim.line; ballAnim = null; pickStarter(l); }
+  }
+}
 function drawPreviews(now) {
   if (state === "menu") {
     // Canvas à la taille affichée et sprite agrandi d'un nombre entier de fois (×4) : pixels nets et réguliers
@@ -131,21 +168,7 @@ function drawPreviews(now) {
     const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, 280, 210);
     const line = ballAnim ? ballAnim.line : carLine, sp = sheetFor(line, 0), MX = 140, MY = sp ? 142 : 140, MR = sp ? 28 : 46; // ×4
     if (!ballAnim) drawMon(g, line, MX, sp ? MY : MY + Math.sin(now / 300) * 3, MR, false, now / 1000, 0, 1, true);
-    else {
-      const t = (now - ballAnim.t0) / 1000, gy = 236, R = 34; g.save(); g.scale(.7, .7); // la Poké Ball est dessinée dans l'ancien repère 400×300
-      if (t < .45) { const k = t / .45, y = 20 + (gy - 20) * k * k - (k > .8 ? Math.sin((k - .8) / .2 * Math.PI) * 18 : 0); drawBall(g, 200, y, R, ballAnim.master, 0, now); }
-      else if (t < 1.25) { const k = (t - .45) / .8, wob = Math.sin(k * Math.PI * 3) * (1 - k) * .45; g.save(); g.translate(200, gy + R); g.rotate(wob); drawBall(g, 0, -R, R, ballAnim.master, 0, now); g.restore(); }
-      else {
-        if (!ballAnim.opened) { ballAnim.opened = true; sfx("evo"); }
-        const k = Math.min(1, (t - 1.25) / .45);
-        drawBall(g, 200, gy, R, ballAnim.master, Math.min(1, k * 2), now);
-        g.save(); g.globalCompositeOperation = "lighter"; const fl = g.createRadialGradient(200, gy - 40, 0, 200, gy - 40, 40 + 160 * k);
-        const fc = ballAnim.master ? "200,140,255" : "255,255,255"; fl.addColorStop(0, `rgba(${fc},${.9 * (1 - k)})`); fl.addColorStop(1, `rgba(${fc},0)`); g.fillStyle = fl; g.fillRect(0, 0, 400, 300); g.restore();
-        g.restore(); g.save(); g.globalAlpha = k; g.translate(MX, MY); g.scale(.3 + .7 * k, .3 + .7 * k); g.translate(-MX, -MY); drawMon(g, line, MX, MY, MR, false, now / 1000, 0, 1, true); g.restore();
-        if (t > 2.05) { const l = ballAnim.line; ballAnim = null; pickStarter(l); }
-      }
-      if (ballAnim && !ballAnim.opened) g.restore();
-    }
+    else drawBallAnim(g, (now - ballAnim.t0) / 1000, line, MX, MY, MR, now);
     for (const id of ["sPrev", "sNext"]) {
       const el = $(id), l = el.dataset.l; if (!l) continue; const cc = el.querySelector("canvas"), gg = cc.getContext("2d"), sp2 = sheetFor(l, 0);
       if (cc.width !== 150 * dpr) { cc.width = 150 * dpr; cc.height = 112 * dpr; }
