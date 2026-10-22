@@ -190,16 +190,17 @@ function getChunk(ci, cj) {
   const tries = Math.round(3 + forestDensity(x0 + CH/2, y0 + CH/2) * 13);
   for (let i = 0; i < tries; i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
-    if (forestDensity(x, y) < (LEVEL.safari ? .64 : .45) || !clear(x, y, 125) || inPond(x, y, 50)) continue;
+    if (forestDensity(x, y) < (LEVEL.safari ? .64 : LEVEL.alph ? .36 : .45) || !clear(x, y, 125) || inPond(x, y, 50)) continue;
     if (trees.some(t => Math.hypot(t.x - x, t.y - y) < (LEVEL.safari ? 230 : 125))) continue;
     const r = 46 + R() * 30; trees.push({ x, y, r, trunk:r * .3, v:Math.floor(R() * (LEVEL.safari ? 3 : 6)), ph:R() * 6 });
   }
+  if (LEVEL.alph) alphRuins(trees); // Ruines d'Alpha : salles, colonnes et murets à la place de la plupart des arbres
   for (let i = 0; i < (LEVEL.safari ? 5 : 4); i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH, k = R();
     if (!clear(x, y, 85) || inPond(x, y, 30) || trees.some(t => Math.hypot(t.x - x, t.y - y) < 75)) continue;
     if (LEVEL.safari) { if (k < .3) rocks.push({ x, y, r:14 + R() * 20 }); else if (k < .55) mounds.push({ x, y, r:12 + R() * 6, h:34 + R() * 22 }); continue; } // kopjes et termitières
     if (k < .45) rocks.push({ x, y, r:LEVEL.jade ? 8 + R() * 6 : 12 + R() * 13 }); // Forêt de Jade : petits rochers moussus
-    else if (k < .6) { const a = R() * Math.PI, len = 70 + R() * 50; if (!LEVEL.jade) logs.push({ x, y, a, len }); } // pas de troncs couchés dans la Forêt de Jade
+    else if (k < .6) { const a = R() * Math.PI, len = 70 + R() * 50; if (!LEVEL.jade && !LEVEL.alph) logs.push({ x, y, a, len }); } // pas de troncs couchés dans la Forêt de Jade ni aux Ruines d'Alpha
   }
   for (const t of trees) solids.push({ x:t.x, y:t.y, r:t.trunk });
   for (const r of rocks) solids.push({ x:r.x, y:r.y, r:r.r });

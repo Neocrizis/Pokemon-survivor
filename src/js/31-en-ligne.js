@@ -173,7 +173,7 @@ function netStart() {
 const NET_SKIP = new Set(["P", "boss", "mother", "mewtwo", "bird", "lgBoss", "parts", "chestQ", "dmgBy", "achMsgs", "seq", "players", "foes", "gems"]);
 const FOE_KEYS = Object.keys(FOES);
 // champs optionnels d'un Pokémon sauvage utiles à l'affichage (envoyés seulement s'ils servent)
-const FOE_OPT = ["jump", "vanish", "vanMax", "under", "jz", "dashMode", "bx", "by", "shieldT", "hurt", "appear", "stunT", "slowT", "sleepT", "seedT", "raged", "prop", "poisonT", "burnT", "dx", "dy", "rare", "fuse", "lz", "mb", "mbMax", "mbR", "rest"];
+const FOE_OPT = ["jump", "vanish", "vanMax", "under", "jz", "dashMode", "bx", "by", "shieldT", "hurt", "appear", "stunT", "slowT", "sleepT", "seedT", "raged", "prop", "poisonT", "burnT", "dx", "dy", "rare", "fuse", "lz", "mb", "mbMax", "mbR", "rest", "spr"];
 const NET_DROP = new Set(["d", "pull", "gp", "net", "tr", "hit", "home", "boomer", "tx", "remote"]);
 function netRep(k, v) {
   if (k === "o") return v && typeof v === "object" ? v.idx : v;

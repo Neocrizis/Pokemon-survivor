@@ -29,6 +29,9 @@ function grassOver(x, y, r, t) {
 }
 function drawCanopy(camX, camY, vw, vh, t, P) {
   forView(camX, camY, vw, vh, 120, (i, j, c) => { for (const tr of c.trees) {
+    if (tr.ruin) { const sp = alphRuinSprite(tr), x = tr.x - sp.W / 2, y = tr.y + tr.trunk * .7 - sp.base; // Ruines d'Alpha
+      if (x + sp.W < camX || x > camX + vw || y + sp.H < camY || y > camY + vh) continue;
+      cx.globalAlpha = S.players.some(p => p.y < tr.y && Math.abs(p.x - tr.x) < sp.W / 2 && p.y > y) ? .45 : 1; cx.drawImage(sp.cv, x, y, sp.W, sp.H); continue; }
     const cyc = tr.y - tr.r * .55;
     if (tr.x + tr.r * 1.3 < camX || tr.x - tr.r * 1.3 > camX + vw || cyc + tr.r * 1.3 < camY || cyc - tr.r * 1.3 > camY + vh) continue;
     const sp = LEVEL.safari ? acaciaSprite(tr.r, tr.v) : jadeOn() ? jadeTreeSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
@@ -361,6 +364,7 @@ function render(now) {
     else { const a = Math.min(1, (rk.t + .7) * 2); cx.globalAlpha = a; drawBoulder(rk.x, rk.y, rk.r * .7, rk.ph); cx.globalAlpha = 1; }
   }
   drawJohtoUnder(t);
+  drawAlphUnder(t);
   for (const P of S.players) if (P.moves.grozyeux?.rad && !P.down) {
     const rad = P.moves.grozyeux.rad;
     circ(cx, P.x, P.y, rad, "rgba(226,81,63,.06)");
@@ -441,7 +445,7 @@ function render(now) {
     if (f.d.bird) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y - 10, f.r * 2.4, f.raged ? "255,90,90" : BIRD_COL[f.d.bird], .4 + .15 * Math.sin(t * 5)); cx.restore(); }
     if (f.jz) ell(cx, f.x, f.y + f.r * .6, f.r * (1 - f.jz / 400), f.r * .4 * (1 - f.jz / 400), "rgba(0,0,0,.35)");
     if (f.copyK) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y, f.r * 2, "200,120,255", .35 + .1 * Math.sin(t * 6 + f.ph)); cx.restore(); }
-    drawMon(cx, f.copyK || f.d.sprite || f.kind, f.x, f.y - (f.jz || 0) - (f.d.bird ? 5 * Math.sin(t * 3 + f.ph) - (f.d.sprDy || 0) : 0), f.d.sprR || f.r, f.flip, t + f.ph, f.copySt || 0, f.dir, f.dashMode !== "aim"); }
+    drawMon(cx, f.copyK || f.spr || f.d.sprite || f.kind, f.x, f.y - (f.jz || 0) - (f.d.bird ? 5 * Math.sin(t * 3 + f.ph) - (f.d.sprDy || 0) : 0), f.d.sprR || f.r, f.flip, t + f.ph, f.copySt || 0, f.dir, f.dashMode !== "aim"); }
     if (!f.d.types.includes("vol")) grassOver(f.x, f.y, f.r, t + f.ph);
     if (f.hurt > 0) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y, f.r * 1.5, "255,255,255", f.hurt / .12 * .75); cx.restore(); }
     if (f.shieldT > 0) { // Barrière de Mewtwo
@@ -696,6 +700,7 @@ function render(now) {
     circ(cx, bm.sx, bm.sy, bm.w * .9 * (1 + (1 - k) * .4), `rgba(200,235,255,${.8 * k})`);
   }
   drawJohtoOver(t, CAM, vw, vh);
+  drawAlphOver(t, CAM, vw, vh);
   for (const tl of S.tails) { // Draco-Queue (et Hydroqueue) : arc de queue qui balaie le cercle
     const P = tl.o || S.P, k = tl.life / .3, sw = (1 - k) * Math.PI * 2.2 + tl.a;
     cx.save(); cx.lineCap = "round";

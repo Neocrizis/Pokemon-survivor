@@ -55,6 +55,8 @@ const ACHS = [
   { id:"win9",    name:"Pokémon fabuleux",   desc:"Vaincre Mewtwo au fond de la Caverne Azurée.",       reward:100, unlock:["mew", "germignon", "heri", "kaiminus"], secret:true },
   { id:"win10",   name:"Tour Chétiflor gravie", desc:"Terminer la Tour Chétiflor, premier niveau de Johto.", reward:100, secret:true },
   { id:"togepi",  name:"Éleveur de Pokémon", desc:"Protéger l'assistant du Prof. Orme dans la Tour Chétiflor, puis terminer le niveau.", reward:100, unlock:"togepi", secret:true },
+  { id:"win11",   name:"Secret des Ruines", desc:"Terminer les Ruines d'Alpha, deuxième niveau de Johto.", reward:100, secret:true },
+  { id:"zarbi",   name:"Carnet Zarbi",       desc:"Vaincre les 26 formes de Zarbi (de A à Z) dans les Ruines d'Alpha, en une ou plusieurs parties.", reward:100, secret:true },
   { id:"mewtwo",  name:"Pokémon génétique",  desc:"Repousser Mewtwo dans le Manoir Pokémon.",       reward:100 },
   { id:"legend",  name:"Légende vivante",    desc:"Vaincre Artikodin, Électhor ou Sulfura dans le niveau Oiseau Légendaire.", reward:100 },
   { id:"draco",   name:"Chasseur de dragon", desc:"Attraper le Minidraco pendant la chasse du Parc Safari.", reward:50, unlock:"draco" },

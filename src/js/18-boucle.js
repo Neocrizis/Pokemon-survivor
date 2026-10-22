@@ -51,7 +51,7 @@ function update(dt) {
   if (P.parT > 0) mx = my = 0; // paralysé (Cage-Éclair, barrière électrique)
   const ml = Math.hypot(mx, my); P.moving = ml > 0;
   if (ml > 1) { mx /= ml; my /= ml; }
-  const slow = (tallGrassAt(P.x, P.y) ? .85 : 1) * (P.inSludge ? .75 : 1);
+  const slow = (tallGrassAt(P.x, P.y) ? .85 : 1) * (P.inSludge ? .75 : 1) * (P.inMud ? .6 : 1);
   if (LEVEL.ice && !flyP(P)) { // Île Écume : on glisse sur la glace (sauf en volant)
     const k = Math.min(1, dt * 2.4); P.ivx = (P.ivx || 0) + (mx * speed() * slow - (P.ivx || 0)) * k; P.ivy = (P.ivy || 0) + (my * speed() * slow - (P.ivy || 0)) * k;
     P.x += P.ivx * dt; P.y += P.ivy * dt;
@@ -74,6 +74,7 @@ function update(dt) {
   if (LEVEL.rocket) around(P.x, P.y, c => { for (const sp of c.spinners || []) if (Math.abs(P.x - sp.x) < 26 && Math.abs(P.y - sp.y) < 26) { P.x += sp.dx * 380 * dt; P.y += sp.dy * 380 * dt; } }, 0);
   P.inSludge = false;
   for (const sl of S.sludge) { if ((P.x - sl.x) ** 2 + ((P.y - sl.y) * 1.6) ** 2 < sl.r * sl.r) P.inSludge = !flying; }
+  P.inMud = !flying && S.muds.some(m => (P.x - m.x) ** 2 + ((P.y - m.y) * 1.6) ** 2 < m.r * m.r); // boue de Maraiste (Ruines d'Alpha)
   if (P.inSludge) { P.slT = (P.slT || 0) - dt; if (P.slT <= 0) { P.slT = .6; if (P.inv <= 0 && hurtP(3 * (1 + S.t / 900))) return; } }
   if (!flying) collide(P, P.r, ptype() === "eau");
   arenaClamp(P, P.r);
@@ -167,6 +168,7 @@ function update(dt) {
       if (f.dashMode !== "go") f.herded = false;
     }
     if (f.stamp) { ax = f.stamp.dx; ay = f.stamp.dy; sp = 480; f.stamp.t -= dt; if (f.stamp.t <= 0) { f.hp = 0; f.gone = true; } }
+    if (f.run) { ax = f.run.dx; ay = f.run.dy; sp = 300; if ((f.run.t -= dt) <= 0) f.run = null; } // Zarbi en formation : foncent tout droit
     if (f.jump) sp = 0;
     if (f.d.slide && !(f.sleepT > 0)) {
       // Éboulement : des rochers tombent au hasard autour de Grolem (ombre d'avertissement d'abord)
@@ -240,7 +242,7 @@ function update(dt) {
       if (f.shotT <= 0 && l < 420) {
         f.shotT = 2.4 + Math.random();
         const n = f.d.volley || 1; // Magnéton : trois éclairs en éventail
-        for (let i = 0; i < n; i++) { const a = Math.atan2(dy, dx) + (i - (n - 1) / 2) * .22; S.eshots.push({ x:f.x, y:f.y, vx:Math.cos(a) * 230, vy:Math.sin(a) * 230, dmg:f.d.dmg, life:2.4, type:f.copyT || f.d.shot || "electrik", r:6 }); }
+        for (let i = 0; i < n; i++) { const a = Math.atan2(dy, dx) + (i - (n - 1) / 2) * .22; S.eshots.push({ x:f.x, y:f.y, vx:Math.cos(a) * 230, vy:Math.sin(a) * 230, dmg:f.d.dmg, life:2.4, type:f.copyT || f.skT || f.d.shot || "electrik", r:6 }); }
       }
     }
     if (f.sleepT > 0 || f.stunT > 0 || f.hold > 0) sp = 0; // hold : attaque en cours (Repos, Laser Glace, Explosion)
@@ -427,6 +429,7 @@ function update(dt) {
     }
   }
   if (updateJohtoFoes(dt)) return;
+  if (updateAlph(dt)) return;
   // Magmar géant : Lance-Flammes (gerbe de feu continue vers le joueur)
   for (const f of S.foes) if (f.d.flamer && !(f.sleepT > 0)) {
     P = S.P = nearP(f.x, f.y);
@@ -594,7 +597,7 @@ function update(dt) {
     if (f.gone) continue; // troupeau qui s'éloigne, Pokémon rare enfui
     if (f.d.rare) { if (f.caught) rareCaught(f); continue; }
     if (f.d.mother) { motherCalm(f); continue; }
-    S.kills++; dexCount(f); sfx("ko");
+    S.kills++; dexCount(f); sfx("ko"); if (f.d.zarbi) zarbiCarnet(f);
     { const kp = S.players[f.lastBy]; if (kp) kp.kos = (kp.kos || 0) + 1; }
     if (f.d.healer && !S.nuz) { P.hp = Math.min(P.maxHp, P.hp + 20); S.texts.push({ x:P.x, y:P.y - 30, txt:"Leveinard +20 PV", col:"#7fe08a", life:1, label:true }); emit(P.x, P.y, 10, "fee", { sp:120, life:.5, r:2.6 }); }
     if (f.d.event) { // Ronflex se réveille
