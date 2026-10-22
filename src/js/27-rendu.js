@@ -23,7 +23,7 @@ function grassOver(x, y, r, t) {
   if (!tallGrassAt(x, y)) return;
   for (let k = -2; k <= 2; k++) {
     const bx = x + k * r * .32, sway = Math.sin(t * 3 + k + x * .05) * 2.5, h = r * (.55 + (k & 1) * .2);
-    cx.fillStyle = LEVEL.safari ? (k & 1 ? "#a8823a" : "#e0be5a") : k & 1 ? "#2f6b33" : "#4d9645";
+    cx.fillStyle = LEVEL.safari ? (k & 1 ? "#a8823a" : "#e0be5a") : LEVEL.jade ? (k & 1 ? "#288850" : "#389858") : k & 1 ? "#2f6b33" : "#4d9645";
     cx.beginPath(); cx.moveTo(bx - 4, y + r * .85); cx.quadraticCurveTo(bx + sway * .5, y + r * .85 - h * .6, bx + sway, y + r * .85 - h); cx.quadraticCurveTo(bx + 1, y + r * .85 - h * .4, bx + 4, y + r * .85); cx.fill();
   }
 }
@@ -31,7 +31,7 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
   forView(camX, camY, vw, vh, 120, (i, j, c) => { for (const tr of c.trees) {
     const cyc = tr.y - tr.r * .55;
     if (tr.x + tr.r * 1.3 < camX || tr.x - tr.r * 1.3 > camX + vw || cyc + tr.r * 1.3 < camY || cyc - tr.r * 1.3 > camY + vh) continue;
-    const sp = LEVEL.safari ? acaciaSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
+    const sp = LEVEL.safari ? acaciaSprite(tr.r, tr.v) : jadeOn() ? jadeTreeSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
     const under = S.players.some(p => Math.hypot(p.x - tr.x, p.y - cyc) < tr.r * 1.05);
     cx.globalAlpha = under ? .35 : 1;
     cx.drawImage(sp.cv, tr.x - sp.size / 2 + sw, cyc - sp.size / 2, sp.size, sp.size);

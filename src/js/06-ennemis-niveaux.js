@@ -161,7 +161,7 @@ const FOES = {
   sulfura:   { name:"Sulfura",   types:["feu","vol"],      hp:7000, speed:92, dmg:42, r:46, xp:200, boss:true, bird:"fire", armor:.54, sprR:26, sprDy:14 },
 };
 const LEVELS = [
-  { name:"Forêt de Jade", num:1, title:"Tu as traversé la Forêt de Jade !", cave:false, where:"en forêt", from:"surgit des arbres",
+  { name:"Forêt de Jade", num:1, jade:true, title:"Tu as traversé la Forêt de Jade !", cave:false, where:"en forêt", from:"surgit des arbres",
     intro:"La Forêt de Jade grouille d'insectes, d'oiseaux, de Pichu et de quelques Pikachu. Choisis ton starter et traverse-la jusqu'à Argenta : tiens dix minutes.",
     win:"a tenu dix minutes et Argenta est en vue. Le Mont Sélénite t'attend !",
     matchup:{ feu:["Avantagé", "Le Feu est super efficace sur les insectes de la forêt."],

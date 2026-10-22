@@ -198,8 +198,8 @@ function getChunk(ci, cj) {
     const x = x0 + R() * CH, y = y0 + R() * CH, k = R();
     if (!clear(x, y, 85) || inPond(x, y, 30) || trees.some(t => Math.hypot(t.x - x, t.y - y) < 75)) continue;
     if (LEVEL.safari) { if (k < .3) rocks.push({ x, y, r:14 + R() * 20 }); else if (k < .55) mounds.push({ x, y, r:12 + R() * 6, h:34 + R() * 22 }); continue; } // kopjes et termitières
-    if (k < .45) rocks.push({ x, y, r:12 + R() * 13 });
-    else if (k < .6) { const a = R() * Math.PI, len = 70 + R() * 50; logs.push({ x, y, a, len }); }
+    if (k < .45) rocks.push({ x, y, r:LEVEL.jade ? 8 + R() * 6 : 12 + R() * 13 }); // Forêt de Jade : petits rochers moussus
+    else if (k < .6) { const a = R() * Math.PI, len = 70 + R() * 50; if (!LEVEL.jade) logs.push({ x, y, a, len }); } // pas de troncs couchés dans la Forêt de Jade
   }
   for (const t of trees) solids.push({ x:t.x, y:t.y, r:t.trunk });
   for (const r of rocks) solids.push({ x:r.x, y:r.y, r:r.r });
