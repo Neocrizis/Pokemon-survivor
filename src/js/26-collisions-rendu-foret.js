@@ -54,11 +54,12 @@ function renderChunk(ci, cj) {
   }
   lg.putImageData(img, 0, 0); g.imageSmoothingEnabled = true; g.drawImage(lo, 1, 1, N, N, 0, 0, CH, CH);
   g.translate(-x0, -y0);
-  const R = rng(Math.floor(hash(ci - 333, cj + 777) * 4294967295));
+  const R = rng(Math.floor(hash(ci - 333, cj + 777) * 4294967295)), jade = jadeOn();
+  if (jade) jadeGround(g, x0, y0, R); // Forêt de Jade : tuiles de Rouge Feu (26b-foret-jade.js)
   const all = { ponds:[], trees:[], rocks:[], logs:[], mounds:[] };
   for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) { const n = getChunk(ci + a, cj + b2); for (const k in all) all[k].push(...n[k]); }
   // ombres portées des arbres (dessinées avant le reste)
-  for (const t of all.trees) {
+  if (!jade) for (const t of all.trees) {
     const sg = g.createRadialGradient(t.x + 18, t.y + 4, t.r * .2, t.x + 18, t.y + 4, t.r * 1.15);
     sg.addColorStop(0, "rgba(8,30,12,.42)"); sg.addColorStop(1, "rgba(8,30,12,0)");
     g.fillStyle = sg; g.beginPath(); g.ellipse(t.x + 18, t.y + 4, t.r * 1.15, t.r * .9, 0, 0, Math.PI * 2); g.fill();
@@ -71,7 +72,7 @@ function renderChunk(ci, cj) {
     for (let k = 0; k < 6; k++) { const a = R() * Math.PI * 2; g.beginPath(); g.moveTo(px, py); g.lineTo(px + Math.cos(a) * rx * .6, py + Math.sin(a) * ry * .6); g.lineTo(px + Math.cos(a + .3) * rx * .85, py + Math.sin(a + .3) * ry * .85); g.stroke(); }
   }
   // brins d'herbe
-  for (let i = 0; i < 900; i++) {
+  if (!jade) for (let i = 0; i < 900; i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
     if (nearPath(x, y, 58)) { if (R() < .25) { ell(g, x, y, 2 + R() * 3, 1.5 + R() * 2, R() < .5 ? "#8a7552" : "#b8a27a"); } continue; }
     const h = 5 + R() * 7, sway = (R() - .5) * 4, shade = R();
@@ -79,13 +80,13 @@ function renderChunk(ci, cj) {
     g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + sway * .3, y - h * .6, x + sway, y - h); g.stroke();
   }
   // feuilles mortes
-  for (let i = 0; i < (LEVEL.safari ? 0 : 100); i++) {
+  for (let i = 0; i < (LEVEL.safari || jade ? 0 : 100); i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
     const col = ["#e0892e", "#c8502a", "#e9b740", "#a8401f", "#d97a2a"][Math.floor(R() * 5)];
     ell(g, x, y, 4 + R() * 2.5, 2.2 + R() * 1.2, col, R() * Math.PI);
   }
   // hautes herbes : touffes serrées
-  for (let y = y0 + 4; y < y0 + CH; y += 11) for (let x = x0 + 4; x < x0 + CH; x += 11) {
+  if (!jade) for (let y = y0 + 4; y < y0 + CH; y += 11) for (let x = x0 + 4; x < x0 + CH; x += 11) {
     const jx = x + (R() - .5) * 8, jy = y + (R() - .5) * 8;
     if (!tallGrassAt(jx, jy)) continue;
     for (let k = 0; k < 3; k++) {
@@ -95,12 +96,12 @@ function renderChunk(ci, cj) {
     }
   }
   // fleurs et champignons
-  for (let i = 0; i < (LEVEL.safari ? 0 : 7); i++) {
+  for (let i = 0; i < (LEVEL.safari || jade ? 0 : 7); i++) {
     const cx0 = x0 + R() * CH, cy0 = y0 + R() * CH; if (nearPath(cx0, cy0, 70) || tallGrassAt(cx0, cy0)) continue;
     const col = ["#f4f1e4", "#f6d45a", "#f19ab8", "#b9a6f0"][Math.floor(R() * 4)];
     for (let k = 0; k < 6; k++) { const fx = cx0 + (R() - .5) * 40, fy = cy0 + (R() - .5) * 26; g.strokeStyle = "#3f7a36"; g.lineWidth = 1; g.beginPath(); g.moveTo(fx, fy + 5); g.lineTo(fx, fy); g.stroke(); for (let q = 0; q < 5; q++) circ(g, fx + Math.cos(q * 1.26) * 2.6, fy + Math.sin(q * 1.26) * 2.6, 2, col); circ(g, fx, fy, 1.5, "#e98a3a"); }
   }
-  for (let i = 0; i < (LEVEL.safari ? 0 : 3); i++) { const mx = x0 + R() * CH, my = y0 + R() * CH; if (nearPath(mx, my, 60)) continue; ell(g, mx + 3, my + 4, 7, 3, "rgba(0,0,0,.25)"); g.fillStyle = "#efe2c4"; g.fillRect(mx - 2, my - 4, 4, 7); ell(g, mx, my - 5, 7, 4.5, "#d8483a"); circ(g, mx - 3, my - 6, 1.2, "#fff"); circ(g, mx + 2, my - 7, 1, "#fff"); }
+  for (let i = 0; i < (LEVEL.safari || jade ? 0 : 3); i++) { const mx = x0 + R() * CH, my = y0 + R() * CH; if (nearPath(mx, my, 60)) continue; ell(g, mx + 3, my + 4, 7, 3, "rgba(0,0,0,.25)"); g.fillStyle = "#efe2c4"; g.fillRect(mx - 2, my - 4, 4, 7); ell(g, mx, my - 5, 7, 4.5, "#d8483a"); circ(g, mx - 3, my - 6, 1.2, "#fff"); circ(g, mx + 2, my - 7, 1, "#fff"); }
   // étangs
   for (const p of all.ponds) {
     g.save(); g.translate(p.x, p.y); g.rotate(p.rot);
@@ -133,6 +134,7 @@ function renderChunk(ci, cj) {
   }
   // rochers
   for (const r of all.rocks) {
+    if (jade) { jadeRock(g, r); continue; }
     ell(g, r.x + 5, r.y + r.r * .55, r.r * 1.1, r.r * .5, "rgba(10,25,10,.35)");
     const rg = g.createRadialGradient(r.x - r.r * .35, r.y - r.r * .5, 2, r.x, r.y, r.r * 1.1);
     if (LEVEL.safari) { rg.addColorStop(0, "#e2cdaa"); rg.addColorStop(.6, "#b0916e"); rg.addColorStop(1, "#6f5a46"); }
@@ -149,7 +151,7 @@ function renderChunk(ci, cj) {
     ell(g, m.x + m.r * .55, m.y - m.h * .55, m.r * .35, m.r * .5, "#a85a34"); ell(g, m.x - m.r * .6, m.y - m.h * .25, m.r * .3, m.r * .4, "#c47a48");
   }
   // troncs et racines (les acacias du Safari ont leur tronc dans le sprite)
-  if (!LEVEL.safari) for (const t of all.trees) {
+  if (!LEVEL.safari && !jade) for (const t of all.trees) {
     g.strokeStyle = "#4a3322"; g.lineWidth = 5; g.lineCap = "round";
     for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 + t.ph; g.beginPath(); g.moveTo(t.x, t.y); g.quadraticCurveTo(t.x + Math.cos(a) * t.trunk * 1.3, t.y + Math.sin(a) * t.trunk * .9, t.x + Math.cos(a) * t.trunk * 1.9, t.y + Math.sin(a) * t.trunk * 1.3); g.stroke(); }
     const tg = g.createRadialGradient(t.x - t.trunk * .3, t.y - t.trunk * .3, 1, t.x, t.y, t.trunk);

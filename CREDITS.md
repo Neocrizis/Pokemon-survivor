@@ -88,3 +88,5 @@ Icônes des objets (et de la Baie Sitrus, la Potion, la Super Potion, la Poké F
 
 ## Décors
 Tour Chétiflor : parquet, statues de Chétiflor, barrières, pilier oscillant, trous du plancher et longues barrières découpés dans des captures des cartes de la Tour Chétiflor de **Pokémon HeartGold / SoulSilver** (© Nintendo, Creatures, Game Freak). Usage non commercial uniquement.
+
+Forêt de Jade : sol, sentier, hautes herbes, arbres et fleurs découpés dans une carte de la Forêt de Jade de **Pokémon Rouge Feu / Vert Feuille** (© Nintendo, Creatures, Game Freak) ; petits rochers moussus redessinés d'après Pokémon Diamant / Perle / Platine. Usage non commercial uniquement.
