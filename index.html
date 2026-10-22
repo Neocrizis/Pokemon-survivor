@@ -460,6 +460,46 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
 }
 .rtIntro.short .lede { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .rtMore { font: 600 12px var(--body); color: var(--accent); background: none; border: 0; padding: 2px 0 0; cursor: pointer; text-decoration: underline; }
+/* ---------- Écran Succès : vitrine par thèmes (v184) ---------- */
+#ach { place-items: start center; padding-top: 24px; } /* pas de saut quand un onglet a peu de succès */
+#ach .sheet { gap: 14px; }
+#achList.shopList { --or: #f6c845; --argent: #cfd9e2; --bronze: #d08a4c; width: min(1080px, 100%); gap: 12px; min-width: 0; }
+#achSub { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 0; }
+.acGlobal { display: flex; align-items: center; gap: 10px; } .acGlobal b, .acMoney b { font-family: var(--num); font-size: 12px; color: var(--ink); } .acMoney b { color: var(--accent); }
+.acBar { display: block; height: 7px; border-radius: 6px; background: #0e1a13; border: 1px solid var(--panel-edge); overflow: hidden; margin-top: 6px; }
+.acBar > i { display: block; height: 100%; background: linear-gradient(90deg, #5fd16a, #a6ea6e); border-radius: 6px; }
+.acBar.big { width: 240px; height: 12px; margin: 0; } .acBar.big > i { background: linear-gradient(90deg, #e9b33a, #f6c845); }
+.acTabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.acTab { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 12px; background: var(--panel); border: 2px solid var(--panel-edge); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.acTab img { width: 32px; height: 32px; image-rendering: pixelated; } .acTab img.sil { filter: brightness(0); opacity: .8; }
+.acTab span { flex: 1; font-weight: 700; font-size: 14px; min-width: 0; } .acTab .acBar { margin-top: 4px; }
+.acTab > b { font-family: var(--num); font-size: 9px; color: var(--ink-dim); }
+.acTab.on { border-color: var(--accent); background: linear-gradient(90deg, rgba(246,200,69,.18), var(--panel)); } .acTab.on > b { color: var(--accent); }
+.acChips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.acChip { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--panel-edge); background: var(--panel); font: inherit; font-weight: 700; font-size: 13px; color: var(--ink-dim); cursor: pointer; }
+.acChip.on { border-color: var(--accent); color: #1a1405; background: var(--accent); }
+.acGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.acEmpty { grid-column: 1 / -1; text-align: center; color: var(--ink-dim); }
+.acCard { --rk: var(--bronze); display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: #1a2a21; border: 2px solid var(--panel-edge); text-align: left; }
+.acCard.or { --rk: var(--or); } .acCard.argent { --rk: var(--argent); }
+.acCard.ok { border-color: color-mix(in srgb, var(--rk) 70%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--rk) 14%, var(--panel)), var(--panel) 60%); }
+.acIco { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #35553f, #142219); border: 3px solid var(--rk); box-shadow: 0 0 0 2px #0c150f inset; }
+.acIco img { width: 48px; height: 48px; image-rendering: pixelated; }
+.acIco.off, .acIco.sil { border-color: var(--panel-edge); } .acIco.off img { filter: grayscale(1) brightness(.55); }
+.acIco.sil { border-style: dashed; } .acIco.sil img { filter: brightness(0); opacity: .8; }
+.acTxt { display: flex; flex-direction: column; flex: 1; min-width: 0; } .acTxt b { font-size: 15px; } .acTxt small { color: var(--ink-dim); font-size: 12.5px; line-height: 1.35; margin-top: 2px; }
+.acProg { font-family: var(--num); font-size: 8px; color: var(--ink-dim); margin-top: 4px; }
+.acUnl { margin-top: 5px; font-size: 11px; font-weight: 700; color: #8fd6ff; background: rgba(90,168,240,.15); border: 1px solid rgba(90,168,240,.45); border-radius: 20px; padding: 1px 8px; width: max-content; max-width: 100%; }
+.acRew { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-family: var(--num); font-size: 10px; color: var(--accent); white-space: nowrap; }
+.acRew em { font-family: var(--body); font-style: normal; font-size: 11px; font-weight: 700; color: #7ee08a; }
+.acCard.todo .acRew { color: var(--ink-dim); }
+.acMed { font-size: 7px; padding: 3px 5px; border-radius: 4px; color: #1a1405; background: var(--rk); } .acCard.todo .acMed { background: var(--panel-edge); color: var(--ink-dim); }
+@media (max-width: 900px) { .acGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .acGrid { grid-template-columns: minmax(0, 1fr); gap: 6px; } .acBar.big { width: 160px; } #achSub { gap: 6px 14px; }
+  .acCard { padding: 7px 10px; } .acIco { width: 46px; height: 46px; } .acIco img { width: 40px; height: 40px; } .acRew { font-size: 9px; }
+  .acTabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; } .acTab { padding: 5px 9px; } .acTab img { width: 26px; height: 26px; } .acTab span { font-size: 13px; } .acChip { padding: 5px 10px; font-size: 12px; }
+}
 </style>
 <div class="rotateMsg" id="rotateMsg"><div class="phone">📱</div><div>Tourne ton téléphone<br>pour jouer en paysage</div></div>
 
@@ -535,7 +575,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v183)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v184)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -774,13 +814,13 @@ function achCheck(win) {
   if (P.stage >= 2) achGet("evo");
   if (Object.values(P.moves).some(m => m.lv >= 5)) achGet("move5");
   if (Object.keys(P.items).length >= 6) achGet("items6");
+  achRecord("ko", S.kills); achRecord("items", Object.keys(P.items).length);
   if (S.kills >= 1000) achGet("kills1k");
   if (P.shiny) achGet("shiny");
   if (win) { achGet("win" + LEVEL.num); if (P.spiky) achGet("spiky"); if (S.nuz) achGet("nuzwin"); }
 }
 function openAch() {
-  $("achSub").textContent = `${ACHS.filter(a => achs[a.id]).length} / ${ACHS.length} succès · ${achMoney().toLocaleString("fr-FR")} ₽ gagnés`;
-  $("achList").innerHTML = ACHS.filter(a => !a.secret || (["win10", "togepi", "win11", "zarbi"].includes(a.id) ? achs.win9 : achs.win8)).map(a => `<div class="shopRow ${achs[a.id] ? "done" : "todo"}"><div><b>${achs[a.id] ? "🏆" : "🔒"} ${a.name}</b><small>${a.desc}${a.unlock ? ` Débloque ${unlockNames(a)}.` : ""}</small></div><span class="reward">${a.reward} ₽</span></div>`).join("");
+  renderAch(); // vitrine par thèmes : 38-succes.js
   state = "ach"; $("start").hidden = true; $("ach").hidden = false; $("achClose").focus({ preventScroll:true });
 }
 function closeAch() { $("ach").hidden = true; $("home").hidden = false; state = "home"; }
@@ -7249,7 +7289,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v183";
+const NET_VER = "v184";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -8045,5 +8085,64 @@ function renderRoute() {
 const _setLevelRoute = setLevel;
 setLevel = i => { const open = levelOpen(i); _setLevelRoute(i); rtMsg = open ? "" : $("levelTag").textContent; renderRoute(); };
 renderRoute();
+/* ---------- Écran Succès : vitrine par thèmes (v184) ---------- */
+// Grille de cartes (sprite du Pokémon lié, cadre bronze/argent/or selon la récompense, barre de progression),
+// onglets de thèmes et filtres Tous / À faire / Obtenus. Les succès secrets restent des « ??? » tant qu'ils sont cachés.
+const ACH_ICON = { pika50:["pikachu"], money:["rmiaouss"], surv5:["roucool"], boss:["ronflex"], nohit:["spectrum"], evo:["feu", 2], move5:["pika", 2],
+  kills1k:["mackogneur"], win1:["papilusion"], win2:["nosferalto"], win3:["evoli"], win4:["ectoplasma"], win5:["rhinocorne"], win6:["smogogo"],
+  win7:["artikodin"], win8:["alakazam"], win9:["mew"], win10:["chetiflor"], togepi:["togepi"], win11:["xatu"], zarbi:["zarbi_a"], mewtwo:["mewtwo"], legend:["electhor"],
+  draco:["minidraco"], nuzwin:["fantominus"], shiny:["pika_s", 1], spiky:["pichuspiky"] }; // items6 : Poké Ball dessinée
+const ACH_CATS = [
+  { id:"kanto", name:"Aventure Kanto", icon:"win8", ids:["win1", "win2", "win3", "win4", "win5", "win6", "win7", "win8"] },
+  { id:"secret", name:"Secrets & Johto", icon:"win9", ids:["win9", "win10", "togepi", "win11", "zarbi"] },
+  { id:"combat", name:"Combat", icon:"boss", ids:["surv5", "boss", "nohit", "kills1k", "mewtwo", "legend"] },
+  { id:"collec", name:"Collection", icon:"pika50", ids:["pika50", "money", "evo", "move5", "items6", "draco", "shiny"] },
+  { id:"defis", name:"Défis", icon:"nuzwin", ids:["nuzwin", "spiky"] },
+];
+// Meilleurs scores d'une partie, pour les barres de « Hécatombe » et « Sac plein » (sur cet appareil)
+let achRec = {}; try { achRec = JSON.parse(localStorage.getItem("pokesurv-achrec") || "{}") || {}; } catch (e) {}
+function achRecord(k, v) { if (v > (achRec[k] || 0)) { achRec[k] = v; try { localStorage.setItem("pokesurv-achrec", JSON.stringify(achRec)); } catch (e) {} } }
+const achProg = { pika50:() => [dexKills.pikachu || 0, 50, ""], money:() => [moneyEarned(), 1000, ""],
+  kills1k:() => [achRec.ko || 0, 1000, "record : "], items6:() => [achRec.items || 0, 6, "record : "] };
+const achShown = a => !a.secret || achs[a.id] || (["win10", "togepi", "win11", "zarbi"].includes(a.id) ? achs.win9 : achs.win8); // même règle qu'avant la v184
+const achRank = a => a.reward >= 100 ? "or" : a.reward >= 30 ? "argent" : "bronze";
+const ACH_IMG = {};
+function achIcon(id) {
+  if (ACH_IMG[id]) return ACH_IMG[id];
+  const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+  if (!ACH_ICON[id]) { pokeBallIcon(g, 32, 32, 20); return ACH_IMG[id] = c.toDataURL(); }
+  const [k, st = 0] = ACH_ICON[id], sh = sheetFor(k, st); if (!sh) return "";
+  const b = sheetBox(sh), sc = Math.min(56 / b.h, 56 / b.w, 3);
+  g.drawImage(sh.img, b.x0, b.y0, b.w, b.h, 32 - b.w * sc / 2, 32 - b.h * sc / 2, b.w * sc, b.h * sc);
+  return ACH_IMG[id] = c.toDataURL();
+}
+const ACH_UI = { cat:"all", filter:"all" };
+const fr = n => n.toLocaleString("fr-FR");
+function achCard(a) {
+  const ok = !!achs[a.id], hid = !achShown(a), r = achRank(a), p = !ok && !hid && achProg[a.id] && achProg[a.id]();
+  const bar = p ? `<i class="acBar"><i style="width:${Math.min(100, p[0] / p[1] * 100)}%"></i></i><span class="acProg">${p[2]}${fr(Math.min(p[0], p[1]))} / ${fr(p[1])}</span>` : "";
+  const unl = a.unlock && !hid ? `<span class="acUnl">Débloque ${unlockNames(a)}</span>` : "";
+  return `<div class="acCard ${r} ${ok ? "ok" : "todo"}"><span class="acIco ${ok ? "" : hid ? "sil" : "off"}"><img src="${achIcon(a.id)}" alt=""></span>`
+    + `<div class="acTxt"><b>${hid ? "???" : a.name}</b><small>${hid ? "Succès secret : continue d'explorer…" : a.desc}</small>${unl}${bar}</div>`
+    + `<div class="acRew"><span class="acMed">${r === "or" ? "OR" : r === "argent" ? "ARG" : "BRZ"}</span>${hid ? "?" : a.reward} ₽${ok ? "<em>✓ Obtenu</em>" : ""}</div></div>`;
+}
+function renderAch() {
+  const all = ACHS.filter(a => achs[a.id]).length;
+  $("achSub").innerHTML = `<span class="acGlobal"><b>${all}</b> / ${ACHS.length} succès <i class="acBar big"><i style="width:${all / ACHS.length * 100}%"></i></i></span><span class="acMoney"><b>${fr(achMoney())} ₽</b> gagnés</span>`;
+  const n = c => c.ids.filter(id => achs[id]).length, cat = ACH_CATS.find(c => c.id === ACH_UI.cat);
+  const tab = (id, name, ico, got, tot, sil) => `<button type="button" class="acTab ${ACH_UI.cat === id ? "on" : ""}" data-cat="${id}">${ico ? `<img class="${sil ? "sil" : ""}" src="${ico}" alt="">` : ""}<span>${name}<i class="acBar"><i style="width:${got / tot * 100}%"></i></i></span><b>${got}/${tot}</b></button>`;
+  const tabs = tab("all", "Tous", "", all, ACHS.length) + ACH_CATS.map(c => tab(c.id, c.name, achIcon(c.icon), n(c), c.ids.length, !achShown(ACHS.find(a => a.id === c.icon)))).join("");
+  const list = (cat ? cat.ids.map(id => ACHS.find(a => a.id === id)) : ACHS).filter(Boolean);
+  const todo = list.filter(a => !achs[a.id]).length;
+  const chip = (id, txt) => `<button type="button" class="acChip ${ACH_UI.filter === id ? "on" : ""}" data-filter="${id}">${txt}</button>`;
+  const shown = list.filter(a => ACH_UI.filter === "all" || (ACH_UI.filter === "todo") === !achs[a.id]).sort((x, y) => !!achs[x.id] - !!achs[y.id]);
+  $("achList").innerHTML = `<div class="acTabs">${tabs}</div><div class="acChips">${chip("all", `Tous · ${list.length}`)}${chip("todo", `À faire · ${todo}`)}${chip("done", `Obtenus · ${list.length - todo}`)}</div>`
+    + `<div class="acGrid">${shown.map(achCard).join("") || `<p class="acEmpty">${ACH_UI.filter === "todo" ? "Tout est obtenu ici, bravo !" : "Rien d'obtenu ici pour l'instant."}</p>`}</div>`;
+}
+$("achList").addEventListener("click", e => {
+  const t = e.target.closest("[data-cat], [data-filter]"); if (!t) return;
+  if (t.dataset.cat) ACH_UI.cat = t.dataset.cat; else ACH_UI.filter = t.dataset.filter;
+  renderAch(); sfx("click");
+});
 })();
 </script>
