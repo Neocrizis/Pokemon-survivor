@@ -461,7 +461,7 @@ const LEVELS = [
     event:{ kind:"puzzle", from:200, to:225 }, // une dalle-puzzle (Kabuto, Ptéra, Ho-Oh ou Amonita) à résoudre
     bosses:[{ at:170, kind:"bossAxoloto" }, { at:300, kind:"bossXatu" }, { at:450, kind:"bossZarbiQ" }, { at:450, kind:"bossZarbiX" }],
     table(m, o) {
-      o.push(["zarbi", m < 3 ? 3.6 : 2], ["natu", m < 4 ? 2 : 1], ["axoloto", m < 3 ? 1.8 : 1]);
+      o.push(["zarbi", m < 3 ? 3 : 1.8], ["natu", m < 4 ? 2 : 1], ["axoloto", m < 3 ? 1.8 : 1]);
       if (m > 1.5) o.push(["queulorior", .3]);
       if (m > 2.5) o.push(["maraiste", 1 + m / 8]);
       if (m > 3.5) o.push(["xatu", 1 + m / 6]);

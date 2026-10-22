@@ -250,7 +250,7 @@ function update(dt) {
     if (!flies && !f.d.boss && tallGrassAt(f.x, f.y)) sp *= .85; // les boss ignorent le décor
     f.x += ax * sp * dt; f.y += ay * sp * dt;
     if (f.kbx || f.kby) { f.x += f.kbx * dt; f.y += f.kby * dt; const k = Math.pow(.02, dt); f.kbx *= k; f.kby *= k; if (Math.abs(f.kbx) + Math.abs(f.kby) < 8) f.kbx = f.kby = 0; }
-    if (!flies && !f.d.boss && !f.under && !f.d.ghost) collide(f, f.r, !!f.d.swim);
+    if (!flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase) collide(f, f.r, !!f.d.swim);
     arenaClamp(f, Math.min(f.r, 30)); f.dir = dirOf(ax, ay); f.flip = (f.d.ranged && l < 190) ? ax > 0 : ax < 0;
     f.hurt -= dt; f.hold = (f.hold || 0) - dt; f.slowT = (f.slowT || 0) - dt; f.sleepT = (f.sleepT || 0) - dt; f.stunT = (f.stunT || 0) - dt; f.leerT = (f.leerT || 0) - dt;
     if (f.burnT > 0 || f.seedT > 0 || f.poisonT > 0) {

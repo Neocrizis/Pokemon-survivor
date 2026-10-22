@@ -247,7 +247,7 @@ function drawMinimap(P) {
     if (c.mwalls) for (const w of c.mwalls) { g.strokeStyle = "rgba(170,150,130,.9)"; g.lineWidth = 24; g.beginPath(); g.moveTo(w.x - Math.cos(w.a) * w.len / 2, w.y - Math.sin(w.a) * w.len / 2); g.lineTo(w.x + Math.cos(w.a) * w.len / 2, w.y + Math.sin(w.a) * w.len / 2); g.stroke(); }
     if (c.fires && !S.fireOff) for (const f of c.fires) { g.strokeStyle = "rgba(255,120,40,.9)"; g.lineWidth = 20; g.beginPath(); g.moveTo(f.x - Math.cos(f.a) * f.len / 2, f.y - Math.sin(f.a) * f.len / 2); g.lineTo(f.x + Math.cos(f.a) * f.len / 2, f.y + Math.sin(f.a) * f.len / 2); g.stroke(); }
     if (c.statues) for (const q of c.statues) { g.fillStyle = "#e0dcff"; g.beginPath(); g.arc(q.x, q.y, 36, 0, Math.PI * 2); g.fill(); }
-    if (c.ruins) for (const o of c.ruins) { g.fillStyle = "rgba(150,140,100,.95)"; g.fillRect(o.x - o.w * .4, o.y - o.h * .4, o.w * .8, o.h * .75); } // Ruines d'Alpha
+    if (c.ruins) for (const o of c.ruins) { g.fillStyle = "rgba(150,140,100,.95)"; g.fillRect(o.box.x0, o.box.y0, o.box.x1 - o.box.x0, o.box.y1 - o.box.y0); } // Ruines d'Alpha
     if (c.crates) for (const q of c.crates) { g.fillStyle = "rgba(170,120,70,.9)"; g.fillRect(q.x - 18, q.y - 18, 36, 36); }
     if (c.graves) for (const gr of c.graves) { g.fillStyle = "rgba(160,150,180,.75)"; g.fillRect(gr.x - 14, gr.y - 18, 28, 30); }
     if (c.pillars) for (const q of c.pillars) { g.fillStyle = "rgba(190,180,210,.9)"; g.beginPath(); g.arc(q.x, q.y, q.r * 1.4, 0, Math.PI * 2); g.fill(); }
@@ -818,6 +818,7 @@ function render(now) {
   drawMap7Over(t);
   if (LEVEL.league) drawLeagueOver(camX, camY, vw, vh, t);
   drawCanopy(camX, camY, vw, vh, t, P);
+  drawAlphRoofs(camX, camY, vw, vh);
   drawMotes(camX, camY, vw, vh, t, Math.min(.05, t - (render.lt || t))); render.lt = t;
   if (LEVEL.cave) drawCaveLight(camX, camY, vw, vh, t, CAM);
   if (S.white > 0) { cx.fillStyle = `rgba(255,255,255,${Math.min(1, S.white / .8)})`; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120); } // écran blanc : Mewtwo s'enfuit
