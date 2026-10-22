@@ -6,7 +6,7 @@ function forView(camX, camY, vw, vh, pad, fn) {
 }
 function drawGround(camX, camY, vw, vh, t) {
   frameNo++; let made = 0;
-  cx.fillStyle = LEVEL.rocket ? "#4a505c" : LEVEL.tower ? (LEVEL.sprout ? "#6a4a2c" : "#3a3446") : LEVEL.manor ? "#4a3020" : LEVEL.theme ? CAVE_PAL[LEVEL.theme].base : LEVEL.cave ? "#2c2834" : LEVEL.safari ? "#b89a50" : "#3d6e38"; cx.fillRect(camX, camY, vw, vh);
+  cx.fillStyle = LEVEL.rocket ? "#4a505c" : LEVEL.tower ? (LEVEL.sprout ? "#6a4a2c" : "#3a3446") : LEVEL.manor ? "#4a3020" : LEVEL.theme ? CAVE_PAL[LEVEL.theme].base : LEVEL.cave ? "#2c2834" : LEVEL.safari ? "#b89a50" : LEVEL.alph ? "#e8d090" : "#3d6e38"; cx.fillRect(camX, camY, vw, vh);
   forView(camX, camY, vw, vh, 0, (i, j, c) => {
     if (!c.canvas && made < 2) { renderChunk(i, j); made++; liveChunks.add(c); }
     if (c.canvas) { c.used = frameNo; cx.drawImage(c.canvas, i * CH, j * CH, CH, CH); }
@@ -29,9 +29,6 @@ function grassOver(x, y, r, t) {
 }
 function drawCanopy(camX, camY, vw, vh, t, P) {
   forView(camX, camY, vw, vh, 120, (i, j, c) => { for (const tr of c.trees) {
-    if (tr.ruin) { const sp = alphRuinSprite(tr), x = tr.x - sp.W / 2, y = tr.y + tr.trunk * .7 - sp.base; // Ruines d'Alpha
-      if (x + sp.W < camX || x > camX + vw || y + sp.H < camY || y > camY + vh) continue;
-      cx.globalAlpha = S.players.some(p => p.y < tr.y && Math.abs(p.x - tr.x) < sp.W / 2 && p.y > y) ? .45 : 1; cx.drawImage(sp.cv, x, y, sp.W, sp.H); continue; }
     const cyc = tr.y - tr.r * .55;
     if (tr.x + tr.r * 1.3 < camX || tr.x - tr.r * 1.3 > camX + vw || cyc + tr.r * 1.3 < camY || cyc - tr.r * 1.3 > camY + vh) continue;
     const sp = LEVEL.safari ? acaciaSprite(tr.r, tr.v) : jadeOn() ? jadeTreeSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
@@ -44,7 +41,7 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
 const motes = [];
 function drawMotes(camX, camY, vw, vh, t, dt) {
   if (LEVEL.rocket) return;
-  while (motes.length < 46) motes.push({ x:camX + Math.random() * vw, y:camY + Math.random() * vh, leaf:!LEVEL.cave && !LEVEL.safari && Math.random() < .45, ph:Math.random() * 6, s:.6 + Math.random() * .8 });
+  while (motes.length < 46) motes.push({ x:camX + Math.random() * vw, y:camY + Math.random() * vh, leaf:!LEVEL.cave && !LEVEL.safari && !LEVEL.alph && Math.random() < .45, ph:Math.random() * 6, s:.6 + Math.random() * .8 });
   for (const m of motes) {
     if (m.leaf) { m.x += (14 + Math.sin(t + m.ph) * 22) * dt; m.y += 24 * m.s * dt; }
     else { m.x += Math.sin(t * .7 + m.ph) * 10 * dt; m.y += Math.cos(t * .5 + m.ph) * 8 * dt; }
@@ -250,6 +247,7 @@ function drawMinimap(P) {
     if (c.mwalls) for (const w of c.mwalls) { g.strokeStyle = "rgba(170,150,130,.9)"; g.lineWidth = 24; g.beginPath(); g.moveTo(w.x - Math.cos(w.a) * w.len / 2, w.y - Math.sin(w.a) * w.len / 2); g.lineTo(w.x + Math.cos(w.a) * w.len / 2, w.y + Math.sin(w.a) * w.len / 2); g.stroke(); }
     if (c.fires && !S.fireOff) for (const f of c.fires) { g.strokeStyle = "rgba(255,120,40,.9)"; g.lineWidth = 20; g.beginPath(); g.moveTo(f.x - Math.cos(f.a) * f.len / 2, f.y - Math.sin(f.a) * f.len / 2); g.lineTo(f.x + Math.cos(f.a) * f.len / 2, f.y + Math.sin(f.a) * f.len / 2); g.stroke(); }
     if (c.statues) for (const q of c.statues) { g.fillStyle = "#e0dcff"; g.beginPath(); g.arc(q.x, q.y, 36, 0, Math.PI * 2); g.fill(); }
+    if (c.ruins) for (const o of c.ruins) { g.fillStyle = "rgba(150,140,100,.95)"; g.fillRect(o.x - o.w * .4, o.y - o.h * .4, o.w * .8, o.h * .75); } // Ruines d'Alpha
     if (c.crates) for (const q of c.crates) { g.fillStyle = "rgba(170,120,70,.9)"; g.fillRect(q.x - 18, q.y - 18, 36, 36); }
     if (c.graves) for (const gr of c.graves) { g.fillStyle = "rgba(160,150,180,.75)"; g.fillRect(gr.x - 14, gr.y - 18, 28, 30); }
     if (c.pillars) for (const q of c.pillars) { g.fillStyle = "rgba(190,180,210,.9)"; g.beginPath(); g.arc(q.x, q.y, q.r * 1.4, 0, Math.PI * 2); g.fill(); }
@@ -297,6 +295,7 @@ function drawProp(f, t) {
     cx.fillStyle = "#6a4028"; cx.fillRect(x - 7, y - 17, 14, 4); cx.fillStyle = "#b07a4c"; ell(cx, x - 5, y - 4, 3, 6, "#b07a4c");
     cx.strokeStyle = "#d8b060"; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(x - 11, y + 1); cx.lineTo(x + 11, y + 1); cx.stroke();
   } else { // rocher fissuré (Éclate-Roc)
+    if (LEVEL.alph && AL.img) { ell(cx, x, y + 12, 17, 5, "rgba(0,0,0,.25)"); cx.imageSmoothingEnabled = false; alSpr(cx, "smash", x - 7 * 2.6, y + 14 - 13 * 2.6, 2.6); return; } // Ruines d'Alpha : rocher Éclate-Roc de HGSS
     if (moonOn()) { const q = MM.R.smash, K = 1.4; ell(cx, x, y + 14, 18, 5, "rgba(0,0,0,.3)"); cx.imageSmoothingEnabled = false; cx.drawImage(MM.img, q[0], q[1], q[2], q[3], x - q[2] * K / 2, y + 16 - q[3] * K, q[2] * K, q[3] * K); return; } // rocher Éclate-Roc de HGSS
     ell(cx, x, y + 13, 20, 6, "rgba(0,0,0,.3)"); drawBoulder(x, y, 18, 1.3);
     cx.strokeStyle = "#3a3240"; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(x - 4, y - 14); cx.lineTo(x + 1, y - 5); cx.lineTo(x - 3, y + 2); cx.lineTo(x + 4, y + 10);

@@ -11,7 +11,7 @@ function vnoise(x, y) {
 }
 const fbm = (x, y) => vnoise(x, y) * .6 + vnoise(x*2.1 + 17, y*2.1 + 9) * .3 + vnoise(x*4.3 + 3, y*4.3 + 41) * .1;
 const forestDensity = (x, y) => fbm(x / 700, y / 700);
-const tallGrassAt = (x, y) => !LEVEL.cave && !nearPath(x, y, 70) && fbm(x / 260 + 50, y / 260 + 50) > (LEVEL.safari ? .52 : .62);
+const tallGrassAt = (x, y) => !LEVEL.cave && !LEVEL.alph && !nearPath(x, y, 70) && fbm(x / 260 + 50, y / 260 + 50) > (LEVEL.safari ? .52 : .62);
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const START_Y = pathY(0);
 
@@ -182,6 +182,7 @@ function getChunk(ci, cj) {
   if (LEVEL.rocket) { c = rocketChunk(ci, cj); chunkData.set(key, c); return c; }
   if (LEVEL.league) { c = arenaChunk(ci, cj); chunkData.set(key, c); return c; }
   if (LEVEL.cave) { c = caveChunk(ci, cj); chunkData.set(key, c); return c; }
+  if (LEVEL.alph) { c = alphChunk(ci, cj); chunkData.set(key, c); return c; } // Ruines d'Alpha (16b-ruines-alpha.js)
   const R = rng(Math.floor(hash(ci + 1000, cj - 1000) * 4294967295));
   const x0 = ci * CH, y0 = cj * CH, ponds = [], trees = [], rocks = [], logs = [], mounds = [], solids = [];
   const clear = (x, y, m) => Math.hypot(x, y - START_Y) > 260 && !nearPath(x, y, m);
@@ -190,11 +191,10 @@ function getChunk(ci, cj) {
   const tries = Math.round(3 + forestDensity(x0 + CH/2, y0 + CH/2) * 13);
   for (let i = 0; i < tries; i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
-    if (forestDensity(x, y) < (LEVEL.safari ? .64 : LEVEL.alph ? .36 : .45) || !clear(x, y, 125) || inPond(x, y, 50)) continue;
+    if (forestDensity(x, y) < (LEVEL.safari ? .64 : .45) || !clear(x, y, 125) || inPond(x, y, 50)) continue;
     if (trees.some(t => Math.hypot(t.x - x, t.y - y) < (LEVEL.safari ? 230 : 125))) continue;
     const r = 46 + R() * 30; trees.push({ x, y, r, trunk:r * .3, v:Math.floor(R() * (LEVEL.safari ? 3 : 6)), ph:R() * 6 });
   }
-  if (LEVEL.alph) alphRuins(trees); // Ruines d'Alpha : salles, colonnes et murets à la place de la plupart des arbres
   for (let i = 0; i < (LEVEL.safari ? 5 : 4); i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH, k = R();
     if (!clear(x, y, 85) || inPond(x, y, 30) || trees.some(t => Math.hypot(t.x - x, t.y - y) < 75)) continue;

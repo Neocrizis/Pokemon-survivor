@@ -36,6 +36,7 @@ function renderChunk(ci, cj) {
   if (LEVEL.rocket) return renderRocketChunk(ci, cj);
   if (LEVEL.league) return renderArenaChunk(ci, cj);
   if (LEVEL.cave) return renderCaveChunk(ci, cj);
+  if (LEVEL.alph) return renderAlphChunk(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;
   const g = cv2.getContext("2d"); g.scale(CH_SCALE, CH_SCALE);
@@ -49,7 +50,6 @@ function renderChunk(ci, cj) {
     if (tallGrassAt(wx, wy)) { r -= 16; gr -= 10; b -= 6; }
     const pt = Math.max(0, Math.min(1, (64 - Math.abs(wy - pathY(wx))) / 24));
     if (LEVEL.safari) { r += (184 + n * 22 - r) * pt; gr += (112 + n * 16 - gr) * pt; b += (66 + n * 10 - b) * pt; } // piste de latérite
-    else if (LEVEL.alph) { r += (150 + n * 20 - r) * pt; gr += (138 + n * 18 - gr) * pt; b += (104 + n * 12 - b) * pt; }
     else { r += (156 + n * 26 - r) * pt; gr += (130 + n * 20 - gr) * pt; b += (86 + n * 12 - b) * pt; }
     const k = (j * (N + 2) + i) * 4; img.data[k] = r; img.data[k+1] = gr; img.data[k+2] = b; img.data[k+3] = 255;
   }
@@ -57,7 +57,6 @@ function renderChunk(ci, cj) {
   g.translate(-x0, -y0);
   const R = rng(Math.floor(hash(ci - 333, cj + 777) * 4294967295)), jade = jadeOn();
   if (jade) jadeGround(g, x0, y0, R); // Forêt de Jade : tuiles de Rouge Feu (26b-foret-jade.js)
-  if (LEVEL.alph) alphPath(g, x0, y0); // Ruines d'Alpha : sentier dallé
   const all = { ponds:[], trees:[], rocks:[], logs:[], mounds:[] };
   for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) { const n = getChunk(ci + a, cj + b2); for (const k in all) all[k].push(...n[k]); }
   // ombres portées des arbres (dessinées avant le reste)
@@ -82,7 +81,7 @@ function renderChunk(ci, cj) {
     g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + sway * .3, y - h * .6, x + sway, y - h); g.stroke();
   }
   // feuilles mortes
-  for (let i = 0; i < (LEVEL.safari || jade || LEVEL.alph ? 0 : 100); i++) {
+  for (let i = 0; i < (LEVEL.safari || jade ? 0 : 100); i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
     const col = ["#e0892e", "#c8502a", "#e9b740", "#a8401f", "#d97a2a"][Math.floor(R() * 5)];
     ell(g, x, y, 4 + R() * 2.5, 2.2 + R() * 1.2, col, R() * Math.PI);
@@ -154,7 +153,6 @@ function renderChunk(ci, cj) {
   }
   // troncs et racines (les acacias du Safari ont leur tronc dans le sprite)
   if (!LEVEL.safari && !jade) for (const t of all.trees) {
-    if (t.ruin) continue;
     g.strokeStyle = "#4a3322"; g.lineWidth = 5; g.lineCap = "round";
     for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 + t.ph; g.beginPath(); g.moveTo(t.x, t.y); g.quadraticCurveTo(t.x + Math.cos(a) * t.trunk * 1.3, t.y + Math.sin(a) * t.trunk * .9, t.x + Math.cos(a) * t.trunk * 1.9, t.y + Math.sin(a) * t.trunk * 1.3); g.stroke(); }
     const tg = g.createRadialGradient(t.x - t.trunk * .3, t.y - t.trunk * .3, 1, t.x, t.y, t.trunk);
