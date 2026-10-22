@@ -90,3 +90,5 @@ Icônes des objets (et de la Baie Sitrus, la Potion, la Super Potion, la Poké F
 Tour Chétiflor : parquet, statues de Chétiflor, barrières, pilier oscillant, trous du plancher et longues barrières découpés dans des captures des cartes de la Tour Chétiflor de **Pokémon HeartGold / SoulSilver** (© Nintendo, Creatures, Game Freak). Usage non commercial uniquement.
 
 Forêt de Jade : sol, sentier, hautes herbes, arbres et fleurs découpés dans une carte de la Forêt de Jade de **Pokémon Rouge Feu / Vert Feuille** (© Nintendo, Creatures, Game Freak) ; petits rochers moussus redessinés d'après Pokémon Diamant / Perle / Platine. Usage non commercial uniquement.
+
+Mont Sélénite : sol, falaises et buissons découpés dans une capture du Mont Sélénite de **Pokémon HeartGold / SoulSilver** ; crêtes rocheuses et cratères tirés des tuiles de grotte de **Pokémon Rouge Feu / Vert Feuille** (rendues depuis le projet pret/pokefirered) ; rocher Éclate-Roc du pack **« HGSS for RMXP »** de SirMalo (Eevee Expo). © Nintendo, Creatures, Game Freak. Pierres Lune dessinées pour le jeu. Usage non commercial uniquement.

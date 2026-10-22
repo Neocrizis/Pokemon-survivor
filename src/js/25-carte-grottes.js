@@ -12,32 +12,47 @@ function caveChunk(ci, cj) {
     if (walls.some(w => Math.hypot(w.x - x, w.y - y) < 175)) continue;
     walls.push({ x, y, r:th === "lava" ? 50 + R() * 46 : 40 + R() * 36, ph:R() * 6, n:8 + Math.floor(R() * 4) });
   }
+  if (LEVEL.moon) for (const w of walls) { // Mont Sélénite : longues crêtes rocheuses comme dans Rouge Feu
+    const hz = R() < .5, len = 4 + Math.floor(R() * 6), thick = 2 + (R() < .35 ? 1 : 0), T = 32;
+    let tw = hz ? len : thick, th = hz ? thick : len;
+    const ox = w.x, oy = w.y, ok = (a, b) => { const W = a * T, H = b * T; w.x = Math.max(x0 + 50 + W / 2, Math.min(x0 + CH - 50 - W / 2, ox)); w.y = Math.max(y0 + 50 + H / 2, Math.min(y0 + CH - 50 - H / 2, oy)); for (let u = -W / 2; u <= W / 2; u += 24) for (let v = -H / 2; v <= H / 2; v += 24) { const px = w.x + u, py = w.y + v; if (px < x0 + 50 || px > x0 + CH - 50 || py < y0 + 50 || py > y0 + CH - 50 || !clear(px, py, 70) || inPond(px, py, 30) || walls.some(o => o !== w && o.tw && Math.abs(o.x - px) < o.tw * T / 2 + 70 && Math.abs(o.y - py) < o.th * T / 2 + 70)) return false; } return true; };
+    while ((hz ? tw : th) > 3 && !ok(tw, th)) hz ? tw-- : th--;
+    if (!ok(tw, th)) { tw = th = 2; } // repli : petit rocher rond
+    w.tw = tw; w.th = th; w.r = Math.hypot(tw, th) * T / 2;
+  }
+  const craters = [], inRidge = (x, y, m) => walls.some(w => w.tw ? Math.abs(w.x - x) < w.tw * 16 + m && Math.abs(w.y - y) < w.th * 16 + m : Math.hypot(w.x - x, w.y - y) < w.r + m);
+  const busy = (x, y, m) => LEVEL.moon && (inRidge(x, y, m) || craters.some(c => Math.hypot(c.x - x, c.y - y) < 40 + m)); // rien ne se superpose au Mont Sélénite
+  if (LEVEL.moon && R() < .45) { const x = x0 + 60 + R() * (CH - 120), y = y0 + 60 + R() * (CH - 120); if (clear(x, y, 90) && !inRidge(x, y, 50)) craters.push({ x, y }); }
   for (let i = 0; i < 6; i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
-    if (!clear(x, y, 80) || inPond(x, y, 30) || walls.some(w => Math.hypot(w.x - x, w.y - y) < w.r + 34) || spikes.some(k => Math.hypot(k.x - x, k.y - y) < 55)) continue;
+    if (!clear(x, y, 80) || inPond(x, y, 30) || walls.some(w => Math.hypot(w.x - x, w.y - y) < w.r + 34) || busy(x, y, 60) || spikes.some(k => Math.hypot(k.x - x, k.y - y) < 55)) continue;
     spikes.push({ x, y, r:9 + R() * 9, ph:R() * 6 });
   }
   for (let i = 0; i < 3; i++) {
     if (R() < .35) continue;
     const x = x0 + R() * CH, y = y0 + R() * CH;
-    if (!clear(x, y, 60) || inPond(x, y, 20) || walls.some(w => Math.hypot(w.x - x, w.y - y) < w.r + 20)) continue;
+    if (!clear(x, y, 60) || inPond(x, y, 20) || walls.some(w => Math.hypot(w.x - x, w.y - y) < w.r + 20) || busy(x, y, 30) || spikes.some(k => Math.hypot(k.x - x, k.y - y) < 50)) continue;
     crystals.push({ x, y, s:.8 + R() * .6, col:R() < .55 ? 0 : 1, ph:R() * 6 });
   }
-  for (let i = 0; i < 3; i++) { const x = x0 + R() * CH, y = y0 + R() * CH; if (!th && !nearPath(x, y, 70) && !inPond(x, y, 10)) shrooms.push({ x, y, ph:R() * 6 }); }
+  for (let i = 0; i < 3; i++) { const x = x0 + R() * CH, y = y0 + R() * CH; if (!th && !nearPath(x, y, 70) && !inPond(x, y, 10) && !busy(x, y, 30) && !spikes.some(k => Math.hypot(k.x - x, k.y - y) < 50) && !crystals.some(c => Math.hypot(c.x - x, c.y - y) < 60)) shrooms.push({ x, y, ph:R() * 6 }); }
   if (th === "plant" && R() < .75) { // Centrale : barrière électrique entre deux pylônes
     const x = x0 + 80 + R() * (CH - 160), y = y0 + 80 + R() * (CH - 160), a = R() * Math.PI, h = 85 + R() * 45;
     if (Math.hypot(x, y - START_Y) > 330 && !walls.some(w => Math.hypot(w.x - x, w.y - y) < w.r + h + 20))
       gates.push({ x1:x - Math.cos(a) * h, y1:y - Math.sin(a) * h, x2:x + Math.cos(a) * h, y2:y + Math.sin(a) * h, ph:R() * 6, per:5 + R() * 2, on:2.4 + R() * .8 });
   }
   for (const g of gates) solids.push({ x:g.x1, y:g.y1, r:13 }, { x:g.x2, y:g.y2, r:13 }, { x:(g.x1 + g.x2) / 2, y:(g.y1 + g.y2) / 2, r:Math.hypot(g.x2 - g.x1, g.y2 - g.y1) / 2, gate:g });
-  for (const w of walls) solids.push({ x:w.x, y:w.y, r:w.r * .88 });
+  for (const w of walls) {
+    if (!w.tw) { solids.push({ x:w.x, y:w.y, r:w.r * .88 }); continue; }
+    const W = w.tw * 32, H = w.th * 32, rr = Math.min(W, H) / 2 * .92, hz = W >= H; // chapelet de cercles le long de la crête
+    for (let d = -(Math.max(W, H) / 2 - rr); d <= Math.max(W, H) / 2 - rr + .1; d += rr * .9) solids.push({ x:w.x + (hz ? d : 0), y:w.y + (hz ? 0 : d), r:rr });
+  }
   for (const k of spikes) solids.push({ x:k.x, y:k.y, r:k.r });
   for (const c of crystals) solids.push({ x:c.x, y:c.y, r:9 * c.s });
   for (const p of ponds) {
     const span = Math.max(0, p.rx - p.ry);
     for (let k = -2; k <= 2; k++) solids.push({ x:p.x + Math.cos(p.rot) * k * span / 2, y:p.y + Math.sin(p.rot) * k * span / 2, r:p.ry * .9, pond:true });
   }
-  return { ponds, trees:[], rocks:[], logs:[], walls, spikes, crystals, shrooms, lava, gates, solids, canvas:null, used:0 };
+  return { ponds, trees:[], rocks:[], logs:[], walls, spikes, crystals, shrooms, lava, gates, craters, solids, canvas:null, used:0 };
 }
 const CRYSTAL_COLS = [["#f6c4ee", "#d27ad0", "#8a3f9a", "255,170,235"], ["#c4ecff", "#6cb6f0", "#2f6aa8", "150,210,255"], ["#ffd8a8", "#ff8a3a", "#a8401c", "255,140,60"], ["#fff6c0", "#f6d13a", "#a88a20", "255,230,120"]];
 // Oiseau Légendaire : couleurs de l'Île Écume, de la Centrale électrique et de la Route Victoire
@@ -176,24 +191,26 @@ function renderCaveChunk(ci, cj) {
   }
   lg.putImageData(img, 0, 0); g.imageSmoothingEnabled = true; g.drawImage(lo, 1, 1, N, N, 0, 0, CH, CH);
   g.translate(-x0, -y0);
-  const R = rng(Math.floor(hash(ci - 555, cj + 999) * 4294967295));
-  const all = { ponds:[], walls:[], spikes:[], crystals:[], shrooms:[], lava:[], gates:[] };
+  const R = rng(Math.floor(hash(ci - 555, cj + 999) * 4294967295)), moon = moonOn();
+  const all = { ponds:[], walls:[], spikes:[], crystals:[], shrooms:[], lava:[], gates:[], craters:[] };
   for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) { const n = getChunk(ci + a, cj + b2); for (const k in all) all[k].push(...(n[k] || [])); }
+  if (moon) moonFloor(g, x0, y0, all.craters); // Mont Sélénite : tuiles HGSS (25b-mont-selenite.js)
   const GV = pal ? pal.gravel : ["#3a3444", "#6a6274", "#8c8296"], PB = pal ? pal.pebble : ["#7a7086", "#5e566a"];
   // gravier et cailloux
-  for (let i = 0; i < 520; i++) {
+  for (let i = 0; i < (moon ? 0 : 520); i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH, v = R();
     ell(g, x, y, 1 + R() * 2.4, .8 + R() * 1.6, v < .4 ? GV[0] : v < .75 ? GV[1] : GV[2], R() * 3);
   }
-  for (let i = 0; i < 26; i++) { const x = x0 + R() * CH, y = y0 + R() * CH, rr = 3 + R() * 5; ell(g, x + 1.5, y + 2, rr, rr * .6, "rgba(10,8,16,.35)"); ell(g, x, y, rr, rr * .7, R() < .5 ? PB[0] : PB[1]); ell(g, x - rr * .3, y - rr * .3, rr * .4, rr * .25, "rgba(255,255,255,.18)"); }
+  for (let i = 0; i < (moon ? 0 : 26); i++) { const x = x0 + R() * CH, y = y0 + R() * CH, rr = 3 + R() * 5; ell(g, x + 1.5, y + 2, rr, rr * .6, "rgba(10,8,16,.35)"); ell(g, x, y, rr, rr * .7, R() < .5 ? PB[0] : PB[1]); ell(g, x - rr * .3, y - rr * .3, rr * .4, rr * .25, "rgba(255,255,255,.18)"); }
   // fissures (lave : rougeoyantes)
   g.strokeStyle = pal ? pal.crack : "rgba(18,14,26,.55)"; g.lineWidth = th === "lava" ? 2.2 : 1.6; g.lineCap = "round";
-  for (let i = 0; i < (th === "lava" ? 14 : th === "plant" ? 3 : 9); i++) { let x = x0 + R() * CH, y = y0 + R() * CH, a = R() * Math.PI * 2; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 5; k++) { a += (R() - .5) * 1.2; x += Math.cos(a) * (10 + R() * 14); y += Math.sin(a) * (10 + R() * 14); g.lineTo(x, y); } g.stroke(); }
+  for (let i = 0; i < (moon ? 0 : th === "lava" ? 14 : th === "plant" ? 3 : 9); i++) { let x = x0 + R() * CH, y = y0 + R() * CH, a = R() * Math.PI * 2; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 5; k++) { a += (R() - .5) * 1.2; x += Math.cos(a) * (10 + R() * 14); y += Math.sin(a) * (10 + R() * 14); g.lineTo(x, y); } g.stroke(); }
   // empreintes de sable sur le sentier
-  for (let i = 0; i < 40; i++) { const x = x0 + R() * CH, y = y0 + R() * CH; if (nearPath(x, y, 50)) ell(g, x, y, 3 + R() * 3, 1.5 + R() * 1.5, pal ? pal.foot : "rgba(150,132,112,.6)", R() * 3); }
+  for (let i = 0; i < (moon ? 0 : 40); i++) { const x = x0 + R() * CH, y = y0 + R() * CH; if (nearPath(x, y, 50)) ell(g, x, y, 3 + R() * 3, 1.5 + R() * 1.5, pal ? pal.foot : "rgba(150,132,112,.6)", R() * 3); }
   if (th) themeFloor(g, x0, y0, R, th);
   // ombres des massifs
-  for (const w of all.walls) {
+  if (moon) all.walls.sort((a, b) => a.y - b.y);
+  if (!moon) for (const w of all.walls) {
     const sg = g.createRadialGradient(w.x + 14, w.y + 12, w.r * .3, w.x + 14, w.y + 12, w.r * 1.35);
     sg.addColorStop(0, "rgba(8,5,14,.55)"); sg.addColorStop(1, "rgba(8,5,14,0)");
     g.fillStyle = sg; g.beginPath(); g.arc(w.x + 14, w.y + 12, w.r * 1.35, 0, Math.PI * 2); g.fill();
@@ -232,6 +249,7 @@ function renderCaveChunk(ci, cj) {
   // massifs rocheux : roche anguleuse avec arête éclairée
   for (const w of all.walls) {
     if (th === "plant") { drawGenerator(g, w); continue; }
+    if (moon) { moonWall(g, w); continue; }
     const WR = rng(Math.floor(w.ph * 1e6)), pts = [], top = [];
     for (let k = 0; k < w.n; k++) { const a = k / w.n * Math.PI * 2 + WR() * .3, rr = w.r * (.82 + WR() * .3); pts.push(w.x + Math.cos(a) * rr, w.y + Math.sin(a) * rr * .92); top.push(w.x - w.r * .12 + Math.cos(a) * rr * .62, w.y - w.r * .2 + Math.sin(a) * rr * .55); }
     const rg = g.createLinearGradient(w.x - w.r, w.y - w.r, w.x + w.r, w.y + w.r);
@@ -250,6 +268,7 @@ function renderCaveChunk(ci, cj) {
   }
   // stalagmites vues de dessus
   for (const k of all.spikes) {
+    if (moon) { moonBush(g, k); continue; }
     ell(g, k.x + 6, k.y + 5, k.r * 1.3, k.r * .8, "rgba(8,5,14,.45)");
     for (let q = 0; q < 4; q++) { const rr = k.r * (1 - q * .23); circ(g, k.x - q * k.r * .08, k.y - q * k.r * .14, rr, (pal ? pal.spike : ["#3e374a", "#5a5268", "#7a7088", "#a49ab2"])[q]); }
     circ(g, k.x - k.r * .3, k.y - k.r * .48, k.r * .16, pal ? pal.spikeHi : "#d8d0e4");
@@ -260,6 +279,7 @@ function renderCaveChunk(ci, cj) {
     const C = CRYSTAL_COLS[crCol(cr)], s = cr.s;
     const gg = g.createRadialGradient(cr.x, cr.y, 2, cr.x, cr.y, 46 * s); gg.addColorStop(0, `rgba(${C[3]},.35)`); gg.addColorStop(1, `rgba(${C[3]},0)`);
     g.fillStyle = gg; g.beginPath(); g.arc(cr.x, cr.y, 46 * s, 0, Math.PI * 2); g.fill();
+    if (moon && crCol(cr) < 2) { moonCrystal(g, cr, crCol(cr)); continue; }
     ell(g, cr.x + 3, cr.y + 4, 12 * s, 5 * s, "rgba(0,0,0,.35)");
     for (const [ox, h, wd, lean] of [[-6, 16, 5, -.35], [6, 14, 5, .4], [0, 24, 6.5, 0]]) {
       g.save(); g.translate(cr.x + ox * s, cr.y + 2 * s); g.rotate(lean);

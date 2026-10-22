@@ -115,6 +115,7 @@ function update(dt) {
     const pc = spawnNear(); if (S.foes.filter(f => f.prop).length < 5 * (SPLIT() ? S.players.length : 1)) for (let tries = 0; tries < 6; tries++) {
       const a = Math.random() * Math.PI * 2, d = 650 + Math.random() * 400, x = pc.x + Math.cos(a) * d, y = pc.y + Math.sin(a) * d;
       if (solidsNear(x, y).some(o => (x - o.x) ** 2 + (y - o.y) ** 2 < (o.r + 34) ** 2)) continue;
+      if (LEVEL.moon && (getChunk(Math.floor(x / CH), Math.floor(y / CH)).craters || []).some(c => Math.hypot(c.x - x, c.y - y) < 70)) continue; // pas de rocher dans un cratère
       const pr = spawnFoe(LEVEL.prop || (LEVEL.cave ? "crackrock" : "berrytree"), x, y); pr.prop = true; pr.hp = pr.maxHp = 1; break;
     }
   }

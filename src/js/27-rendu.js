@@ -60,7 +60,7 @@ function drawMotes(camX, camY, vw, vh, t, dt) {
 function drawCaveLight(camX, camY, vw, vh, t, P) {
   const r0 = Math.min(vw, vh) * .26, r1 = Math.max(vw, vh) * .62;
   const dg = cx.createRadialGradient(P.x, P.y, r0, P.x, P.y, r1);
-  dg.addColorStop(0, "rgba(6,4,16,0)"); dg.addColorStop(1, LEVEL.tower ? (LEVEL.sprout ? "rgba(26,14,4,.55)" : "rgba(14,4,24,.82)") : LEVEL.theme ? CAVE_PAL[LEVEL.theme].dark : "rgba(6,4,16,.78)");
+  dg.addColorStop(0, "rgba(6,4,16,0)"); dg.addColorStop(1, LEVEL.tower ? (LEVEL.sprout ? "rgba(26,14,4,.55)" : "rgba(14,4,24,.82)") : LEVEL.theme ? CAVE_PAL[LEVEL.theme].dark : LEVEL.moon ? "rgba(4,6,8,.6)" : "rgba(6,4,16,.78)");
   if (LEVEL.rocket) {
     forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const sp of c.spinners || []) {
       cx.save(); cx.translate(sp.x, sp.y); cx.rotate(Math.atan2(sp.dy, sp.dx)); cx.strokeStyle = "#7ad0ff"; cx.lineWidth = 4; cx.lineCap = "round";
@@ -242,7 +242,7 @@ function drawMinimap(P) {
     if (c.lava) for (const p of c.lava) { g.fillStyle = "#ff7a2a"; g.beginPath(); g.ellipse(p.x, p.y, p.rx, p.ry, p.rot, 0, Math.PI * 2); g.fill(); }
     if (c.gates) for (const gt of c.gates) { g.strokeStyle = gateOn(gt) ? "rgba(255,225,80,.95)" : "rgba(120,130,150,.6)"; g.lineWidth = 22; g.beginPath(); g.moveTo(gt.x1, gt.y1); g.lineTo(gt.x2, gt.y2); g.stroke(); }
     for (const t of c.trees) { g.fillStyle = LEVEL.safari ? "rgba(100,110,40,.9)" : "rgba(40,90,45,.9)"; g.beginPath(); g.arc(t.x, t.y, t.r * .8, 0, Math.PI * 2); g.fill(); }
-    if (c.walls) for (const w of c.walls) { g.fillStyle = "rgba(120,110,136,.9)"; g.beginPath(); g.arc(w.x, w.y, w.r, 0, Math.PI * 2); g.fill(); }
+    if (c.walls) for (const w of c.walls) { g.fillStyle = "rgba(120,110,136,.9)"; if (w.tw) { g.fillRect(w.x - w.tw * 16, w.y - w.th * 16, w.tw * 32, w.th * 32); continue; } g.beginPath(); g.arc(w.x, w.y, w.r, 0, Math.PI * 2); g.fill(); }
     if (c.machines) for (const m of c.machines) { g.fillStyle = "rgba(150,160,180,.9)"; g.fillRect(m.x - m.w / 2, m.y - m.h / 2, m.w, m.h); }
     if (c.mwalls) for (const w of c.mwalls) { g.strokeStyle = "rgba(170,150,130,.9)"; g.lineWidth = 24; g.beginPath(); g.moveTo(w.x - Math.cos(w.a) * w.len / 2, w.y - Math.sin(w.a) * w.len / 2); g.lineTo(w.x + Math.cos(w.a) * w.len / 2, w.y + Math.sin(w.a) * w.len / 2); g.stroke(); }
     if (c.fires && !S.fireOff) for (const f of c.fires) { g.strokeStyle = "rgba(255,120,40,.9)"; g.lineWidth = 20; g.beginPath(); g.moveTo(f.x - Math.cos(f.a) * f.len / 2, f.y - Math.sin(f.a) * f.len / 2); g.lineTo(f.x + Math.cos(f.a) * f.len / 2, f.y + Math.sin(f.a) * f.len / 2); g.stroke(); }
@@ -251,7 +251,7 @@ function drawMinimap(P) {
     if (c.graves) for (const gr of c.graves) { g.fillStyle = "rgba(160,150,180,.75)"; g.fillRect(gr.x - 14, gr.y - 18, 28, 30); }
     if (c.pillars) for (const q of c.pillars) { g.fillStyle = "rgba(190,180,210,.9)"; g.beginPath(); g.arc(q.x, q.y, q.r * 1.4, 0, Math.PI * 2); g.fill(); }
     if (c.deco) for (const o of c.deco) { g.fillStyle = "rgba(220,220,240,.9)"; g.beginPath(); g.arc(o.x, o.y, 55, 0, Math.PI * 2); g.fill(); }
-    if (c.crystals) for (const cr of c.crystals) { g.fillStyle = cr.col ? "#8fd0ff" : "#f2a8e8"; g.beginPath(); g.arc(cr.x, cr.y, 40, 0, Math.PI * 2); g.fill(); }
+    if (c.crystals && !LEVEL.moon) for (const cr of c.crystals) { g.fillStyle = cr.col ? "#8fd0ff" : "#f2a8e8"; g.beginPath(); g.arc(cr.x, cr.y, 40, 0, Math.PI * 2); g.fill(); }
   }, 3);
   g.fillStyle = "#e2513f"; for (const f of S.foes) if (!f.d.boss && !f.prop && !f.d.rare) g.fillRect(f.x - 14, f.y - 14, 28, 28);
   g.fillStyle = "#ffb347"; for (const f of S.foes) if (f.d.boss) { g.beginPath(); g.arc(f.x, f.y, 70, 0, Math.PI * 2); g.fill(); }
@@ -294,6 +294,7 @@ function drawProp(f, t) {
     cx.fillStyle = "#6a4028"; cx.fillRect(x - 7, y - 17, 14, 4); cx.fillStyle = "#b07a4c"; ell(cx, x - 5, y - 4, 3, 6, "#b07a4c");
     cx.strokeStyle = "#d8b060"; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(x - 11, y + 1); cx.lineTo(x + 11, y + 1); cx.stroke();
   } else { // rocher fissuré (Éclate-Roc)
+    if (moonOn()) { const q = MM.R.smash, K = 1.4; ell(cx, x, y + 14, 18, 5, "rgba(0,0,0,.3)"); cx.imageSmoothingEnabled = false; cx.drawImage(MM.img, q[0], q[1], q[2], q[3], x - q[2] * K / 2, y + 16 - q[3] * K, q[2] * K, q[3] * K); return; } // rocher Éclate-Roc de HGSS
     ell(cx, x, y + 13, 20, 6, "rgba(0,0,0,.3)"); drawBoulder(x, y, 18, 1.3);
     cx.strokeStyle = "#3a3240"; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(x - 4, y - 14); cx.lineTo(x + 1, y - 5); cx.lineTo(x - 3, y + 2); cx.lineTo(x + 4, y + 10);
     cx.moveTo(x + 1, y - 5); cx.lineTo(x + 10, y - 7); cx.stroke();
