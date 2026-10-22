@@ -105,6 +105,7 @@ function drawCaveLight(camX, camY, vw, vh, t, P) {
     cx.fillStyle = dg; cx.fillRect(camX - 40, camY - 40, vw + 80, vh + 80);
     cx.save(); cx.globalCompositeOperation = "lighter";
     forView(camX, camY, vw, vh, 80, (i, j, c) => { for (const cd of c.candles || []) {
+      if (cd.lamp) { glow(cd.x, cd.y - 14, 170 + 8 * Math.sin(t * 2 + cd.ph), "255,210,140", .42); continue; } // lanterne de la Tour Chétiflor
       const pu = .8 + .2 * Math.sin(t * 9 + cd.ph) + .1 * Math.sin(t * 23 + cd.ph * 3), col = cd.blue ? "110,140,255" : "255,170,80";
       glow(cd.x, cd.y - 14, 70 * pu, col, .32); glow(cd.x, cd.y - 14, 16, col, .9);
     } });
@@ -114,6 +115,7 @@ function drawCaveLight(camX, camY, vw, vh, t, P) {
     }
     cx.restore();
     forView(camX, camY, vw, vh, 40, (i, j, c) => { for (const cd of c.candles || []) {
+      if (cd.lamp) continue;
       const fl = 1 + Math.sin(t * 14 + cd.ph) * .15;
       flameShape(cd.x, cd.y - 13, 3.2, 9 * fl, cd.blue ? "#6c8cff" : "#ff9a3a", Math.sin(t * 7 + cd.ph) * 1.5); flameShape(cd.x, cd.y - 12, 1.6, 5 * fl, "#f4f6ff");
     } });
