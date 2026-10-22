@@ -62,8 +62,8 @@ const JMOVE = {
     const range = (105 + 10 * lv) * AREA(), ts = nearestFoes(2 + (lv >= 2) + (lv >= 4)).filter(f => Math.hypot(f.x - P.x, f.y - P.y) < range + f.r);
     if (!ts.length) { m.t = .12; if (S.t - (m.last ?? -9) > 1.6) P.frenzy = 0; return; }
     m.fr = S.t - (m.last ?? -9) < 1.6 ? Math.min(lv >= 5 ? 7 : 5, (m.fr || 0) + 1) : 0; m.last = S.t; P.frenzy = m.fr;
-    m.t = (lv >= 4 ? .75 : .9) * (1 - .08 * m.fr) * P.cdMul;
-    const dmg = (16 + 5 * lv) * (lv >= 3 ? 1.4 : 1);
+    m.t = (lv >= 4 ? .75 : .9) * (1 - .04 * m.fr) * P.cdMul; // Frénésie : jusqu'à −20 % (−28 % au N.5)
+    const dmg = (8 + 3 * lv) * (lv >= 3 ? 1.3 : 1);
     for (const f of ts) { hitFoe(f, dmg, "tenebres"); S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25, dark:true }); emit(f.x, f.y, 5, "tenebres", { sp:120, life:.35 }); }
   },
   crocsgivre(P, m, lv) {
@@ -96,8 +96,8 @@ const JMOVE = {
   feuillemagik(P, m, lv) {
     const n = 2 + (lv >= 2) + (lv >= 4) + (lv >= 5) + EXTRA(), tg = nearestFoes(n);
     if (!tg.length) { m.t = .3; return; }
-    m.t = (lv >= 4 ? .8 : 1) * P.cdMul;
-    const dmg = (14 + 4 * lv) * (lv >= 3 ? 1.4 : 1);
+    m.t = (lv >= 4 ? .85 : 1) * P.cdMul;
+    const dmg = (9 + 3 * lv) * (lv >= 3 ? 1.3 : 1);
     for (let i = 0; i < n; i++) {
       const f = tg[i % tg.length], a = Math.atan2(f.y - P.y, f.x - P.x) + (i - (n - 1) / 2) * .5;
       S.shots.push({ kind:"mleaf", x:P.x, y:P.y - 4, vx:Math.cos(a) * 340, vy:Math.sin(a) * 340, r:7, dmg, life:2.4, pierce:lv >= 3 ? 2 : 1, type:"plante", home:f, hit:new Set(), ph:Math.random() * 6 });

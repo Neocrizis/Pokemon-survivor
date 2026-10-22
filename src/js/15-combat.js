@@ -17,7 +17,7 @@ function hitFoe(f, base, type, kx = 0, ky = 0, forceCrit = false) {
   const dmg = (veiled(f.d) ? .5 : 1) * base * S.P.dmgMul * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * m * (.9 + Math.random() * .2) * (crit ? 2 : 1) * (f.leerT > 0 ? f.leerMul : 1) * (f.shieldT > 0 ? .15 : 1) * (f.d.armor || 1) * (f.d.solidRock && m > 1 ? .75 : 1) * jBoost(type); // Rhinoféros / Rhinastoc : blindés
   if (m === 0) { maybeMsg(f, "Aucun effet…", "#c9c9c9"); return; }
   f.hp -= dmg; f.hurt = .12; S.P.dealt += dmg; sfx("hit");
-  if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(2, dmg * .03)); // Sans Limite : chaque coup soigne un peu
+  if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(.2, dmg * .003)); // Sans Limite : chaque coup soigne un tout petit peu
   if (S.parts.length < 450) emit(f.x, f.y - f.r * .2, 3, type, { sp:170, life:.3, jit:f.r * .6 });
   const src = HIT_SRC || "autre", real = Math.min(dmg, Math.max(0, f.hp + dmg)); (S.dmgBy ||= {})[src] = (S.dmgBy[src] || 0) + real;
   const pb = (S.P.dmgBy ||= {}); pb[src] = (pb[src] || 0) + real; f.lastBy = S.P.idx; // récap par joueur
