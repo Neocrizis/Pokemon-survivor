@@ -184,7 +184,7 @@ const LEVELS = [
       if (m > 5.5) o.push(["raichu", 1]);
       if (m > 6)   o.push(["roucarnage", 1 + m / 5]);
     } },
-  { name:"Mont Sélénite", num:2, title:"Tu es sorti du Mont Sélénite !", cave:true, where:"dans la grotte", from:"surgit des ténèbres",
+  { name:"Mont Sélénite", num:2, title:"Tu es sorti du Mont Sélénite !", cave:true, moon:true, where:"dans la grotte", from:"surgit des ténèbres",
     intro:"Le Mont Sélénite est une grotte obscure : Nosferapti, Racaillou, Paras, Sabelette et la famille Mélofée. Gare aux éboulements des Grolem ! Tiens dix minutes pour rejoindre la sortie.",
     win:"a traversé le Mont Sélénite. Azuria est en vue !",
     matchup:{ plante:["Avantagé", "La Plante est super efficace sur les Racaillou et les Sabelette, et Poudre Toxik (Poison) sur la famille Mélofée (Fée). Peu efficace sur les Nosferapti et les Paras."],
