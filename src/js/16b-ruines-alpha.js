@@ -8,7 +8,8 @@ const PUZZLES = [ // les quatre dalles et les Zarbi qu'elles réveillent (HeartG
 ];
 const PUZ_NEED = 6, PUZ_R = 62; // secondes à tenir sur la dalle, rayon de la dalle
 const zarbiRange = p => ZARBI_L.slice(ZARBI_L.indexOf(p.from), ZARBI_L.indexOf(p.to) + 1);
-function alphSpawn(f, placed) { // à l'apparition : lettre du Zarbi, Axoloto et Maraiste sortent d'un étang proche
+function alphSpawn(f, placed) { // à l'apparition : lettre du Zarbi, Axoloto et Maraiste sortent d'un étang proche ; dans une salle, sur une dalle libre
+  if (inZone(nearP(f.x, f.y).x)) { if (f.d.zarbi) { const L = S.zl && S.zl.length ? S.zl : ZARBI_L.slice(0, 26); f.spr = "zarbi_" + L[Math.random() * L.length | 0]; } alphPlace(f); return; }
   if (f.d.zarbi) { const L = S.zl && S.zl.length ? S.zl : ZARBI_L.slice(0, 26); f.spr = "zarbi_" + L[Math.random() * L.length | 0]; }
   if (f.d.pond && !placed && Math.random() < .6) {
     const c = spawnNear(), ci = Math.floor(c.x / CH), cj = Math.floor(c.y / CH), ponds = [];
@@ -18,6 +19,7 @@ function alphSpawn(f, placed) { // à l'apparition : lettre du Zarbi, Axoloto et
   }
 }
 function zarbiWord(P) { // des Zarbi s'alignent au-dessus du joueur pour écrire un mot, puis foncent tout droit vers le bas
+  if (inZone(P.x)) return; // pas la place dans les salles
   const w = ZARBI_WORDS[Math.random() * ZARBI_WORDS.length | 0], sy = -1, gap = 36, x0 = P.x - (w.length - 1) * gap / 2, y = P.y + sy * 235;
   [...w].forEach((c, i) => {
     if (c === " ") return;
@@ -26,15 +28,16 @@ function zarbiWord(P) { // des Zarbi s'alignent au-dessus du joueur pour écrire
   });
   banner(`Des Zarbi s'alignent et écrivent « ${w} »… Écarte-toi !`);
 }
-function startPuzzle() { // la dalle sort du sol dans une salle des ruines pas trop loin (sinon dehors)
+function startPuzzle() { // la dalle sort du sol dans la salle d'un bâtiment proche (ou dehors s'il n'y en a pas)
   const P = S.P, k = Math.random() * PUZZLES.length | 0, rooms = [];
-  around(P.x, P.y, c => { for (const o of c.ruins || []) { const d = Math.hypot(o.ax - P.x, o.ay - P.y); if (d > 260 && d < 950) rooms.push(o); } }, 2);
-  let x = P.x + 380, y = P.y, inRoom = false;
-  if (rooms.length) { const o = rooms[Math.random() * rooms.length | 0]; x = o.ax; y = (o.box.y0 + 12 * BL.U + o.box.y1 - 5 * BL.U) / 2; inRoom = true; }
+  if (S.inside) rooms.push(S.inside.ruin);
+  else around(P.x, P.y, c => { for (const o of c.ruins || []) { const d = Math.hypot(o.ax - P.x, o.ay - P.y); if (d > 200 && d < 1100) rooms.push(o); } }, 2);
+  let x = P.x + 380, y = P.y, ruin = null;
+  if (rooms.length) { ruin = rooms[Math.random() * rooms.length | 0]; ({ x, y } = LAYS[ruin.lay].puz); }
   else for (let n = 0; n < 40; n++) { const a = Math.random() * Math.PI * 2, d = 340 + Math.random() * 120; x = P.x + Math.cos(a) * d; y = P.y + Math.sin(a) * d;
     if (!solidsNear(x, y).some(o => Math.hypot(o.x - x, o.y - y) < o.r * 2 + PUZ_R + 10)) break; } // loin des murs et des rochers
-  S.puz = { x, y, k, prog:0, t:60, spT:0 };
-  banner(`Une dalle-puzzle de ${PUZZLES[k].name} sort du sol${inRoom ? " dans une salle des ruines" : ""} ! Tiens-toi dessus pour la résoudre.`); sfx("ach");
+  S.puz = { x, y, k, prog:0, t:ruin ? 75 : 60, spT:0, ruin };
+  banner(`Une dalle-puzzle de ${PUZZLES[k].name} sort du sol${ruin ? ` dans ${LAYS[ruin.lay].name} d'un bâtiment proche` : ""} ! Tiens-toi dessus pour la résoudre.`); sfx("ach");
 }
 function updatePuzzle(dt) {
   const z = S.puz, pz = PUZZLES[z.k];
@@ -73,6 +76,7 @@ function updateAlph(dt) {
   S.marks = S.marks.filter(mk => mk.t > -.3);
   if (S.zlT > 0 && (S.zlT -= dt) <= 0) S.zl = null;
   if (S.puz) updatePuzzle(dt);
+  updateDoors(dt);
   if (S.t > 60 && (S.wdT = (S.wdT ?? 75) - dt) <= 0) { S.wdT = 38 + Math.random() * 16; zarbiWord(nearP(S.cam.x, S.cam.y)); }
   for (const f of S.foes) {
     if (f.hp <= 0 || f.prop || f.sleepT > 0 || f.stunT > 0) continue;
@@ -165,7 +169,9 @@ function drawPuzzle(z, t) { // dalle de pierre 4×4 : les pièces se remettent e
 }
 function drawAlphOver(t, CAM, vw, vh) { // flèche vers la dalle-puzzle quand elle est hors de l'écran
   if (!LEVEL.alph || !S.puz || S.puz.done) return;
-  const z = S.puz, hx = vw / 2 - 34, hy = vh / 2 - 44, dx = z.x - CAM.x, dy = z.y - CAM.y;
+  const z = S.puz, hx = vw / 2 - 34, hy = vh / 2 - 44, L = inZone(CAM.x) ? layAt(CAM.x, CAM.y) : null;
+  const tg = !z.ruin || (L && L === LAYS[z.ruin.lay]) ? z : L ? { x:(L.x0 + L.x1) / 2, y:L.exitY + TILE } : { x:z.ruin.ax, y:z.ruin.box.y1 + 20 }; // la porte du bâtiment, ou la sortie de la mauvaise salle
+  const dx = tg.x - CAM.x, dy = tg.y - CAM.y;
   if (Math.abs(dx) < hx && Math.abs(dy) < hy) return;
   const k = Math.min(hx / Math.abs(dx || 1), hy / Math.abs(dy || 1)), x = CAM.x + dx * k, y = CAM.y + dy * k, a = Math.atan2(dy, dx);
   cx.save(); cx.translate(x, y); cx.rotate(a); cx.globalAlpha = .8 + .2 * Math.sin(t * 8);
@@ -182,24 +188,20 @@ function alphRuin(v, ax, ay) { // bâtiment ancré sur l'origine du modèle : im
   const b = BL.B[v], q = BL.R[v], U = BL.U, [bx0, bz0, bx1, bz1] = b.box;
   return { v, ax, ay, sx:ax + b.off[0] * BL.K, sy:ay + b.off[1] * BL.K, sw:q[2] * BL.K, sh:q[3] * BL.K, box:{ x0:ax + bx0 * U, y0:ay + bz0 * U, x1:ax + bx1 * U, y1:ay + bz1 * U }, fade:1 };
 }
-function ruinSolids(o, solids) { // murs de la salle : fond, côtés, façade avec la porte au milieu, et les deux statues
-  const U = BL.U, { x0, y0, x1, y1 } = o.box, band = (ax, ay, bx, by) => {
-    const r = Math.max(10, Math.min(18, Math.min(bx - ax, by - ay) / 2)), nx = Math.max(1, Math.round((bx - ax - r) / r)), ny = Math.max(1, Math.round((by - ay - r) / r));
-    for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) solids.push({ x:ax + r * .5 + (bx - ax - r) * i / nx, y:ay + r * .5 + (by - ay - r) * j / ny, r });
-  };
-  band(x0, y0, x1, y0 + 12 * U); band(x0, y0, x0 + 4 * U, y1); band(x1 - 4 * U, y0, x1, y1);
-  band(x0, y1 - 5 * U, o.ax - BL_DOOR * U, y1); band(o.ax + BL_DOOR * U, y1 - 5 * U, x1, y1);
-  for (const sx of [x0 + 10 * U, x1 - 10 * U]) solids.push({ x:sx, y:y0 + 21 * U, r:14 });
+function ruinSolids(o, solids) { // le bâtiment est plein (on entre par la porte, voir 16c) ; ses murs arrêtent les projectiles
+  const { x0, y0, x1, y1 } = o.box, r = 20, nx = Math.max(1, Math.round((x1 - x0 - 2 * r) / r)), ny = Math.max(1, Math.round((y1 - y0 - 2 * r) / r));
+  for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) solids.push({ x:x0 + r + (x1 - x0 - 2 * r) * i / nx, y:y0 + r + (y1 - y0 - 2 * r) * j / ny, r, wall:true });
 }
-function alphChunk(ci, cj) { // une salle (parfois aucune) par morceau, un bassin, des rochers et des stèles
+function alphChunk(ci, cj) { // un bâtiment (souvent aucun) par morceau, un bassin, des rochers et des stèles
+  if (inZone(ci * CH)) return interiorChunk(ci, cj);
   const R = rng(Math.floor(hash(ci + 4242, cj - 4242) * 4294967295)), x0 = ci * CH, y0 = cj * CH, ponds = [], ruins = [], rocks = [], tablets = [], solids = [];
   const clear = (x, y, m) => Math.hypot(x, y - START_Y) > 330 && !nearPath(x, y, m), P3 = 3;
-  if (R() < .7) for (let k = 0; k < 10 && !ruins.length; k++) {
+  if (R() < .38) for (let k = 0; k < 10 && !ruins.length; k++) {
     const v = BL_KEYS[Math.floor(R() * BL_KEYS.length)], b = BL.B[v], q = BL.R[v];
     const ax = x0 + 6 - b.off[0] * BL.K + R() * (CH - 12 - q[2] * BL.K), ay = y0 + 6 - b.off[1] * BL.K + R() * (CH - 12 - q[3] * BL.K), o = alphRuin(v, ax, ay);
     let ok = Math.hypot(o.ax - 0, o.ay - START_Y) > 420;
     for (let x = o.box.x0 - 30; ok && x <= o.box.x1 + 30; x += 30) { const py = pathY(x); if (py > o.box.y0 - 70 && py < o.box.y1 + 90) ok = false; } // ni sur le sentier, ni devant la porte
-    if (ok) ruins.push(o);
+    if (ok) { o.lay = Math.floor(R() * LAYS.length); ruins.push(o); }
   }
   if (R() < .3) { // bassin rectangulaire comme sur la carte HGSS, aligné sur la grille des pixels
     const rx = Math.round((70 + R() * 70) / P3) * P3, ry = Math.round((40 + R() * 34) / P3) * P3, px = Math.round((x0 + rx + 20 + R() * (CH - 2 * rx - 40)) / P3) * P3, py = Math.round((y0 + ry + 30 + R() * (CH - 2 * ry - 60)) / P3) * P3;
@@ -225,6 +227,7 @@ function drawAlphPond(g, p) { // bassin HGSS : bord de sable effrité en haut, e
   for (let k = 0; k < W * H / 900; k++) { g.fillStyle = LR() < .8 ? "#68ccf8" : "#b8ecff"; g.fillRect(L + 2 * P + Math.floor(LR() * (W - 5 * P) / P) * P, T + 3 * P + Math.floor(LR() * (H - 5 * P) / P) * P, 2 * P, P); }
 }
 function renderAlphChunk(ci, cj) {
+  if (inZone(ci * CH)) return renderInteriorChunk(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH, cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;
   const g = cv2.getContext("2d"); g.scale(CH_SCALE, CH_SCALE); g.translate(-x0, -y0); g.imageSmoothingEnabled = false;
   const R = rng(Math.floor(hash(ci - 91, cj + 37) * 4294967295)), P = AL.K * 2; // un « pixel » de la carte, arrondi
@@ -240,30 +243,25 @@ function renderAlphChunk(ci, cj) {
   const all = { ponds:[], ruins:[], rocks:[], tablets:[] };
   for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const n = getChunk(ci + a, cj + b); for (const k in all) all[k].push(...(n[k] || [])); }
   for (const p of all.ponds) drawAlphPond(g, p);
-  if (BL.img) for (const o of all.ruins) { const q = BL.R[BL.B[o.v].room], bx = o.box; g.drawImage(BL.img, q[0], q[1], q[2], q[3], bx.x0, bx.y0, bx.x1 - bx.x0, bx.y1 - bx.y0); } // l'intérieur, sous le bâtiment
+  for (const o of all.ruins) { g.fillStyle = "#1a140c"; g.fillRect(o.box.x0 + 6, o.box.y0, o.box.x1 - o.box.x0 - 12, o.box.y1 - o.box.y0); } // pénombre derrière les entrées ouvertes
   if (AL.img) {
     for (const r of all.rocks) alSpr(g, "boulder", r.x - 5.5 * AL.K, r.y - 7 * AL.K);
     for (const t of all.tablets) alSpr(g, "tablet", t.x - 8 * AL.K, t.y - 14 * AL.K);
   }
   c.canvas = cv2; return cv2;
 }
-function ruinAt(x, y) { let r = null; around(x, y, c => { for (const o of c.ruins || []) if (x > o.box.x0 && x < o.box.x1 && y > o.box.y0 && y < o.box.y1) r = o; }); return r; }
-function drawAlphRoofs(camX, camY, vw, vh) { // les bâtiments, par-dessus les Pokémon ; ils s'effacent quand quelqu'un est dedans ou passe la porte
-  if (!LEVEL.alph || !BL.img) return;
-  const U = BL.U;
-  forView(camX, camY, vw, vh, 480, (i, j, c) => { for (const o of c.ruins || []) {
+function drawAlphRoofs(camX, camY, vw, vh) { // les bâtiments, par-dessus les Pokémon ; à moitié transparents quand quelqu'un passe derrière
+  if (!LEVEL.alph) return;
+  if (BL.img && !inZone(camX)) forView(camX, camY, vw, vh, 480, (i, j, c) => { for (const o of c.ruins || []) {
     if (o.sx > camX + vw || o.sx + o.sw < camX || o.sy > camY + vh || o.sy + o.sh < camY) continue;
-    const b = o.box, inside = S.players.some(p => !p.down && p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1 + 10 * U && (p.y < b.y1 - 2 * U || Math.abs(p.x - o.ax) < (BL_DOOR + 4) * U));
-    o.fade += ((inside ? 0 : 1) - o.fade) * .18;
-    if (o.fade < .02) continue;
+    const behind = S.players.some(p => p.x > o.sx && p.x < o.sx + o.sw && p.y > o.sy && p.y < o.box.y1 - 4);
+    o.fade += ((behind ? .45 : 1) - o.fade) * .18;
     const q = BL.R[o.v]; cx.globalAlpha = o.fade; cx.drawImage(BL.img, q[0], q[1], q[2], q[3], o.sx, o.sy, o.sw, o.sh);
   } });
   cx.globalAlpha = 1;
-  const P = S.players[0], o = P && !P.down && ruinAt(P.x, P.y);
-  S.inRoomK = (S.inRoomK || 0) + ((o ? 1 : 0) - (S.inRoomK || 0)) * .12;
-  if (S.inRoomK > .02) { // dans une salle : le dehors s'assombrit, comme les salles des ruines de HGSS
-    const b = o ? o.box : S.lastRoom; if (o) S.lastRoom = o.box; if (!b) return;
-    cx.fillStyle = `rgba(12,8,4,${.5 * S.inRoomK})`; const X0 = camX - 10, Y0 = camY - 10, X1 = camX + vw + 10, Y1 = camY + vh + 10;
-    cx.fillRect(X0, Y0, X1 - X0, b.y0 - Y0); cx.fillRect(X0, b.y1, X1 - X0, Y1 - b.y1); cx.fillRect(X0, b.y0, b.x0 - X0, b.y1 - b.y0); cx.fillRect(b.x1, b.y0, X1 - b.x1, b.y1 - b.y0);
+  if (inZone(camX)) { // dans une salle : pénombre autour de l'équipe, comme dans les salles de HGSS
+    const P = S.players[0], gr = cx.createRadialGradient(P.x, P.y, 240, P.x, P.y, Math.max(vw, vh) * .75);
+    gr.addColorStop(0, "rgba(10,6,2,0)"); gr.addColorStop(1, "rgba(10,6,2,.42)"); cx.fillStyle = gr; cx.fillRect(camX - 10, camY - 10, vw + 20, vh + 20);
   }
+  if (S.blackT > 0) { S.blackT -= 1 / 60; cx.fillStyle = `rgba(0,0,0,${Math.min(1, S.blackT / .3)})`; cx.fillRect(camX - 10, camY - 10, vw + 20, vh + 20); }
 }

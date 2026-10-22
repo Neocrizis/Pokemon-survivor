@@ -518,6 +518,7 @@ function update(dt) {
       s.vx = Math.cos(na) * v; s.vy = Math.sin(na) * v;
     }
     s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    if (LEVEL.alph && alphWall(s.x, s.y)) { s.life = 0; emit(s.x, s.y, 4, s.type, { sp:80, life:.25 }); continue; } // Ruines d'Alpha : les murs arrêtent les tirs
     if (s.mew) for (const g of S.foes) { // les attaques de Mewtwo blessent aussi les autres Pokémon
       if (g.d.boss || g.prop || g.d.rare || g.hp <= 0 || (g.x - s.x) ** 2 + (g.y - s.y) ** 2 > (g.r + s.r) ** 2) continue;
       g.hp -= 45 * (1 + S.t / 300); g.hurt = .12; s.life = 0; emit(s.x, s.y, 5, "psy", { sp:100, life:.35 }); break;
@@ -556,6 +557,7 @@ function update(dt) {
     if (s.kind === "dfire" && Math.random() < dt * 30) emit(s.x, s.y, 1, "dragon", { sp:40, life:.45, up:30, r:2.2 });
     s.x += s.vx * dt * ps; s.y += s.vy * dt * ps; s.life -= s.explodeOnEnd ? dt * ps : dt;
     if (s.grow) s.r = Math.min(6 + s.grow, s.r + s.grow * dt);
+    if (LEVEL.alph && alphWall(s.x, s.y)) { s.life = 0; if (s.boom && !s.exploded) explode(s, null); emit(s.x, s.y, 4, s.type, { sp:80, life:.25 }); continue; }
     for (const f of S.foes) {
       if (s.pierce <= 0) break;
       if (f.hp <= 0 || s.hit?.has(f)) continue;
@@ -591,7 +593,7 @@ function update(dt) {
       continue;
     }
     if (f.hp > 0) {
-      if (!f.d.boss && !f.d.event && !f.d.mother && !f.d.rare && !f.stamp && Math.hypot(f.x - P.x, f.y - P.y) > 1400) { const a = Math.random()*Math.PI*2; f.x = P.x + Math.cos(a)*700; f.y = P.y + Math.sin(a)*700; }
+      if (!f.d.boss && !f.d.event && !f.d.mother && !f.d.rare && !f.stamp && Math.hypot(f.x - P.x, f.y - P.y) > 1400) { const a = Math.random()*Math.PI*2; f.x = P.x + Math.cos(a)*700; f.y = P.y + Math.sin(a)*700; if (LEVEL.alph) alphPlace(f); }
       alive.push(f); continue;
     }
     if (f.gone) continue; // troupeau qui s'éloigne, Pokémon rare enfui

@@ -6,7 +6,7 @@ function forView(camX, camY, vw, vh, pad, fn) {
 }
 function drawGround(camX, camY, vw, vh, t) {
   frameNo++; let made = 0;
-  cx.fillStyle = LEVEL.rocket ? "#4a505c" : LEVEL.tower ? (LEVEL.sprout ? "#6a4a2c" : "#3a3446") : LEVEL.manor ? "#4a3020" : LEVEL.theme ? CAVE_PAL[LEVEL.theme].base : LEVEL.cave ? "#2c2834" : LEVEL.safari ? "#b89a50" : LEVEL.alph ? "#e8d090" : "#3d6e38"; cx.fillRect(camX, camY, vw, vh);
+  cx.fillStyle = LEVEL.rocket ? "#4a505c" : LEVEL.tower ? (LEVEL.sprout ? "#6a4a2c" : "#3a3446") : LEVEL.manor ? "#4a3020" : LEVEL.theme ? CAVE_PAL[LEVEL.theme].base : LEVEL.cave ? "#2c2834" : LEVEL.safari ? "#b89a50" : LEVEL.alph ? (inZone(camX) ? "#050302" : "#e8d090") : "#3d6e38"; cx.fillRect(camX, camY, vw, vh);
   forView(camX, camY, vw, vh, 0, (i, j, c) => {
     if (!c.canvas && made < 2) { renderChunk(i, j); made++; liveChunks.add(c); }
     if (c.canvas) { c.used = frameNo; cx.drawImage(c.canvas, i * CH, j * CH, CH, CH); }
