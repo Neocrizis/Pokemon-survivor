@@ -54,7 +54,7 @@ const ACHS = [
   { id:"win8",    name:"Maître de la Ligue", desc:"Battre le Conseil 4 et le Champion de la Ligue Indigo.", reward:200 },
   { id:"win9",    name:"Pokémon fabuleux",   desc:"Vaincre Mewtwo au fond de la Caverne Azurée.",       reward:100, unlock:["mew", "germignon", "heri", "kaiminus"], secret:true },
   { id:"win10",   name:"Tour Chétiflor gravie", desc:"Terminer la Tour Chétiflor, premier niveau de Johto.", reward:100, secret:true },
-  { id:"togepi",  name:"Œuf de Togepi",      desc:"Protéger l'assistant du Prof. Orme dans la Tour Chétiflor, puis terminer le niveau.", reward:100, unlock:"togepi", secret:true },
+  { id:"togepi",  name:"Éleveur de Pokémon", desc:"Protéger l'assistant du Prof. Orme dans la Tour Chétiflor, puis terminer le niveau.", reward:100, unlock:"togepi", secret:true },
   { id:"mewtwo",  name:"Pokémon génétique",  desc:"Repousser Mewtwo dans le Manoir Pokémon.",       reward:100 },
   { id:"legend",  name:"Légende vivante",    desc:"Vaincre Artikodin, Électhor ou Sulfura dans le niveau Oiseau Légendaire.", reward:100 },
   { id:"draco",   name:"Chasseur de dragon", desc:"Attraper le Minidraco pendant la chasse du Parc Safari.", reward:50, unlock:"draco" },

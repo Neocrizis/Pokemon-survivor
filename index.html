@@ -575,7 +575,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v184)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v185)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -775,7 +775,7 @@ const ACHS = [
   { id:"win8",    name:"Maître de la Ligue", desc:"Battre le Conseil 4 et le Champion de la Ligue Indigo.", reward:200 },
   { id:"win9",    name:"Pokémon fabuleux",   desc:"Vaincre Mewtwo au fond de la Caverne Azurée.",       reward:100, unlock:["mew", "germignon", "heri", "kaiminus"], secret:true },
   { id:"win10",   name:"Tour Chétiflor gravie", desc:"Terminer la Tour Chétiflor, premier niveau de Johto.", reward:100, secret:true },
-  { id:"togepi",  name:"Œuf de Togepi",      desc:"Protéger l'assistant du Prof. Orme dans la Tour Chétiflor, puis terminer le niveau.", reward:100, unlock:"togepi", secret:true },
+  { id:"togepi",  name:"Éleveur de Pokémon", desc:"Protéger l'assistant du Prof. Orme dans la Tour Chétiflor, puis terminer le niveau.", reward:100, unlock:"togepi", secret:true },
   { id:"mewtwo",  name:"Pokémon génétique",  desc:"Repousser Mewtwo dans le Manoir Pokémon.",       reward:100 },
   { id:"legend",  name:"Légende vivante",    desc:"Vaincre Artikodin, Électhor ou Sulfura dans le niveau Oiseau Légendaire.", reward:100 },
   { id:"draco",   name:"Chasseur de dragon", desc:"Attraper le Minidraco pendant la chasse du Parc Safari.", reward:50, unlock:"draco" },
@@ -6877,7 +6877,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v184";
+const NET_VER = "v185";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
