@@ -87,4 +87,4 @@ Pokémon © Nintendo, Creatures Inc., Game Freak. Projet de fan non commercial.
 Icônes des objets (et de la Baie Sitrus, la Potion, la Super Potion, la Poké Flûte, la Poké Ball et la Master Ball) tirées de PokéSprite (https://github.com/msikma/pokesprite, msikma/pokesprite, code sous licence MIT ; les images restent © Nintendo / Game Freak / Creatures, usage non commercial). L'icône du Dé Pipé est dessinée pour le jeu (absent de PokéSprite).
 
 ## Décors
-Tour Chétiflor : parquet, statues de Chétiflor, barrières, pilier oscillant, trous du plancher et murs à lanternes découpés dans des captures des cartes de la Tour Chétiflor de **Pokémon HeartGold / SoulSilver** (© Nintendo, Creatures, Game Freak). Usage non commercial uniquement.
+Tour Chétiflor : parquet, statues de Chétiflor, barrières, pilier oscillant, trous du plancher et longues barrières découpés dans des captures des cartes de la Tour Chétiflor de **Pokémon HeartGold / SoulSilver** (© Nintendo, Creatures, Game Freak). Usage non commercial uniquement.

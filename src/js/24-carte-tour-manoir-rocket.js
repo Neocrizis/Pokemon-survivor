@@ -18,10 +18,10 @@ function towerChunk(ci, cj) {
     candles.push({ x, y, ph:R() * 6, blue:R() < .6 });
   }
   let hgWalls = [];
-  if (LEVEL.sprout) { // moins de statues que de tombes, et des murs à lanternes (24b-tour-chetiflor.js)
+  if (LEVEL.sprout) { // moins de statues que de tombes, et de longues barrières de bois (24b-tour-chetiflor.js)
     for (let i = graves.length - 1; i >= 0; i--) if (hash(graves[i].x * .7, graves[i].y * 1.3) > .45) graves.splice(i, 1);
-    hgWalls = sproutWalls(R, x0, y0, graves, pillars, candles, solids);
-    for (const w of hgWalls) for (let k = 12; k < w.n * 96 * HG.K; k += 24) solids.push({ x:w.x + k, y:w.y - 16, r:16 });
+    hgWalls = sproutWalls(R, x0, y0, graves, pillars, candles);
+    for (const w of hgWalls) for (let k = 10; k < w.len; k += 20) solids.push({ x:w.x + k, y:w.y - 14, r:14 });
   }
   for (const g of graves) solids.push({ x:g.x, y:g.y, r:14 });
   for (const q of pillars) solids.push({ x:q.x, y:q.y, r:q.r });
