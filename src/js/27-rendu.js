@@ -369,7 +369,10 @@ function render(now) {
   for (const g of S.ghosts) { const o = g.o || P; cx.save(); cx.globalAlpha = g.life / .22 * .35; drawMon(cx, o.line, g.x, g.y, o.r, o.flip, t, o.stage, g.dir, false); cx.restore(); }
   const list = S.foes.filter(f => Math.abs(f.x - CAM.x) < vw / 2 + 120 && Math.abs(f.y - CAM.y) < vh / 2 + 120);
   for (const p of S.players) list.push({ isP:true, y:p.y, p });
-  list.sort((a, b) => a.y - b.y);
+  list.sort((a, b) => {
+    const magiA = a.isP && a.p.line === "magicarpe", magiB = b.isP && b.p.line === "magicarpe";
+    return Number(magiA) - Number(magiB) || a.y - b.y;
+  });
   for (const f of list) {
     if (f.isP) {
       const P = S.P = f.p, multi = S.players.length > 1;
@@ -385,12 +388,14 @@ function render(now) {
         cx.font = "bold 11px sans-serif"; cx.textAlign = "center"; cx.fillStyle = PCOL[P.idx]; cx.fillText(`J${P.idx + 1} choisit… ${Math.max(0, Math.ceil(P.chooseT ?? 0))}`, P.x, P.y - P.r * 2.4 - 6);
         continue;
       }
-      if (P.inv > 0 && Math.floor(t * 20) % 2) continue;
+      if (P.inv > 0 && Math.floor(t * 20) % 2 && P.line !== "magicarpe") continue;
       if (P.evoFlash > 0) { cx.save(); cx.globalAlpha = Math.min(1, P.evoFlash); circ(cx, P.x, P.y, P.r * 2.4 * (1.3 - P.evoFlash * .25), "rgba(255,255,230,.55)"); cx.restore(); }
       const moving = !!P.moving;
       cx.save(); cx.globalAlpha = .55 + .2 * Math.sin(t * 3); cx.strokeStyle = PCOL[P.idx]; cx.lineWidth = 2.5; cx.beginPath(); cx.ellipse(P.x, P.y + P.r * .75, P.r * 1.15, P.r * .45, 0, 0, Math.PI * 2); cx.stroke(); cx.restore();
       if (P.moves.etincelle?.rad) { const rad = P.moves.etincelle.rad; circ(cx, P.x, P.y, rad, "rgba(246,209,58,.07)"); cx.strokeStyle = "rgba(255,240,150,.7)"; cx.lineWidth = 1.6; for (let k = 0; k < 4; k++) { const a = t * 3 + k * 1.57 + Math.sin(t * 13 + k) * .3; cx.beginPath(); cx.moveTo(P.x + Math.cos(a) * rad * .55, P.y + Math.sin(a) * rad * .55); cx.lineTo(P.x + Math.cos(a + .15) * rad * .8, P.y + Math.sin(a + .15) * rad * .8); cx.lineTo(P.x + Math.cos(a + .05) * rad, P.y + Math.sin(a + .05) * rad); cx.stroke(); } }
+      cx.save(); if (P.line === "magicarpe" && P.inv > 0) cx.globalAlpha = .5;
       drawMon(cx, pKind(), P.x, P.y + (sheetFor(pKind(), P.stage) ? 0 : Math.sin(t * 10) * (moving ? 1.5 : .5)), P.r, P.flip, t, P.stage, dirOf(P.fx, P.fy), moving);
+      cx.restore();
       if (P.swim) { cx.strokeStyle = "rgba(220,245,255,.6)"; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(P.x, P.y + P.r * .7, P.r * (1 + (t * 1.5 % 1) * .6), P.r * .35 * (1 + (t * 1.5 % 1) * .6), 0, 0, Math.PI * 2); cx.stroke(); }
       else grassOver(P.x, P.y, P.r, t);
       if (multi) { // étiquette et barre de PV au-dessus de chaque joueur
@@ -705,11 +710,12 @@ function render(now) {
   for (const tn of S.tornados) {
     const a = Math.min(1, tn.life * 2, (tn.max - tn.life) * 4);
     if (tn.twister) { // Ouragan : spirale de vent violet
-      const tg = cx.createRadialGradient(tn.x, tn.y, 4, tn.x, tn.y, tn.r); tg.addColorStop(0, `rgba(170,150,255,${.35 * a})`); tg.addColorStop(1, "rgba(170,150,255,0)");
+      const color = tn.waterTwister ? "70,180,245" : "170,150,255", highlight = tn.waterTwister ? "220,250,255" : "235,230,255";
+      const tg = cx.createRadialGradient(tn.x, tn.y, 4, tn.x, tn.y, tn.r); tg.addColorStop(0, `rgba(${color},${.35 * a})`); tg.addColorStop(1, `rgba(${color},0)`);
       cx.fillStyle = tg; cx.beginPath(); cx.arc(tn.x, tn.y, tn.r, 0, Math.PI * 2); cx.fill(); cx.lineCap = "round";
       for (let k = 0; k < 9; k++) {
         const h = k / 9, rr = tn.r * (.2 + h * .8), an = t * (9 - h * 4) + k * 1.3 + tn.ph, py = tn.y - h * tn.r * .9;
-        cx.strokeStyle = k % 3 ? `rgba(150,125,250,${.85 * a})` : `rgba(235,230,255,${.9 * a})`; cx.lineWidth = 3 - h;
+        cx.strokeStyle = k % 3 ? `rgba(${color},${.85 * a})` : `rgba(${highlight},${.9 * a})`; cx.lineWidth = 3 - h;
         cx.beginPath(); cx.ellipse(tn.x, py, rr, rr * .3, 0, an, an + 2.2); cx.stroke();
       }
       continue;
@@ -861,4 +867,3 @@ function frame(now) {
   render(now);
   requestAnimationFrame(frame);
 }
-

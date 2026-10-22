@@ -54,10 +54,12 @@ const MOVES = {
     desc: lv => ["Charge la lumière 1 s puis tire un rayon géant qui traverse tout l'écran (vers ta visée ou l'ennemi le plus proche).", "Rayon plus large.", "Dégâts +40 %.", "Charge plus rapide (0,6 s), recharge plus courte.", "Deux rayons en V."][lv-1] },
   dansedraco:  { name:"Danse Draco", type:"dragon", only:["feu", "dragon"], also:["kaiminus"], max:5,
     desc: lv => ["Toutes les 12 s, une danse mystique : vitesse et dégâts +5 % pendant 5 s.", "Bonus porté à +10 %.", "Dure 6 s.", "Bonus +15 %, une danse toutes les 10 s.", "Bonus +20 %, et l'aura draconique blesse les ennemis proches."][lv-1] },
-  cascade:     { name:"Cascade", type:"eau", only:"eau", max:5,
+  cascade:     { name:"Cascade", type:"eau", only:"eau", alt:{ line:"magicarpe", stage:1, w:1 }, max:5,
     desc: lv => ["Fonce en avant dans une vague : traverse et repousse les ennemis, intouchable pendant la ruée.", "Ruée plus longue.", "Dégâts +40 %.", "Recharge plus rapide.", "Une vague jaillit à l'arrivée."][lv-1] },
-  hydrocanon:  { name:"Hydrocanon", type:"eau", only:"eau", rare:{ minLvl:8, w:.35 }, max:5,
-    desc: lv => ["Un puissant rayon d'eau traverse tous les ennemis en ligne droite.", "Rayon plus large.", "Dégâts +40 %.", "Un rayon toutes les 3,2 s.", "Double canon : deux rayons parallèles."][lv-1] },
+  hydrocanon:  { name:"Hydrocanon", type:"eau", only:"eau", alt:{ line:"magicarpe", stage:1, w:1 }, rare:{ minLvl:8, w:.35 }, max:5,
+    desc: (lv, P) => P?.line === "magicarpe" && P.stage > 0
+      ? ["Un puissant jet d'eau traverse les ennemis et te rend 1 % des dégâts infligés en PV.", "Jet plus large.", "Dégâts +40 %.", "Recharge plus rapide.", "Le jet balaie un tour complet autour de toi."][lv-1]
+      : ["Un puissant rayon d'eau traverse tous les ennemis en ligne droite.", "Rayon plus large.", "Dégâts +40 %.", "Un rayon toutes les 3,2 s.", "Double canon : deux rayons parallèles."][lv-1] },
   combogriffe: { name:"Combo-Griffe", type:"normal", only:"normal", max:5,
     desc: lv => ["Lacère l'ennemi le plus proche de 2 à 3 coups de griffes, de plus en plus forts.", "Jusqu'à 4 coups.", "Dégâts +30 %.", "Jusqu'à 5 coups, enchaînements plus rapides.", "Toujours 5 coups, griffes plus longues."][lv-1] },
   jackpot:     { name:"Jackpot", type:"normal", only:"normal", max:5,
@@ -66,7 +68,9 @@ const MOVES = {
     desc: lv => ["Mord l'ennemi le plus proche, avec 30 % de chances de l'étourdir 1 s.", "Mord 2 ennemis à la fois.", "Dégâts +40 %.", "Morsures plus rapides.", "60 % de chances d'étourdir."][lv-1] },
   viveattaque: { name:"Vive-Attaque", type:"normal", only:"normal", max:5,
     desc: lv => ["Toutes les 3 s, tu fonces dans ta direction et blesses tout ce que tu traverses. Invincible pendant le sprint.", "Sprint plus long.", "Dégâts +40 %.", "Un sprint toutes les 2,2 s.", "Le sprint étourdit les ennemis touchés."][lv-1] },
-  grozyeux:    { name:"Groz'Yeux", type:"normal", only:"normal", also:["kaiminus"], max:5,
+  magibulle:   { name:"Bulle", type:"eau", line:"magicarpe", max:5,
+    desc: lv => ["Lance une bulle lente téléguidée qui explose à l'impact. Toutes les 5 s sans dégât, elle grossit, jusqu'à 20 s de charge.", "Ralentit les ennemis touchés et agrandit légèrement l'explosion.", "Dégâts +40 %.", "Guidage plus précis.", "Ralentissement renforcé et 25 % de chances d'endormir l'ennemi touché (2 s, 0,8 s pour les boss)."][lv-1] },
+  grozyeux:    { name:"Groz'Yeux", type:"normal", only:"normal", also:["kaiminus"], alt:{ line:"magicarpe", stage:1, w:1 }, max:5,
     desc: lv => ["Les ennemis proches de toi prennent +20 % de dégâts de toutes tes capacités.", "Aura plus large.", "Bonus porté à +30 %.", "Aura encore plus large.", "Les ennemis dans l'aura sont aussi ralentis de 25 %."][lv-1] },
   tranche:     { name:"Tranche", type:"normal", only:"normal", rare:{ minLvl:8, w:.35 }, max:5,
     desc: lv => ["Une immense lame d'énergie traverse l'écran en ligne droite et tranche tous les ennemis. Toujours un coup critique.", "Lame plus large.", "Dégâts +40 %.", "Une lame toutes les 3,5 s.", "Trois lames en éventail."][lv-1] },
@@ -141,4 +145,3 @@ const ITEMS = {
   orbevie:  { name:"Orbe Vie", max:5, desc:"Un peu de tout : attaque +4 %, zone, vitesse des projectiles et durée +3 %, recharge −2 %. Contrecoup : chaque seconde où tu touches un ennemi, tu perds 0,4 % de tes PV max par niveau (jamais en dessous de 10 % de tes PV max)." },
   miel:     { name:"Miel", max:5, desc:"Attire les Pokémon sauvages : +10 % de vitesse, de PV et d'ennemis. Plus d'Exp. à ramasser !" },
 };
-

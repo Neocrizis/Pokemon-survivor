@@ -40,7 +40,7 @@ const ACHS = [
   { id:"surv5",   name:"Premiers pas",       desc:"Tenir 5 minutes dans une partie.",               reward:10 },
   { id:"boss",    name:"Chasseur de géants", desc:"Vaincre un Pokémon géant.",                      reward:15 },
   { id:"nohit",   name:"Intouchable",        desc:"Vaincre un géant sans être touché pendant qu'il est là.", reward:40 },
-  { id:"evo",     name:"Forme finale",       desc:"Atteindre l'évolution finale (N.22).",            reward:10 },
+  { id:"evo",     name:"Forme finale",       desc:"Atteindre la forme finale de ton Pokémon.",        reward:10 },
   { id:"move5",   name:"Maître des capacités", desc:"Monter une capacité au niveau 5.",             reward:10 },
   { id:"items6",  name:"Sac plein",          desc:"Avoir 6 objets dans la même partie.",            reward:20 },
   { id:"kills1k", name:"Hécatombe",          desc:"1 000 K.O. dans une seule partie.",              reward:30 },
@@ -88,7 +88,7 @@ function achCheck(win) {
   const P = typeof NET !== "undefined" && NET.role === "guest" ? S.players[NET.idx] || S.P : typeof NET !== "undefined" && NET.role === "host" ? S.players[0] : S.P; // en ligne : son propre Pokémon
   if (!P || !P.moves) return;
   if (S.t >= 300) achGet("surv5");
-  if (P.stage >= 2) achGet("evo");
+  if (P.stage >= (LINES[P.line].evoLevels || EVO_LEVELS).length) achGet("evo");
   if (Object.values(P.moves).some(m => m.lv >= 5)) achGet("move5");
   if (Object.keys(P.items).length >= 6) achGet("items6");
   if (S.kills >= 1000) achGet("kills1k");

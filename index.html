@@ -373,6 +373,16 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
 .lifePill.l { left:max(18px, env(safe-area-inset-left, 0px)); } .lifePill.r { right:max(18px, env(safe-area-inset-right, 0px)); }
 /* Fiche du starter modernisée : hexagone des stats, évolution en images, icônes de type */
 #sStats { display:flex; justify-content:center; }
+.pkbox.surprise .pkh { font-size:clamp(15px, 2.5vw, 22px); text-align:center; justify-content:center; }
+.pkbox.surprise #sStats { min-height:222px; align-content:center; }
+.unknownRadar { width:300px; max-width:100%; height:222px; margin:auto; position:relative; }
+.unknownRadar span { position:absolute; font:800 18px var(--num); color:#5a5442; }
+.unknownRadar span:nth-child(1) { top:9%; left:calc(50% - 18px); }
+.unknownRadar span:nth-child(2) { top:31%; right:5%; }
+.unknownRadar span:nth-child(3) { bottom:23%; right:5%; }
+.unknownRadar span:nth-child(4) { bottom:5%; left:calc(50% - 18px); }
+.unknownRadar span:nth-child(5) { bottom:23%; left:5%; }
+.unknownRadar span:nth-child(6) { top:31%; left:5%; }
 #sRadar { width:300px; height:222px; max-width:100%; }
 .talB { display:flex; flex-direction:column; gap:1px; background:#fff3dc; border-radius:8px; padding:5px 9px; border-left:4px solid var(--c); }
 .talB b { font:800 13px var(--body); color:#c8402a; } .talB span { font:12px var(--body); color:#4a4434; }
@@ -721,7 +731,7 @@ const ACHS = [
   { id:"surv5",   name:"Premiers pas",       desc:"Tenir 5 minutes dans une partie.",               reward:10 },
   { id:"boss",    name:"Chasseur de géants", desc:"Vaincre un Pokémon géant.",                      reward:15 },
   { id:"nohit",   name:"Intouchable",        desc:"Vaincre un géant sans être touché pendant qu'il est là.", reward:40 },
-  { id:"evo",     name:"Forme finale",       desc:"Atteindre l'évolution finale (N.22).",            reward:10 },
+  { id:"evo",     name:"Forme finale",       desc:"Atteindre la forme finale de ton Pokémon.",        reward:10 },
   { id:"move5",   name:"Maître des capacités", desc:"Monter une capacité au niveau 5.",             reward:10 },
   { id:"items6",  name:"Sac plein",          desc:"Avoir 6 objets dans la même partie.",            reward:20 },
   { id:"kills1k", name:"Hécatombe",          desc:"1 000 K.O. dans une seule partie.",              reward:30 },
@@ -769,7 +779,7 @@ function achCheck(win) {
   const P = typeof NET !== "undefined" && NET.role === "guest" ? S.players[NET.idx] || S.P : typeof NET !== "undefined" && NET.role === "host" ? S.players[0] : S.P; // en ligne : son propre Pokémon
   if (!P || !P.moves) return;
   if (S.t >= 300) achGet("surv5");
-  if (P.stage >= 2) achGet("evo");
+  if (P.stage >= (LINES[P.line].evoLevels || EVO_LEVELS).length) achGet("evo");
   if (Object.values(P.moves).some(m => m.lv >= 5)) achGet("move5");
   if (Object.keys(P.items).length >= 6) achGet("items6");
   if (S.kills >= 1000) achGet("kills1k");
@@ -940,6 +950,9 @@ const LINES = {
             blurb:"Rapide et fragile. Brasier : +10 % de dégâts. Ses Flammèches visent seules l'ennemi le plus proche." },
   eau:    { names:["Carapuce","Carabaffe","Tortank"], type:"eau", move:"pistolet", hp:44, speed:155, cd:.92,
             blurb:"Équilibré. Torrent : capacités rechargées 8 % plus vite. Son Pistolet à O tire droit devant et transperce plusieurs ennemis." },
+  magicarpe:{ names:["Magicarpe","Léviator"], evoLevels:[20], evo:"évolue au N.20",
+            type:"eau", move:"magibulle", hp:52, speed:120, dmg:.65,
+            blurb:"" },
   pika:   { names:["Pichu","Pikachu","Raichu"], type:"electrik", move:"tonnerre", hp:38, speed:168,
             blurb:"Rapide et nerveux. Statik : un ennemi qui le touche est paralysé 1 s. Tonnerre saute d'ennemi en ennemi. Dans la forêt, Pichu, Pikachu et Raichu sauvages laissent place à Lixy, Luxio et Luxray." },
   evoli:  { names:["Évoli","Évoli","Évoli"], type:"normal", move:"meteores", hp:42, speed:166, evo:"choisit son évolution au N.10, se renforce N.22",
@@ -972,7 +985,6 @@ const EEVEE = { // évolutions d'Évoli : type, capacité offerte, bonus
 const veiled = d => LEVEL.tower && !LEVEL.sprout && d.ghost && !scopeOn(); // Spectre non identifié (pas de Scope Sylphe)
 const foeName = d => veiled(d) ? "???" : d.name;
 const ptype = () => S.P.etype || LINES[S.P.line].type; // type actuel du joueur (Évoli prend celui de son évolution)
-
 /* ---------- Capacités et objets ---------- */
 const MOVES = {
   metro1: { name:"Métronome 1", type:"normal", line:"mew", tier:1, max:5,
@@ -1029,10 +1041,12 @@ const MOVES = {
     desc: lv => ["Charge la lumière 1 s puis tire un rayon géant qui traverse tout l'écran (vers ta visée ou l'ennemi le plus proche).", "Rayon plus large.", "Dégâts +40 %.", "Charge plus rapide (0,6 s), recharge plus courte.", "Deux rayons en V."][lv-1] },
   dansedraco:  { name:"Danse Draco", type:"dragon", only:["feu", "dragon"], also:["kaiminus"], max:5,
     desc: lv => ["Toutes les 12 s, une danse mystique : vitesse et dégâts +5 % pendant 5 s.", "Bonus porté à +10 %.", "Dure 6 s.", "Bonus +15 %, une danse toutes les 10 s.", "Bonus +20 %, et l'aura draconique blesse les ennemis proches."][lv-1] },
-  cascade:     { name:"Cascade", type:"eau", only:"eau", max:5,
+  cascade:     { name:"Cascade", type:"eau", only:"eau", alt:{ line:"magicarpe", stage:1, w:1 }, max:5,
     desc: lv => ["Fonce en avant dans une vague : traverse et repousse les ennemis, intouchable pendant la ruée.", "Ruée plus longue.", "Dégâts +40 %.", "Recharge plus rapide.", "Une vague jaillit à l'arrivée."][lv-1] },
-  hydrocanon:  { name:"Hydrocanon", type:"eau", only:"eau", rare:{ minLvl:8, w:.35 }, max:5,
-    desc: lv => ["Un puissant rayon d'eau traverse tous les ennemis en ligne droite.", "Rayon plus large.", "Dégâts +40 %.", "Un rayon toutes les 3,2 s.", "Double canon : deux rayons parallèles."][lv-1] },
+  hydrocanon:  { name:"Hydrocanon", type:"eau", only:"eau", alt:{ line:"magicarpe", stage:1, w:1 }, rare:{ minLvl:8, w:.35 }, max:5,
+    desc: (lv, P) => P?.line === "magicarpe" && P.stage > 0
+      ? ["Un puissant jet d'eau traverse les ennemis et te rend 1 % des dégâts infligés en PV.", "Jet plus large.", "Dégâts +40 %.", "Recharge plus rapide.", "Le jet balaie un tour complet autour de toi."][lv-1]
+      : ["Un puissant rayon d'eau traverse tous les ennemis en ligne droite.", "Rayon plus large.", "Dégâts +40 %.", "Un rayon toutes les 3,2 s.", "Double canon : deux rayons parallèles."][lv-1] },
   combogriffe: { name:"Combo-Griffe", type:"normal", only:"normal", max:5,
     desc: lv => ["Lacère l'ennemi le plus proche de 2 à 3 coups de griffes, de plus en plus forts.", "Jusqu'à 4 coups.", "Dégâts +30 %.", "Jusqu'à 5 coups, enchaînements plus rapides.", "Toujours 5 coups, griffes plus longues."][lv-1] },
   jackpot:     { name:"Jackpot", type:"normal", only:"normal", max:5,
@@ -1041,7 +1055,9 @@ const MOVES = {
     desc: lv => ["Mord l'ennemi le plus proche, avec 30 % de chances de l'étourdir 1 s.", "Mord 2 ennemis à la fois.", "Dégâts +40 %.", "Morsures plus rapides.", "60 % de chances d'étourdir."][lv-1] },
   viveattaque: { name:"Vive-Attaque", type:"normal", only:"normal", max:5,
     desc: lv => ["Toutes les 3 s, tu fonces dans ta direction et blesses tout ce que tu traverses. Invincible pendant le sprint.", "Sprint plus long.", "Dégâts +40 %.", "Un sprint toutes les 2,2 s.", "Le sprint étourdit les ennemis touchés."][lv-1] },
-  grozyeux:    { name:"Groz'Yeux", type:"normal", only:"normal", also:["kaiminus"], max:5,
+  magibulle:   { name:"Bulle", type:"eau", line:"magicarpe", max:5,
+    desc: lv => ["Lance une bulle lente téléguidée qui explose à l'impact. Toutes les 5 s sans dégât, elle grossit, jusqu'à 20 s de charge.", "Ralentit les ennemis touchés et agrandit légèrement l'explosion.", "Dégâts +40 %.", "Guidage plus précis.", "Ralentissement renforcé et 25 % de chances d'endormir l'ennemi touché (2 s, 0,8 s pour les boss)."][lv-1] },
+  grozyeux:    { name:"Groz'Yeux", type:"normal", only:"normal", also:["kaiminus"], alt:{ line:"magicarpe", stage:1, w:1 }, max:5,
     desc: lv => ["Les ennemis proches de toi prennent +20 % de dégâts de toutes tes capacités.", "Aura plus large.", "Bonus porté à +30 %.", "Aura encore plus large.", "Les ennemis dans l'aura sont aussi ralentis de 25 %."][lv-1] },
   tranche:     { name:"Tranche", type:"normal", only:"normal", rare:{ minLvl:8, w:.35 }, max:5,
     desc: lv => ["Une immense lame d'énergie traverse l'écran en ligne droite et tranche tous les ennemis. Toujours un coup critique.", "Lame plus large.", "Dégâts +40 %.", "Une lame toutes les 3,5 s.", "Trois lames en éventail."][lv-1] },
@@ -1116,7 +1132,6 @@ const ITEMS = {
   orbevie:  { name:"Orbe Vie", max:5, desc:"Un peu de tout : attaque +4 %, zone, vitesse des projectiles et durée +3 %, recharge −2 %. Contrecoup : chaque seconde où tu touches un ennemi, tu perds 0,4 % de tes PV max par niveau (jamais en dessous de 10 % de tes PV max)." },
   miel:     { name:"Miel", max:5, desc:"Attire les Pokémon sauvages : +10 % de vitesse, de PV et d'ennemis. Plus d'Exp. à ramasser !" },
 };
-
 /* ---------- Ennemis et niveaux ---------- */
 const FOES = {
   chenipan:   { name:"Chenipan",   types:["insecte"],          hp:10,  speed:46,  dmg:4,  r:12, xp:1 },
@@ -1622,6 +1637,34 @@ function flame(c, x, y, s, t) {
 }
 
 const DRAW = {
+  magicarpe(c, r, t, st) {
+    if (st > 0) {
+      const sway = Math.sin(t * 3) * r * .06;
+      poly(c, [-r*.45, -r*.1, -r*1.05, -r*.85 + sway, -r*.9, -r*.25], "#d63b35");
+      poly(c, [-r*.45, -r*.05, -r*1.0, r*.55 + sway, -r*.8, r*.15], "#e34b3d");
+      ell(c, -r*.1, r*.15, r*.95, r*.48, "#3c82bf");
+      ell(c, r*.15, r*.15, r*.65, r*.3, "#f2e7c8");
+      poly(c, [-r*.5, -r*.05, -r*.95, -r*.7, -r*.6, r*.0], "#e2b847");
+      poly(c, [-r*.5, r*.05, -r*.95, r*.7, -r*.6, r*.25], "#e2b847");
+      for (let i = 0; i < 4; i++) poly(c, [r*(.15+i*.19), -r*.15, r*(.3+i*.19), -r*.55, r*(.4+i*.19), -r*.1], "#e2b847");
+      poly(c, [r*.65, r*.05, r*1.05, r*.25, r*.65, r*.4], "#e2b847");
+      circ(c, r*.62, -r*.12, r*.1, "#fff"); circ(c, r*.65, -r*.12, r*.045, "#1d2630");
+      return;
+    }
+    const wag = Math.sin(t * 12) * r * .08;
+    poly(c, [-r*.65, r*.05, -r*1.2, -r*.65 + wag, -r*1.05, r*.15, -r*1.35, r*.65 + wag, -r*.65, r*.4], "#e6ad32");
+    ell(c, -r*.05, r*.12, r*.78, r*.43, "#e7a92e");
+    ell(c, r*.08, r*.1, r*.65, r*.3, "#f4cf62");
+    for (let i = 0; i < 4; i++) {
+      const x = -r*.42 + i*r*.28;
+      poly(c, [x, -r*.08, x + r*.12, -r*.38, x + r*.23, -r*.08], "#e6ad32");
+    }
+    poly(c, [r*.45, r*.08, r*.82, -r*.18, r*.72, r*.18], "#e6ad32");
+    circ(c, r*.6, -r*.15, r*.18, "#f4cf62");
+    circ(c, r*.65, -r*.16, r*.07, "#fff"); circ(c, r*.68, -r*.16, r*.035, "#1d2630");
+    c.strokeStyle = "#9b5725"; c.lineWidth = r*.045; c.beginPath(); c.moveTo(r*.55, r*.22); c.quadraticCurveTo(r*.68, r*.3, r*.78, r*.2); c.stroke();
+  },
+  leviator(c, r, t) { DRAW.magicarpe(c, r, t, 1); },
   feu(c, r, t, st) {
     const col = ["#f2873a", "#de4f37", "#f08a30"][st];
     if (st === 2) {
@@ -1827,7 +1870,7 @@ const DEX = { plante:["0001","0002","0003"], feu:["0004","0005","0006"], eau:["0
   fantominus:"0092", spectrum:"0093", ectoplasma:"0094", osselait:"0104", ossatueur:"0105", rattata:"0019", rattatac:"0020", chetiflor:"0069", boustiflor:"0070", empiflor:"0071", fouinette:"0161", fouinar:"0162", hoothoot:"0163", noarfang:"0164",
   abo:"0023", arbok:"0024", tadmorv:"0088", grotadmorv:"0089", smogo:"0109", smogogo:"0110", rhinocorne:"0111", rhinoferos:"0112", rhinastoc:"0464", rmiaouss:"0052", rpersian:"0053", celebi:"0251", ronflex:"0143",
   nidoranf:"0029", nidorina:"0030", nidoranm:"0032", nidorino:"0033", psykokwak:"0054", akwakwak:"0055", ramoloss:"0079", flagadoss:"0080", otaria:"0086", lamantine:"0087", magneti:"0081", magneton:"0082", voltorbe:"0100", electrode:"0101", onix:"0095", machoc:"0066", machopeur:"0067", mackogneur:"0068",
-  noeunoeuf:"0102", noadkoko:"0103", minidraco:"0147", goupix:"0037", feunard:"0038", caninos:"0058", arcanin:"0059", ponyta:"0077", galopa:"0078", magmar:"0126", mewtwo:"0150", kadabra:"0064", metamorph:"0132", artikodin:"0144", electhor:"0145", sulfura:"0146", lokhlass:"0131", lippoutou:"0124", crustabri:"0091", tygnon:"0107", kicklee:"0106", leviator:"0130", ptera:"0142", alakazam:"0065", kokiyas:"0090", stari:"0120", tentacool:"0072", ferosinge:"0056", colossinge:"0057", magicarpe:"0129", rapasdepic:"0022", wdraco:"0148", dracolosse:"0149", leveinard:"0113", kangourex:"0115", insecateur:"0123", scarabrute:"0127", tauros:"0128" };
+  noeunoeuf:"0102", noadkoko:"0103", minidraco:"0147", goupix:"0037", feunard:"0038", caninos:"0058", arcanin:"0059", ponyta:"0077", galopa:"0078", magmar:"0126", mewtwo:"0150", kadabra:"0064", metamorph:"0132", artikodin:"0144", electhor:"0145", sulfura:"0146", lokhlass:"0131", lippoutou:"0124", crustabri:"0091", tygnon:"0107", kicklee:"0106", leviator:"0130", ptera:"0142", alakazam:"0065", kokiyas:"0090", stari:"0120", tentacool:"0072", ferosinge:"0056", colossinge:"0057", magicarpe:["0129","0130"], magicarpe_s:["0129s","0130s"], rapasdepic:"0022", wdraco:"0148", dracolosse:"0149", leveinard:"0113", kangourex:"0115", insecateur:"0123", scarabrute:"0127", tauros:"0128" };
 const SPR = {};
 for (const [id, sh] of Object.entries(window.PMD_SHEETS || {})) { const img = new Image(); img.src = sh.src; SPR[id] = { ...sh, img, total: sh.dur.reduce((a, b) => a + b, 0) }; }
 const DIR_ROW = [2, 1, 0, 7, 6, 5, 4, 3]; // lignes PMD : bas, bas-droite, droite, haut-droite, haut, haut-gauche, gauche, bas-gauche
@@ -1847,10 +1890,10 @@ function drawMon(c, kind, x, y, r, flip, t, st = 0, dir = null, moving = true) {
   c.save(); c.translate(x, y);
   ell(c, 0, r * 1.05, r * .85, r * .25, "rgba(0,0,0,.28)");
   c.scale(flip ? -1 : 1, 1);
-  if (DRAW[kind]) DRAW[kind](c, r, t, st); else { circ(c, 0, 0, r, "#9a90a8"); eyes(c, 0, -r * .1, r * .3); }
+  const drawKind = kind.endsWith("_s") ? kind.slice(0, -2) : kind;
+  if (DRAW[drawKind]) DRAW[drawKind](c, r, t, st); else { circ(c, 0, 0, r, "#9a90a8"); eyes(c, 0, -r * .1, r * .3); }
   c.restore();
 }
-
 /* ---------- État de partie ---------- */
 let S = null, state = "menu", last = 0;
 const keys = new Set();
@@ -1905,7 +1948,7 @@ function newGame(line, mapK) {
   refreshHud();
 }
 const pKind = () => (S.P.spiky ? "pichuspiky" : S.P.eform || S.P.line) + (S.P.shiny ? "_s" : "");
-const pName = () => S.P.spiky ? "Pichu Troizépi" : S.P.eform ? EEVEE[S.P.eform].name : LINES[S.P.line].names[S.P.stage];
+const pName = () => S.P.spiky ? "Pichu Troizépi" : S.P.eform ? EEVEE[S.P.eform].name : LINES[S.P.line].names[Math.min(S.P.stage, LINES[S.P.line].names.length - 1)];
 const IT = id => S.P.items[id] || 0;
 const AREA = () => 1 + .1 * IT("loupe") + .01 * (shop.loupe || 0) + .03 * IT("orbevie"), PSPD = () => 1 + .12 * IT("poudrevite") + .03 * IT("orbevie"), DUR = () => 1 + .12 * IT("lumargile") + .03 * IT("orbevie");
 const EXTRA = () => IT("depipe") + (shop.depipe || 0), CURSE = () => 1 + .1 * IT("miel");
@@ -1915,7 +1958,12 @@ function hurtP(v) {
   if (P.choosing) return false; // en ligne : intangible pendant son choix
   if (P.shieldT > 0) return false; // Protection (Germignon)
   if (P.line === "draco") v *= .9; // Multiécaille : −10 % de dégâts reçus
-  P.hp -= Math.max(1, v - IT("veste") - (shop.veste || 0)); P.inv = .5; S.bossClean = false; sfx("hurt");
+  if (P.line === "magicarpe" && P.moves.magibulle) {
+    P.moves.magibulle.untouched = 0;
+  }
+  const dmg = Math.max(1, v - IT("veste") - (shop.veste || 0));
+  if (P.line === "magicarpe" && P.stage === 0) addXp(P, P.need * .01 * Math.max(0, Math.min(P.hp, dmg)));
+  P.hp -= dmg; P.inv = .5; S.bossClean = false; sfx("hurt");
   try { (P.gp || pad.gp)?.vibrationActuator?.playEffect("dual-rumble", { duration:120, strongMagnitude:.35, weakMagnitude:.25 }); } catch (e) {}
   if (P.hp > 0) return false;
   if (P.revives > 0) {
@@ -2610,6 +2658,7 @@ function hitFoe(f, base, type, kx = 0, ky = 0, forceCrit = false) {
   if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(2, dmg * .03)); // Sans Limite : chaque coup soigne un peu
   if (S.parts.length < 450) emit(f.x, f.y - f.r * .2, 3, type, { sp:170, life:.3, jit:f.r * .6 });
   const src = HIT_SRC || "autre", real = Math.min(dmg, Math.max(0, f.hp + dmg)); (S.dmgBy ||= {})[src] = (S.dmgBy[src] || 0) + real;
+  if (S.P.line === "magicarpe" && S.P.stage > 0 && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + real * .01);
   const pb = (S.P.dmgBy ||= {}); pb[src] = (pb[src] || 0) + real; f.lastBy = S.P.idx; // récap par joueur
   if (!f.d.boss && !f.d.heavy) { f.x += kx * 6; f.y += ky * 6; }
   S.texts.push({ x:f.x + (Math.random()-.5)*10, y:f.y - f.r, txt:Math.round(dmg), col: crit ? "#ff8a3d" : m > 1 ? "#ffd84a" : m < 1 ? "#a9b4a6" : "#fff", life:.6, big:m > 1 || crit });
@@ -3010,7 +3059,7 @@ function updateMoves(dt) {
   const P = S.P;
   if (P.line === "mew") updateMetro(P, dt);
   updateJohto(P, dt);
-  const gy = P.moves.grozyeux;
+  const gy = P.moves.grozyeux || (P.line === "magicarpe" && P.stage > 0 ? { lv:3 } : null);
   if (gy) {
     const lv = gy.lv, mul = lv >= 3 ? 1.3 : 1.2; gy.rad = (90 + 15 * lv + (lv >= 4 ? 15 : 0)) * AREA();
     for (const f of S.foes) if ((f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (gy.rad + f.r) ** 2) {
@@ -3022,7 +3071,24 @@ function updateMoves(dt) {
   const tagNew = () => { if (srcLens) [S.shots, S.waves, S.tornados, S.patches].forEach((a, i) => { for (let k = srcLens[i]; k < a.length; k++) a[k].src ||= HIT_SRC; }); };
   for (const [id, m] of Object.entries(P.moves)) {
     tagNew(); HIT_SRC = id; srcLens = [S.shots.length, S.waves.length, S.tornados.length, S.patches.length];
+    if (id === "magibulle") {
+      m.untouched = (m.untouched || 0) + dt;
+    }
     m.t -= dt; const lv = m.lv;
+    if (id === "hydrocanon" && m.spinT > 0) {
+      const step = Math.min(dt, m.spinT), angle = m.spinA;
+      m.spinA += Math.PI * 2 * step / 1.5; m.spinT -= step;
+      const len = 900, w = 42 * AREA(), dmg = (12 + 2*lv) * (lv >= 3 ? 1.4 : 1);
+      const ex = P.x + Math.cos(angle) * len, ey = P.y + Math.sin(angle) * len;
+      S.beams.push({ sx:P.x, sy:P.y, ex, ey, w, life:.08 });
+      for (const f of S.foes) {
+        const t2 = Math.max(0, Math.min(1, ((f.x - P.x) * Math.cos(angle) * len + (f.y - P.y) * Math.sin(angle) * len) / (len * len)));
+        const qx = P.x + Math.cos(angle) * len * t2, qy = P.y + Math.sin(angle) * len * t2;
+        if ((f.x - qx) ** 2 + (f.y - qy) ** 2 > (w / 2 + f.r) ** 2 || (m.spinHits.get(f) || 0) > S.t) continue;
+        m.spinHits.set(f, S.t + .22); hitFoe(f, dmg, "eau", Math.cos(angle), Math.sin(angle));
+      }
+      continue;
+    }
     if (id === "tranchherbe" || id === "siphon" || id === "feufollet" || id === "combogriffe" || id === "grozyeux" || MOVES[id].tier) continue;
     if (m.t > 0) continue;
     if (JMOVE[id]) { JMOVE[id](P, m, lv, dt); continue; }
@@ -3182,13 +3248,18 @@ function updateMoves(dt) {
         const a = base + (i - (n-1)/2) * (n === 2 ? .1 : .22); // à 2 jets, éventail serré pour ne pas rater la cible droit devant
         S.shots.push({ kind:"water", x:P.x, y:P.y, vx:Math.cos(a)*500, vy:Math.sin(a)*500, r:6 + P.stage, dmg, life:.85, pierce:3 + (lv >= 2 ? 2 : 0), type:"eau", hit:new Set() });
       }
-    } else if (id === "bullesdo") {
-      m.t = (lv >= 3 ? 1.0 : 1.25) * P.cdMul;
-      const n = 2 + (lv >= 2) + (lv >= 4) + EXTRA(), dmg = 6 + 2*lv, ts = nearestFoes(n + 4);
+    } else if (id === "bullesdo" || id === "magibulle") {
+      const magi = id === "magibulle";
+      const gyrados = magi && P.stage > 0;
+      const n = magi ? 1 + EXTRA() : 2 + (lv >= 2) + (lv >= 4) + EXTRA();
+      m.t = (magi ? gyrados ? 1.1 : 2.4 : lv >= 3 ? 1.0 : 1.25) * P.cdMul;
+      const dmg = magi ? (4 + 2*lv) * (lv >= 3 ? 1.4 : 1) * (gyrados ? 2.5 : 1) : 6 + 2*lv, ts = nearestFoes(magi ? n : n + 4);
+      if (magi && !ts.length) { m.t = .2; continue; }
       for (let i = 0; i < n; i++) {
-        const f = ts.length ? ts[Math.floor(Math.random() * ts.length)] : null;
-        const a = P.aiming ? P.aimA + (Math.random() - .5) * .6 : f ? Math.atan2(f.y - P.y, f.x - P.x) + (Math.random() - .5) * .5 : Math.random() * Math.PI * 2;
-        S.shots.push({ kind:"bubble", x:P.x, y:P.y, vx:Math.cos(a)*230, vy:Math.sin(a)*230, r:8 + P.stage, dmg, life:1.6, pierce:1, type:"eau", slow: lv >= 5 ? .4 : .6, ph:Math.random() * 6 });
+        const f = magi ? ts[i % ts.length] : ts.length ? ts[Math.floor(Math.random() * ts.length)] : null;
+        const a = magi ? Math.atan2(f.y - P.y, f.x - P.x) : P.aiming ? P.aimA + (Math.random() - .5) * .6 : f ? Math.atan2(f.y - P.y, f.x - P.x) + (Math.random() - .5) * .5 : Math.random() * Math.PI * 2;
+        const speed = magi ? gyrados ? 190 : 65 : 230, growth = magi ? Math.min(4, Math.floor(m.untouched / 5)) : 0;
+        S.shots.push({ kind:"bubble", x:P.x, y:P.y, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, r:(gyrados ? 14 : 8) + P.stage + growth * 3, grow:magi ? (gyrados ? 12 : 5) + growth * 2 : 0, dmg, life: magi ? 5 : 1.6, pierce:1, type:"eau", boom:magi, boomR:magi ? ((gyrados ? 115 : 48) + growth * 16 + Math.max(0, lv - 1) * 4) * AREA() : undefined, boomMul:gyrados ? 1 : .65, slow: magi ? lv >= 5 ? .8 : lv >= 2 ? .65 : 0 : lv >= 5 ? .8 : .6, sleepChance:magi && lv >= 5 ? .25 : 0, home:magi ? f : null, homeSpeed:magi ? gyrados ? 240 : 85 : undefined, homeTurn:magi ? gyrados ? 6 : lv >= 4 ? 3.5 : 2.5 : undefined, ph:Math.random() * 6 });
       }
     } else if (id === "vampigraine") {
       m.t = (lv >= 4 ? 1.7 : 2.2) * P.cdMul;
@@ -3258,8 +3329,27 @@ function updateMoves(dt) {
       if (!P.moving) continue;
       S.patches.push({ x:P.x + (Math.random() - .5) * 8, y:P.y + P.r * .6, r:(18 + 2*lv + (lv >= 4 ? 8 : 0)) * AREA(), life:(1.6 + .4*lv) * DUR(), max:(1.6 + .4*lv) * DUR(), dmg:(3 + lv) * (lv >= 5 ? 1.6 : 1), burn: lv >= 3, ph:Math.random() * 6 });
     } else if (id === "hydrocanon") {
+      const gyarados = P.line === "magicarpe" && P.stage > 0;
       const near = nearestFoes(1)[0];
       if (!near && !P.aiming) { m.t = .3; continue; }
+      if (gyarados) {
+        m.t = (lv >= 4 ? 4 : 4.8) * P.cdMul;
+        const target = nearestFoes(1)[0], a = P.aiming ? P.aimA : target ? Math.atan2(target.y - P.y, target.x - P.x) : Math.atan2(P.fy, P.fx);
+        if (lv >= 5) {
+          m.spinA = a; m.spinT = 1.5; m.spinHits = new Map();
+        } else {
+          const len = 900, w = (34 + 4*lv) * AREA(), dmg = (40 + 8*lv) * (lv >= 3 ? 1.4 : 1);
+          const ex = P.x + Math.cos(a) * len, ey = P.y + Math.sin(a) * len;
+          S.beams.push({ sx:P.x, sy:P.y, ex, ey, w, life:.4 });
+          for (const f of S.foes) {
+            const t2 = Math.max(0, Math.min(1, ((f.x - P.x) * Math.cos(a) * len + (f.y - P.y) * Math.sin(a) * len) / (len * len)));
+            const qx = P.x + Math.cos(a) * len * t2, qy = P.y + Math.sin(a) * len * t2;
+            if ((f.x - qx) ** 2 + (f.y - qy) ** 2 <= (w / 2 + f.r) ** 2) hitFoe(f, dmg, "eau", Math.cos(a), Math.sin(a));
+          }
+        }
+        S.shake = lv >= 5 ? .3 : .2;
+        continue;
+      }
       m.t = (lv >= 4 ? 3.2 : 4) * P.cdMul;
       const a = P.aiming ? P.aimA : Math.atan2(near.y - P.y, near.x - P.x), len = 760, w = (26 + 5*lv) * AREA(), dmg = (70 + 18*lv) * (lv >= 3 ? 1.4 : 1);
       const offs = lv >= 5 ? [-w * .5, w * .5] : [0];
@@ -3443,7 +3533,6 @@ function updateMoves(dt) {
     }
   }
 }
-
 /* ---------- Boucle ---------- */
 // en ligne, chaque joueur a sa propre caméra, centrée sur lui (sur le même écran, la caméra reste commune)
 const SPLIT = () => NET.role === "host" && NET.started && S.players.length > 1;
@@ -3525,6 +3614,7 @@ function update(dt) {
   arenaClamp(P, P.r);
   P.swim = ptype() === "eau" && inWater(P.x, P.y);
   P.inv -= dt; P.evoFlash -= dt; P.slowT = (P.slowT || 0) - dt; P.parT = (P.parT || 0) - dt;
+  if (P.line === "magicarpe" && P.stage === 0) addXp(P, P.need * .03 * dt);
   if (P.regen) P.hp = Math.min(P.maxHp, P.hp + P.regen * dt);
   if (IT("orbevie") && (P.orbT = (P.orbT || 0) + dt) >= 1) { // Orbe Vie : contrecoup quand on attaque, comme dans les jeux
     P.orbT -= 1;
@@ -3586,7 +3676,10 @@ function update(dt) {
   // ennemis + séparation
   const grid = new Map(), CELL = 48;
   for (const f of S.foes) {
-    P = S.P = nearP(f.x, f.y); // chaque Pokémon sauvage vise le joueur le plus proche
+    P = S.P = f.d.boss
+      ? S.players.filter(pl => !pl.down && pl.line === "magicarpe" && pl.stage > 0)
+        .sort((a, b) => Math.hypot(a.x - f.x, a.y - f.y) - Math.hypot(b.x - f.x, b.y - f.y))[0] || nearP(f.x, f.y)
+      : nearP(f.x, f.y); // les boss convergent vers Léviator dès son évolution
     if (f.prop) { if (f.hp > 0 && Math.hypot(f.x - P.x, f.y - P.y) < f.r + P.r + 8) f.hp = 0; continue; } // arbre à baies / rocher : se casse aussi en le touchant
     if (f.d.rare) { if (f.hp > 0) updateRare(f, dt); continue; }
     if (f.d.evo && f.hp > 0 && S.t >= f.d.evoAt && (f.evoT = (f.evoT ?? f.d.evoT) - dt) <= 0) evolveFoe(f, f.d.evo); // Rhinocorne → Rhinoféros → Rhinastoc
@@ -3689,6 +3782,7 @@ function update(dt) {
         for (let i = 0; i < n; i++) { const a = Math.atan2(dy, dx) + (i - (n - 1) / 2) * .22; S.eshots.push({ x:f.x, y:f.y, vx:Math.cos(a) * 230, vy:Math.sin(a) * 230, dmg:f.d.dmg, life:2.4, type:f.copyT || f.d.shot || "electrik", r:6 }); }
       }
     }
+    if (f.d.boss && P.line === "magicarpe" && P.stage > 0) { ax = dx / l; ay = dy / l; sp = Math.max(sp, l / 10); }
     if (f.sleepT > 0 || f.stunT > 0 || f.hold > 0) sp = 0; // hold : attaque en cours (Repos, Laser Glace, Explosion)
     const flies = f.d.types.includes("vol");
     if (!flies && !f.d.boss && tallGrassAt(f.x, f.y)) sp *= .85; // les boss ignorent le décor
@@ -3749,7 +3843,8 @@ function update(dt) {
       tn.tx = best;
     }
     const gx = tn.tx ? tn.tx.x : P.x, gy = tn.tx ? tn.tx.y : P.y, d = Math.hypot(gx - tn.x, gy - tn.y) || 1;
-    tn.x += (gx - tn.x) / d * Math.min(d, 110 * dt); tn.y += (gy - tn.y) / d * Math.min(d, 110 * dt);
+    const speed = tn.speed || 110;
+    tn.x += (gx - tn.x) / d * Math.min(d, speed * dt); tn.y += (gy - tn.y) / d * Math.min(d, speed * dt);
     const hit = tn.tick <= 0; if (hit) tn.tick = .3;
     for (const f of S.foes) {
       const dx = tn.x - f.x, dy = tn.y - f.y, d2 = dx*dx + dy*dy;
@@ -3982,7 +4077,7 @@ function update(dt) {
   // projectiles
   function explode(s, f) {
     const R = s.boomR || 56 * AREA(); s.exploded = true; emit(s.x, s.y, 16, s.type, { sp:R * 4, life:.4, r:3.2 }); HIT_SRC = s.src;
-    S.fxs.push({ x:s.x, y:s.y, r:0, max:R, life:s.star ? .45 : .25, col:s.type === "electrik" ? "rgba(246,209,58," : s.type === "dragon" ? "rgba(150,110,250," : "rgba(246,162,58,", star:s.star });
+    S.fxs.push({ x:s.x, y:s.y, r:0, max:R, life:s.star ? .45 : .25, col:s.kind === "bubble" ? "rgba(120,210,255," : s.type === "electrik" ? "rgba(246,209,58," : s.type === "dragon" ? "rgba(150,110,250," : "rgba(246,162,58,", star:s.star });
     if (s.star) S.shake = .2;
     for (const g of S.foes) if (g !== f && (g.x-s.x)**2 + (g.y-s.y)**2 < R*R) { hitFoe(g, s.dmg * (s.boomMul || .6), s.type); if (s.burn) { g.burnT = s.burn.t * DUR(); g.burnDps = Math.max(g.burnDps || 0, s.burn.dps); } }
     if (f && s.burn) { f.burnT = s.burn.t * DUR(); f.burnDps = Math.max(f.burnDps || 0, s.burn.dps); }
@@ -3991,9 +4086,9 @@ function update(dt) {
   for (const s of S.shots) {
     P = S.P = s.o || P; const ps = PSPD(); // dégâts et vitesse : ceux du joueur qui a tiré
     (s.tr ||= []).unshift([s.x, s.y]); if (s.tr.length > 7) s.tr.pop();
-    if (s.home) { // Météores : l'étoile se dirige toujours vers sa cible
+    if (s.home) { // Météores et Bulle de Magicarpe : suivent leur cible
       if (s.home.hp <= 0 || s.hit?.has(s.home)) s.home = nearestFoes(1)[0] || null;
-      if (s.home) { const dx = s.home.x - s.x, dy = s.home.y - s.y, l = Math.hypot(dx, dy) || 1, k = Math.min(1, dt * 6); s.vx += (dx / l * 420 - s.vx) * k; s.vy += (dy / l * 420 - s.vy) * k; }
+      if (s.home) { const dx = s.home.x - s.x, dy = s.home.y - s.y, l = Math.hypot(dx, dy) || 1, k = Math.min(1, dt * (s.homeTurn || 6)), speed = s.homeSpeed || 420; s.vx += (dx / l * speed - s.vx) * k; s.vy += (dy / l * speed - s.vy) * k; }
     }
     if (s.kind === "fire" && Math.random() < dt * 30) emit(s.x, s.y, 1, "feu", { sp:40, life:.45, up:30, r:2.2 });
     if (s.kind === "dfire" && Math.random() < dt * 30) emit(s.x, s.y, 1, "dragon", { sp:40, life:.45, up:30, r:2.2 });
@@ -4006,6 +4101,10 @@ function update(dt) {
         const n = Math.hypot(s.vx, s.vy); HIT_SRC = s.src;
         hitFoe(f, s.dmg, s.type, s.vx/n, s.vy/n, s.crit); s.pierce--; s.hit?.add(f); if (s.onHit) s.onHit(f);
         if (s.slow) { f.slowT = 2 * DUR(); f.slowMul = s.slow; }
+        if (s.sleepChance && Math.random() < s.sleepChance) {
+          f.sleepT = Math.max(f.sleepT || 0, f.d.boss ? .8 : 2);
+          S.texts.push({ x:f.x, y:f.y - f.r - 20, txt:"Endormi !", col:"#e8e0ff", life:.9, label:true });
+        }
         if (s.seed) { f.seedT = 5 * DUR(); f.seedDps = s.seed.dps; f.seedHeal = s.seed.heal; }
         if (s.boom) explode(s, f);
         if (s.coinV && f.hp <= 0 && !f.d.boss) S.gems.push({ x:f.x + 8, y:f.y - 4, v:s.coinV, coin:true });
@@ -4125,35 +4224,46 @@ function update(dt) {
 function gainXp(v, who) { // XP individuelle : seul le joueur qui ramasse le bonbon la reçoit
   const me = S.P;
   for (const P of who ? [who] : S.players) {
-    if (P.down) continue; S.P = P;
-    P.xp += v * (1 + .08 * IT("multiexp")) * (P.line === "evoli" ? 1.1 : 1); // Adaptabilité d'Évoli
-    while (P.xp >= P.need) { P.xp -= P.need; P.lvl++; P.need = Math.round(6 + P.lvl * 4.5 + P.lvl * P.lvl * .12); P.pendingLv++; checkEvo(); }
+    if (P.down) continue;
+    addXp(P, v * (1 + .08 * (P.items.multiexp || 0)) * (P.line === "evoli" ? 1.1 : 1)); // Adaptabilité d'Évoli
   }
+  S.P = me;
+}
+function addXp(P, amount) {
+  const me = S.P;
+  S.P = P; P.xp += amount;
+  while (P.xp >= P.need) { P.xp -= P.need; P.lvl++; P.need = Math.round(6 + P.lvl * 4.5 + P.lvl * P.lvl * .12); P.pendingLv++; checkEvo(); }
   S.P = me;
 }
 function checkEvo() {
   const P = S.P;
   if (P.line === "evoli" && P.stage === 0 && P.lvl >= EVO_LEVELS[0]) { P.pendingEvo = true; return; } // Évoli choisit sa forme
-  if (P.stage < 2 && P.lvl >= EVO_LEVELS[P.stage]) {
+  const evoLevels = LINES[P.line].evoLevels || EVO_LEVELS;
+  if (P.stage < evoLevels.length && P.lvl >= evoLevels[P.stage]) {
     const from = pName(); P.stage++;
     P.maxHp += 30; P.hp = P.maxHp; P.dmgMul *= 1.15; P.r += 2; if (P.stage === 2 && !P.spiky) P.r *= 1.1; P.evoFlash = 1.2;
+    if (P.line === "magicarpe" && P.stage === 1) {
+      P.maxHp += 120; P.hp += 120; P.dmgMul *= 2.2; P.r += 2;
+      delete P.moves.magibulle;
+      P.moves.hydrocanon = { lv:1, t:.3, since:S.t };
+    }
     sfx("evo"); banner(from === pName() ? `${from} devient encore plus fort !` : `Quoi ? ${from} évolue en ${pName()} !`);
   }
 }
 function banner(txt) { S.msgs = [{ txt, life:3 }]; }
-
 /* ---------- Montée de niveau ---------- */
 function buildChoices() {
   const P = S.P, pool = [];
   const owned = realMoves(P).map(e => e[0]);
   for (const [id, m] of Object.entries(MOVES)) {
     const cur = (!P.moves[id]?.tmp && P.moves[id]?.lv) || 0;
+  if (P.line === "magicarpe" && P.stage === 0 && !cur) continue;
     if (m.tier > 1 && !P.moves["metro" + (m.tier - 1)]) continue;
     if (cur >= m.max) continue;
     const alt = m.alt && P.line === m.alt.line && !P.spiky && (cur || P.stage === m.alt.stage);
     const also = (m.also || []).includes(P.line);
     if (m.only && ![].concat(m.only).includes(ptype()) && !alt && !also) continue;
-    if (m.only && LINES[P.line].own && !also) continue; // starters de Johto : leurs propres capacités seulement
+    if (m.only && (LINES[P.line].own || LINES[P.line].restricted) && !also && !alt) continue; // starters à capacités limitées
     if (m.line && m.line !== P.line) continue;
     if (!cur && owned.length >= MAX_MOVES()) continue;
     if (!cur && m.rare && P.lvl < m.rare.minLvl) continue;
@@ -4287,7 +4397,7 @@ function openLevelUp(given) {
     if (ch.kind === "move") {
       const m = MOVES[ch.id]; col = TYPE_COLORS[m.type]; title = m.name;
       tag = ch.lv === 1 ? (m.rare ? "★ Capacité rare" : m.type === ptype() ? "Nouvelle capacité" : "CT · nouvelle capacité") : `Niveau ${ch.lv}`;
-      desc = m.desc(ch.lv);
+      desc = m.desc(ch.lv, S.P);
       title += ` <span class="chip" style="--c:${col}">${TYPE_NAMES[m.type]}</span>`;
     } else if (ch.kind === "item") {
       const it = ITEMS[ch.id]; col = "#e8e2c8"; title = itemIcon(ch.id, "ico big") + it.name; tag = `Objet · niveau ${ch.lv}`; desc = it.desc;
@@ -4301,7 +4411,6 @@ function openLevelUp(given) {
   const rb = $("rerollBtn"); rb.hidden = !(S.rerolls > 0); rb.textContent = `🎲 Relancer (${S.rerolls || 0}) · touche R / Y`;
   box.querySelector("button")?.focus({ preventScroll:true });
 }
-
 /* ---------- Fin ---------- */
 function fmt(t) { const s = Math.floor(t); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; }
 function dmgTableHtml(who) {
@@ -6038,7 +6147,10 @@ function render(now) {
   for (const g of S.ghosts) { const o = g.o || P; cx.save(); cx.globalAlpha = g.life / .22 * .35; drawMon(cx, o.line, g.x, g.y, o.r, o.flip, t, o.stage, g.dir, false); cx.restore(); }
   const list = S.foes.filter(f => Math.abs(f.x - CAM.x) < vw / 2 + 120 && Math.abs(f.y - CAM.y) < vh / 2 + 120);
   for (const p of S.players) list.push({ isP:true, y:p.y, p });
-  list.sort((a, b) => a.y - b.y);
+  list.sort((a, b) => {
+    const magiA = a.isP && a.p.line === "magicarpe", magiB = b.isP && b.p.line === "magicarpe";
+    return Number(magiA) - Number(magiB) || a.y - b.y;
+  });
   for (const f of list) {
     if (f.isP) {
       const P = S.P = f.p, multi = S.players.length > 1;
@@ -6054,12 +6166,14 @@ function render(now) {
         cx.font = "bold 11px sans-serif"; cx.textAlign = "center"; cx.fillStyle = PCOL[P.idx]; cx.fillText(`J${P.idx + 1} choisit… ${Math.max(0, Math.ceil(P.chooseT ?? 0))}`, P.x, P.y - P.r * 2.4 - 6);
         continue;
       }
-      if (P.inv > 0 && Math.floor(t * 20) % 2) continue;
+      if (P.inv > 0 && Math.floor(t * 20) % 2 && P.line !== "magicarpe") continue;
       if (P.evoFlash > 0) { cx.save(); cx.globalAlpha = Math.min(1, P.evoFlash); circ(cx, P.x, P.y, P.r * 2.4 * (1.3 - P.evoFlash * .25), "rgba(255,255,230,.55)"); cx.restore(); }
       const moving = !!P.moving;
       cx.save(); cx.globalAlpha = .55 + .2 * Math.sin(t * 3); cx.strokeStyle = PCOL[P.idx]; cx.lineWidth = 2.5; cx.beginPath(); cx.ellipse(P.x, P.y + P.r * .75, P.r * 1.15, P.r * .45, 0, 0, Math.PI * 2); cx.stroke(); cx.restore();
       if (P.moves.etincelle?.rad) { const rad = P.moves.etincelle.rad; circ(cx, P.x, P.y, rad, "rgba(246,209,58,.07)"); cx.strokeStyle = "rgba(255,240,150,.7)"; cx.lineWidth = 1.6; for (let k = 0; k < 4; k++) { const a = t * 3 + k * 1.57 + Math.sin(t * 13 + k) * .3; cx.beginPath(); cx.moveTo(P.x + Math.cos(a) * rad * .55, P.y + Math.sin(a) * rad * .55); cx.lineTo(P.x + Math.cos(a + .15) * rad * .8, P.y + Math.sin(a + .15) * rad * .8); cx.lineTo(P.x + Math.cos(a + .05) * rad, P.y + Math.sin(a + .05) * rad); cx.stroke(); } }
+      cx.save(); if (P.line === "magicarpe" && P.inv > 0) cx.globalAlpha = .5;
       drawMon(cx, pKind(), P.x, P.y + (sheetFor(pKind(), P.stage) ? 0 : Math.sin(t * 10) * (moving ? 1.5 : .5)), P.r, P.flip, t, P.stage, dirOf(P.fx, P.fy), moving);
+      cx.restore();
       if (P.swim) { cx.strokeStyle = "rgba(220,245,255,.6)"; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(P.x, P.y + P.r * .7, P.r * (1 + (t * 1.5 % 1) * .6), P.r * .35 * (1 + (t * 1.5 % 1) * .6), 0, 0, Math.PI * 2); cx.stroke(); }
       else grassOver(P.x, P.y, P.r, t);
       if (multi) { // étiquette et barre de PV au-dessus de chaque joueur
@@ -6374,11 +6488,12 @@ function render(now) {
   for (const tn of S.tornados) {
     const a = Math.min(1, tn.life * 2, (tn.max - tn.life) * 4);
     if (tn.twister) { // Ouragan : spirale de vent violet
-      const tg = cx.createRadialGradient(tn.x, tn.y, 4, tn.x, tn.y, tn.r); tg.addColorStop(0, `rgba(170,150,255,${.35 * a})`); tg.addColorStop(1, "rgba(170,150,255,0)");
+      const color = tn.waterTwister ? "70,180,245" : "170,150,255", highlight = tn.waterTwister ? "220,250,255" : "235,230,255";
+      const tg = cx.createRadialGradient(tn.x, tn.y, 4, tn.x, tn.y, tn.r); tg.addColorStop(0, `rgba(${color},${.35 * a})`); tg.addColorStop(1, `rgba(${color},0)`);
       cx.fillStyle = tg; cx.beginPath(); cx.arc(tn.x, tn.y, tn.r, 0, Math.PI * 2); cx.fill(); cx.lineCap = "round";
       for (let k = 0; k < 9; k++) {
         const h = k / 9, rr = tn.r * (.2 + h * .8), an = t * (9 - h * 4) + k * 1.3 + tn.ph, py = tn.y - h * tn.r * .9;
-        cx.strokeStyle = k % 3 ? `rgba(150,125,250,${.85 * a})` : `rgba(235,230,255,${.9 * a})`; cx.lineWidth = 3 - h;
+        cx.strokeStyle = k % 3 ? `rgba(${color},${.85 * a})` : `rgba(${highlight},${.9 * a})`; cx.lineWidth = 3 - h;
         cx.beginPath(); cx.ellipse(tn.x, py, rr, rr * .3, 0, an, an + 2.2); cx.stroke();
       }
       continue;
@@ -6530,9 +6645,8 @@ function frame(now) {
   render(now);
   requestAnimationFrame(frame);
 }
-
 /* ---------- Écran titre ---------- */
-const starterOrder = ["plante", "feu", "eau", "miaouss", "pika", "evoli", "draco", "mew", "germignon", "heri", "kaiminus", "togepi"];
+const starterOrder = ["plante", "feu", "eau", "magicarpe", "miaouss", "pika", "evoli", "draco", "mew", "germignon", "heri", "kaiminus", "togepi"];
 const levelBtns = [];
 $("lgBtn").addEventListener("click", nextRoom);
 const levelOpen = i => i === 0 || !!achs[LEVELS[i].jFirst ? "win9" : "win" + i]; // un niveau se débloque en terminant le précédent (Johto : après la Caverne Azurée)
@@ -6575,7 +6689,7 @@ const lineMoves = line => { // capacités que ce starter peut apprendre (même r
     if (m.line && m.line !== line) continue;
     const alt = m.alt && m.alt.line === line, also = (m.also || []).includes(line);
     if (m.only && ![].concat(m.only).includes(L.type) && !alt && !also) continue;
-    if (m.only && L.own && !also) continue;
+    if (m.only && (L.own || L.restricted) && !also && !alt) continue;
     if (!m.only && !m.line) continue;
     out.push([id, m, alt]);
   }
@@ -6603,14 +6717,18 @@ function renderCar() {
   const mu = LEVEL.matchup[line] || (L.own && LEVEL.matchup[L.type]) || (line === "mew" ? ["Variable", "Métronome peut tirer n'importe quel type : chaque partie est une surprise."] : ["Neutre", "Pas d'avantage ni de faiblesse marqués dans ce niveau."]);
   $("sMu").innerHTML = `<b>${mu[0]}</b> ${LEVEL.where}. ${mu[1]}`;
   $("sLock").hidden = !lock; $("sLock").textContent = lock ? `🔒 Succès « ${lock.name} » : ${lock.desc}` : "";
-  $("sEvo").textContent = "N.1";
-  const evo = line === "mew" ? "n'évolue pas, se renforce N.10 et N.22" : line === "evoli" ? "Pyroli, Aquali, Phyllali ou Voltali au N.10" : line === "miaouss" ? `${L.names[1]} au N.${EVO_LEVELS[0]}` : `${L.names[1]} au N.${EVO_LEVELS[0]}, ${L.names[2]} au N.${EVO_LEVELS[1]}`;
+  const mystery = line === "magicarpe";
+  const statsBox = $("sStats").parentElement, statsHeader = statsBox.querySelector(".pkh");
+  statsBox.hidden = false; statsBox.classList.toggle("surprise", mystery); statsHeader.hidden = false; $("sTal").hidden = mystery;
+  statsHeader.querySelector("span").textContent = mystery ? "Surprise Mother Fucker" : "Stats";
+  $("sEvo").hidden = mystery; $("sEvo").textContent = mystery ? "" : "N.1";
+  const evo = line === "mew" ? "n'évolue pas, se renforce N.10 et N.22" : line === "evoli" ? "Pyroli, Aquali, Phyllali ou Voltali au N.10" : line === "magicarpe" ? L.evo : line === "miaouss" ? `${L.names[1]} au N.${EVO_LEVELS[0]}` : `${L.names[1]} au N.${EVO_LEVELS[0]}, ${L.names[2]} au N.${EVO_LEVELS[1]}`;
   const st = [["PV", L.hp, L.hp / 56, false], ["Attaque", Math.round(100 * (L.dmg || 1)), (L.dmg || 1) / 1.2, (L.dmg || 1) > 1],
     ["Vitesse", L.speed, (L.speed - 135) / 45, false], ["Recharge", Math.round(100 / (L.cd || 1)), (100 / (L.cd || 1) - 70) / 45, (L.cd || 1) < 1],
     ["Critique", `${Math.round(100 * (L.crit || 0))} %`, (L.crit || 0) / .2, !!L.crit], ["Régén.", String(L.regen || 0).replace(".", ","), (L.regen || 0) / .8, !!L.regen]];
-  $("sStats").innerHTML = st.map(([n, val, f, up]) => `<div class="pst${up ? " up" : ""}"><span>${n}${up ? " ▲" : ""}</span><span class="v">${val}</span><div class="bb"><i style="width:${Math.round(Math.max(.06, Math.min(1, f)) * 100)}%"></i></div></div>`).join("");
-  const t = TALENTS[line]; $("sTal").innerHTML = (t ? `<b>Talent · ${t[0]}</b> : ${t[1]}<br>` : "") + `<b>Évolution</b> : ${evo}`;
-  const mv = lineMoves(line); $("sMvN").textContent = mv.length; $("sMoves").classList.toggle("many", mv.length > 7);
+  $("sStats").innerHTML = mystery ? Array.from({ length:6 }, () => `<div class="pst"><span>???</span><span class="v">???</span><span></span></div>`).join("") : st.map(([n, val, f, up]) => `<div class="pst${up ? " up" : ""}"><span>${n}${up ? " ▲" : ""}</span><span class="v">${val}</span><div class="bb"><i style="width:${Math.round(Math.max(.06, Math.min(1, f)) * 100)}%"></i></div></div>`).join("");
+  const t = TALENTS[line]; $("sTal").innerHTML = mystery ? "" : (t ? `<b>Talent · ${t[0]}</b> : ${t[1]}<br>` : "") + `<b>Évolution</b> : ${evo}`;
+  const mv = mystery ? lineMoves(line).filter(([id]) => id === L.move) : lineMoves(line); $("sMvN").textContent = mv.length; $("sMoves").classList.toggle("many", mv.length > 7);
   $("sMoves").innerHTML = mv.map(([id, m, alt]) => { const d = m.desc(1).split(/(?<=\.) /)[0].replace(/\.$/, "");
     const tg = id === L.move ? `<span class="tg">Départ</span>` : m.rare ? `<span class="tg r">Rare N.${m.rare.minLvl}</span>` : alt ? `<span class="tg a">${L.names[m.alt.stage]}</span>` : m.tier ? `<span class="tg r" title="Proposé après Métronome ${m.tier - 1}">après M.${m.tier - 1}</span>` : "<span></span>";
     return `<div class="mv"><span class="ty" style="background:${TYPE_COLORS[m.type] || "#888"}">${TYPE_NAMES[m.type] || m.type}</span><div><b>${m.name}</b><small>${d}</small></div>${m.tier === 1 ? "<span></span>" : tg}</div>`; }).join("");
@@ -6740,7 +6858,6 @@ function pickStarter(line) {
 $("mpBtn").addEventListener("click", () => setPlayers(NPL % 4 + 1));
 window.addEventListener("gamepadconnected", () => mpHint()); window.addEventListener("gamepaddisconnected", () => mpHint());
 requestAnimationFrame(drawPreviews);
-
 /* ---------- Entrées ---------- */
 const KEYMAP = { ArrowLeft:"left", KeyA:"left", KeyQ:"left", ArrowRight:"right", KeyD:"right", ArrowUp:"up", KeyW:"up", KeyZ:"up", ArrowDown:"down", KeyS:"down" };
 window.addEventListener("keydown", e => {
@@ -7529,7 +7646,8 @@ function evoStages(line) {
   const L = LINES[line];
   if (line === "mew") return null;
   if (line === "evoli") return [[line, 0, L.names[0], ""], ...Object.keys(EEVEE).map(k => [k, 0, EEVEE[k].name, `N.${EVO_LEVELS[0]}`])];
-  const n = line === "miaouss" ? 2 : 3; return L.names.slice(0, n).map((nm, s) => [line, s, nm, s ? `N.${EVO_LEVELS[s - 1]}` : "Départ"]);
+  const n = line === "miaouss" ? 2 : L.names.length;
+  return L.names.slice(0, n).map((nm, s) => [line, s, nm, s ? `N.${(L.evoLevels || EVO_LEVELS)[s - 1]}` : "Départ"]);
 }
 // Évoli : clic sur une évolution = ses attaques dans le panneau de droite (même règle que buildChoices avec le type de l'évolution)
 const formMoves = k => { const t = EEVEE[k].type;
@@ -7552,6 +7670,11 @@ function decorateFiche() {
   const line = carLine, L = LINES[line], box = $("sStats"); if (!box) return;
   if (FICHE.line !== line) { FICHE.line = line; FICHE.ef = null; }
   const pkm = $("sMoves").closest(".pkbox"); pkm.classList.remove("form");
+  if (line === "magicarpe") {
+    box.innerHTML = `<div class="unknownRadar">${Array.from({ length:6 }, () => "<span>???</span>").join("")}</div>`;
+    $("sTal").innerHTML = "";
+    return;
+  }
   let cv = $("sRadar"); if (!cv) { cv = document.createElement("canvas"); cv.id = "sRadar"; }
   box.innerHTML = ""; box.appendChild(cv); drawRadar(cv, L);
   const t = TALENTS[line], st = evoStages(line);
@@ -7569,7 +7692,8 @@ function decorateFiche() {
 (function evoLoop(ts) {
   if (!$("start").hidden) for (const c of FICHE.evo) {
     const g = c.getContext("2d"); g.clearRect(0, 0, c.width, c.height);
-    drawMon(g, c.dataset.k, c.width / 2, c.height / 2 + 4, c.width < 80 ? 12 : 15, false, ts / 1000, +c.dataset.s, 0, false);
+    const r = c.width < 80 ? 8 : 9, size = c.dataset.k === "magicarpe" && +c.dataset.s > 0 ? 11.5 : r;
+    drawMon(g, c.dataset.k, c.width / 2, c.height / 2 + 4, size, false, ts / 1000, +c.dataset.s, 0, false);
   }
   requestAnimationFrame(evoLoop);
 })(0);

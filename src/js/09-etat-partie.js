@@ -52,7 +52,7 @@ function newGame(line, mapK) {
   refreshHud();
 }
 const pKind = () => (S.P.spiky ? "pichuspiky" : S.P.eform || S.P.line) + (S.P.shiny ? "_s" : "");
-const pName = () => S.P.spiky ? "Pichu Troizépi" : S.P.eform ? EEVEE[S.P.eform].name : LINES[S.P.line].names[S.P.stage];
+const pName = () => S.P.spiky ? "Pichu Troizépi" : S.P.eform ? EEVEE[S.P.eform].name : LINES[S.P.line].names[Math.min(S.P.stage, LINES[S.P.line].names.length - 1)];
 const IT = id => S.P.items[id] || 0;
 const AREA = () => 1 + .1 * IT("loupe") + .01 * (shop.loupe || 0) + .03 * IT("orbevie"), PSPD = () => 1 + .12 * IT("poudrevite") + .03 * IT("orbevie"), DUR = () => 1 + .12 * IT("lumargile") + .03 * IT("orbevie");
 const EXTRA = () => IT("depipe") + (shop.depipe || 0), CURSE = () => 1 + .1 * IT("miel");
@@ -62,7 +62,12 @@ function hurtP(v) {
   if (P.choosing) return false; // en ligne : intangible pendant son choix
   if (P.shieldT > 0) return false; // Protection (Germignon)
   if (P.line === "draco") v *= .9; // Multiécaille : −10 % de dégâts reçus
-  P.hp -= Math.max(1, v - IT("veste") - (shop.veste || 0)); P.inv = .5; S.bossClean = false; sfx("hurt");
+  if (P.line === "magicarpe" && P.moves.magibulle) {
+    P.moves.magibulle.untouched = 0;
+  }
+  const dmg = Math.max(1, v - IT("veste") - (shop.veste || 0));
+  if (P.line === "magicarpe" && P.stage === 0) addXp(P, P.need * .01 * Math.max(0, Math.min(P.hp, dmg)));
+  P.hp -= dmg; P.inv = .5; S.bossClean = false; sfx("hurt");
   try { (P.gp || pad.gp)?.vibrationActuator?.playEffect("dual-rumble", { duration:120, strongMagnitude:.35, weakMagnitude:.25 }); } catch (e) {}
   if (P.hp > 0) return false;
   if (P.revives > 0) {

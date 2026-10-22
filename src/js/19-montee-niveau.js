@@ -4,12 +4,13 @@ function buildChoices() {
   const owned = realMoves(P).map(e => e[0]);
   for (const [id, m] of Object.entries(MOVES)) {
     const cur = (!P.moves[id]?.tmp && P.moves[id]?.lv) || 0;
+  if (P.line === "magicarpe" && P.stage === 0 && !cur) continue;
     if (m.tier > 1 && !P.moves["metro" + (m.tier - 1)]) continue;
     if (cur >= m.max) continue;
     const alt = m.alt && P.line === m.alt.line && !P.spiky && (cur || P.stage === m.alt.stage);
     const also = (m.also || []).includes(P.line);
     if (m.only && ![].concat(m.only).includes(ptype()) && !alt && !also) continue;
-    if (m.only && LINES[P.line].own && !also) continue; // starters de Johto : leurs propres capacités seulement
+    if (m.only && (LINES[P.line].own || LINES[P.line].restricted) && !also && !alt) continue; // starters à capacités limitées
     if (m.line && m.line !== P.line) continue;
     if (!cur && owned.length >= MAX_MOVES()) continue;
     if (!cur && m.rare && P.lvl < m.rare.minLvl) continue;
@@ -143,7 +144,7 @@ function openLevelUp(given) {
     if (ch.kind === "move") {
       const m = MOVES[ch.id]; col = TYPE_COLORS[m.type]; title = m.name;
       tag = ch.lv === 1 ? (m.rare ? "★ Capacité rare" : m.type === ptype() ? "Nouvelle capacité" : "CT · nouvelle capacité") : `Niveau ${ch.lv}`;
-      desc = m.desc(ch.lv);
+      desc = m.desc(ch.lv, S.P);
       title += ` <span class="chip" style="--c:${col}">${TYPE_NAMES[m.type]}</span>`;
     } else if (ch.kind === "item") {
       const it = ITEMS[ch.id]; col = "#e8e2c8"; title = itemIcon(ch.id, "ico big") + it.name; tag = `Objet · niveau ${ch.lv}`; desc = it.desc;
@@ -157,4 +158,3 @@ function openLevelUp(given) {
   const rb = $("rerollBtn"); rb.hidden = !(S.rerolls > 0); rb.textContent = `🎲 Relancer (${S.rerolls || 0}) · touche R / Y`;
   box.querySelector("button")?.focus({ preventScroll:true });
 }
-
