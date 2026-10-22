@@ -93,7 +93,7 @@ const MOVES = {
     desc: lv => ["Une énorme explosion autour de toi. Plus tes PV sont hauts, plus elle frappe fort (jusqu'à ×2,5).", "Explosion plus large.", "Dégâts +40 %.", "Une éruption toutes les 5 s.", "Projette aussi six boules de feu."][lv-1] },
   // ---- Kaiminus ----
   machouille:  { name:"Mâchouille", type:"tenebres", line:"kaiminus", max:5,
-    desc: lv => ["Mord les 2 ennemis les plus proches. Enchaîner les morsures les accélère (Frénésie, jusqu'à −40 % de recharge).", "Mord 3 ennemis à la fois.", "Dégâts +40 %.", "+1 ennemi mordu, morsures plus rapides.", "Frénésie jusqu'à −56 %."][lv-1] },
+    desc: lv => ["Mord les 2 ennemis les plus proches. Enchaîner les morsures les accélère (Frénésie, jusqu'à −20 % de recharge).", "Mord 3 ennemis à la fois.", "Dégâts +30 %.", "+1 ennemi mordu, morsures plus rapides.", "Frénésie jusqu'à −28 %."][lv-1] },
   crocsgivre:  { name:"Crocs Givre", type:"glace", line:"kaiminus", max:5,
     desc: lv => ["Toutes les 3,2 s, mord en éventail devant toi et gèle les ennemis touchés 1 s.", "Morsure plus large.", "Dégâts +40 %, gel de 1,25 s.", "Toutes les 2,4 s.", "Gel de 1,75 s."][lv-1] },
   hydroqueue:  { name:"Hydroqueue", type:"eau", line:"kaiminus", max:5,
@@ -102,7 +102,7 @@ const MOVES = {
     desc: lv => ["Charge à travers la foule dans une gerbe d'eau : énormes dégâts et recul. Intouchable pendant la charge.", "Charge plus longue.", "Dégâts +40 %.", "Recharge plus courte.", "Une vague géante jaillit à l'arrivée."][lv-1] },
   // ---- Germignon ----
   feuillemagik:{ name:"Feuillemagik", type:"plante", line:"germignon", max:5,
-    desc: lv => ["Deux feuilles magiques vont toujours chercher leur cible.", "+1 feuille.", "Dégâts +40 %, chaque feuille transperce 2 ennemis.", "+1 feuille, recharge plus rapide.", "+1 feuille."][lv-1] },
+    desc: lv => ["Deux feuilles magiques vont toujours chercher leur cible.", "+1 feuille.", "Dégâts +30 %, chaque feuille transperce 2 ennemis.", "+1 feuille, recharge plus rapide.", "+1 feuille."][lv-1] },
   protection:  { name:"Protection", type:"normal", line:"germignon", max:5,
     desc: lv => ["Toutes les 8 s, un bouclier te rend invulnérable 1,75 s et renvoie les coups aux ennemis qui te touchent.", "Bouclier plus long.", "Renvoi +40 %.", "Un bouclier toutes les 6 s.", "Le bouclier protège aussi les alliés proches."][lv-1] },
   synthese:    { name:"Synthèse", type:"plante", line:"germignon", max:5,

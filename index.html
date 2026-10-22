@@ -575,7 +575,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v188)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v189)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -1110,7 +1110,7 @@ const MOVES = {
     desc: lv => ["Une énorme explosion autour de toi. Plus tes PV sont hauts, plus elle frappe fort (jusqu'à ×2,5).", "Explosion plus large.", "Dégâts +40 %.", "Une éruption toutes les 5 s.", "Projette aussi six boules de feu."][lv-1] },
   // ---- Kaiminus ----
   machouille:  { name:"Mâchouille", type:"tenebres", line:"kaiminus", max:5,
-    desc: lv => ["Mord les 2 ennemis les plus proches. Enchaîner les morsures les accélère (Frénésie, jusqu'à −40 % de recharge).", "Mord 3 ennemis à la fois.", "Dégâts +40 %.", "+1 ennemi mordu, morsures plus rapides.", "Frénésie jusqu'à −56 %."][lv-1] },
+    desc: lv => ["Mord les 2 ennemis les plus proches. Enchaîner les morsures les accélère (Frénésie, jusqu'à −20 % de recharge).", "Mord 3 ennemis à la fois.", "Dégâts +30 %.", "+1 ennemi mordu, morsures plus rapides.", "Frénésie jusqu'à −28 %."][lv-1] },
   crocsgivre:  { name:"Crocs Givre", type:"glace", line:"kaiminus", max:5,
     desc: lv => ["Toutes les 3,2 s, mord en éventail devant toi et gèle les ennemis touchés 1 s.", "Morsure plus large.", "Dégâts +40 %, gel de 1,25 s.", "Toutes les 2,4 s.", "Gel de 1,75 s."][lv-1] },
   hydroqueue:  { name:"Hydroqueue", type:"eau", line:"kaiminus", max:5,
@@ -1119,7 +1119,7 @@ const MOVES = {
     desc: lv => ["Charge à travers la foule dans une gerbe d'eau : énormes dégâts et recul. Intouchable pendant la charge.", "Charge plus longue.", "Dégâts +40 %.", "Recharge plus courte.", "Une vague géante jaillit à l'arrivée."][lv-1] },
   // ---- Germignon ----
   feuillemagik:{ name:"Feuillemagik", type:"plante", line:"germignon", max:5,
-    desc: lv => ["Deux feuilles magiques vont toujours chercher leur cible.", "+1 feuille.", "Dégâts +40 %, chaque feuille transperce 2 ennemis.", "+1 feuille, recharge plus rapide.", "+1 feuille."][lv-1] },
+    desc: lv => ["Deux feuilles magiques vont toujours chercher leur cible.", "+1 feuille.", "Dégâts +30 %, chaque feuille transperce 2 ennemis.", "+1 feuille, recharge plus rapide.", "+1 feuille."][lv-1] },
   protection:  { name:"Protection", type:"normal", line:"germignon", max:5,
     desc: lv => ["Toutes les 8 s, un bouclier te rend invulnérable 1,75 s et renvoie les coups aux ennemis qui te touchent.", "Bouclier plus long.", "Renvoi +40 %.", "Un bouclier toutes les 6 s.", "Le bouclier protège aussi les alliés proches."][lv-1] },
   synthese:    { name:"Synthèse", type:"plante", line:"germignon", max:5,
@@ -2689,7 +2689,7 @@ function hitFoe(f, base, type, kx = 0, ky = 0, forceCrit = false) {
   const dmg = (veiled(f.d) ? .5 : 1) * base * S.P.dmgMul * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * m * (.9 + Math.random() * .2) * (crit ? 2 : 1) * (f.leerT > 0 ? f.leerMul : 1) * (f.shieldT > 0 ? .15 : 1) * (f.d.armor || 1) * (f.d.solidRock && m > 1 ? .75 : 1) * jBoost(type); // Rhinoféros / Rhinastoc : blindés
   if (m === 0) { maybeMsg(f, "Aucun effet…", "#c9c9c9"); return; }
   f.hp -= dmg; f.hurt = .12; S.P.dealt += dmg; sfx("hit");
-  if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(2, dmg * .03)); // Sans Limite : chaque coup soigne un peu
+  if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(.2, dmg * .003)); // Sans Limite : chaque coup soigne un tout petit peu
   if (S.parts.length < 450) emit(f.x, f.y - f.r * .2, 3, type, { sp:170, life:.3, jit:f.r * .6 });
   const src = HIT_SRC || "autre", real = Math.min(dmg, Math.max(0, f.hp + dmg)); (S.dmgBy ||= {})[src] = (S.dmgBy[src] || 0) + real;
   const pb = (S.P.dmgBy ||= {}); pb[src] = (pb[src] || 0) + real; f.lastBy = S.P.idx; // récap par joueur
@@ -2796,8 +2796,8 @@ const JMOVE = {
     const range = (105 + 10 * lv) * AREA(), ts = nearestFoes(2 + (lv >= 2) + (lv >= 4)).filter(f => Math.hypot(f.x - P.x, f.y - P.y) < range + f.r);
     if (!ts.length) { m.t = .12; if (S.t - (m.last ?? -9) > 1.6) P.frenzy = 0; return; }
     m.fr = S.t - (m.last ?? -9) < 1.6 ? Math.min(lv >= 5 ? 7 : 5, (m.fr || 0) + 1) : 0; m.last = S.t; P.frenzy = m.fr;
-    m.t = (lv >= 4 ? .75 : .9) * (1 - .08 * m.fr) * P.cdMul;
-    const dmg = (16 + 5 * lv) * (lv >= 3 ? 1.4 : 1);
+    m.t = (lv >= 4 ? .75 : .9) * (1 - .04 * m.fr) * P.cdMul; // Frénésie : jusqu'à −20 % (−28 % au N.5)
+    const dmg = (8 + 3 * lv) * (lv >= 3 ? 1.3 : 1);
     for (const f of ts) { hitFoe(f, dmg, "tenebres"); S.bites.push({ x:f.x, y:f.y, r:f.r + 8, life:.25, dark:true }); emit(f.x, f.y, 5, "tenebres", { sp:120, life:.35 }); }
   },
   crocsgivre(P, m, lv) {
@@ -2830,8 +2830,8 @@ const JMOVE = {
   feuillemagik(P, m, lv) {
     const n = 2 + (lv >= 2) + (lv >= 4) + (lv >= 5) + EXTRA(), tg = nearestFoes(n);
     if (!tg.length) { m.t = .3; return; }
-    m.t = (lv >= 4 ? .8 : 1) * P.cdMul;
-    const dmg = (14 + 4 * lv) * (lv >= 3 ? 1.4 : 1);
+    m.t = (lv >= 4 ? .85 : 1) * P.cdMul;
+    const dmg = (9 + 3 * lv) * (lv >= 3 ? 1.3 : 1);
     for (let i = 0; i < n; i++) {
       const f = tg[i % tg.length], a = Math.atan2(f.y - P.y, f.x - P.x) + (i - (n - 1) / 2) * .5;
       S.shots.push({ kind:"mleaf", x:P.x, y:P.y - 4, vx:Math.cos(a) * 340, vy:Math.sin(a) * 340, r:7, dmg, life:2.4, pierce:lv >= 3 ? 2 : 1, type:"plante", home:f, hit:new Set(), ph:Math.random() * 6 });
@@ -7289,7 +7289,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v188";
+const NET_VER = "v189";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
