@@ -6,7 +6,7 @@ function forView(camX, camY, vw, vh, pad, fn) {
 }
 function drawGround(camX, camY, vw, vh, t) {
   frameNo++; let made = 0;
-  cx.fillStyle = LEVEL.rocket ? "#4a505c" : LEVEL.tower ? (LEVEL.sprout ? "#6a4a2c" : "#3a3446") : LEVEL.manor ? "#4a3020" : LEVEL.theme ? CAVE_PAL[LEVEL.theme].base : LEVEL.cave ? "#2c2834" : LEVEL.safari ? "#b89a50" : "#3d6e38"; cx.fillRect(camX, camY, vw, vh);
+  cx.fillStyle = LEVEL.rocket ? "#4a505c" : LEVEL.tower ? (LEVEL.sprout ? "#6a4a2c" : "#3a3446") : LEVEL.manor ? "#4a3020" : LEVEL.theme ? CAVE_PAL[LEVEL.theme].base : LEVEL.cave ? "#2c2834" : LEVEL.safari ? "#b89a50" : LEVEL.alph ? (inZone(camX) ? "#050302" : "#e8d090") : "#3d6e38"; cx.fillRect(camX, camY, vw, vh);
   forView(camX, camY, vw, vh, 0, (i, j, c) => {
     if (!c.canvas && made < 2) { renderChunk(i, j); made++; liveChunks.add(c); }
     if (c.canvas) { c.used = frameNo; cx.drawImage(c.canvas, i * CH, j * CH, CH, CH); }
@@ -41,7 +41,7 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
 const motes = [];
 function drawMotes(camX, camY, vw, vh, t, dt) {
   if (LEVEL.rocket) return;
-  while (motes.length < 46) motes.push({ x:camX + Math.random() * vw, y:camY + Math.random() * vh, leaf:!LEVEL.cave && !LEVEL.safari && Math.random() < .45, ph:Math.random() * 6, s:.6 + Math.random() * .8 });
+  while (motes.length < 46) motes.push({ x:camX + Math.random() * vw, y:camY + Math.random() * vh, leaf:!LEVEL.cave && !LEVEL.safari && !LEVEL.alph && Math.random() < .45, ph:Math.random() * 6, s:.6 + Math.random() * .8 });
   for (const m of motes) {
     if (m.leaf) { m.x += (14 + Math.sin(t + m.ph) * 22) * dt; m.y += 24 * m.s * dt; }
     else { m.x += Math.sin(t * .7 + m.ph) * 10 * dt; m.y += Math.cos(t * .5 + m.ph) * 8 * dt; }
@@ -247,6 +247,7 @@ function drawMinimap(P) {
     if (c.mwalls) for (const w of c.mwalls) { g.strokeStyle = "rgba(170,150,130,.9)"; g.lineWidth = 24; g.beginPath(); g.moveTo(w.x - Math.cos(w.a) * w.len / 2, w.y - Math.sin(w.a) * w.len / 2); g.lineTo(w.x + Math.cos(w.a) * w.len / 2, w.y + Math.sin(w.a) * w.len / 2); g.stroke(); }
     if (c.fires && !S.fireOff) for (const f of c.fires) { g.strokeStyle = "rgba(255,120,40,.9)"; g.lineWidth = 20; g.beginPath(); g.moveTo(f.x - Math.cos(f.a) * f.len / 2, f.y - Math.sin(f.a) * f.len / 2); g.lineTo(f.x + Math.cos(f.a) * f.len / 2, f.y + Math.sin(f.a) * f.len / 2); g.stroke(); }
     if (c.statues) for (const q of c.statues) { g.fillStyle = "#e0dcff"; g.beginPath(); g.arc(q.x, q.y, 36, 0, Math.PI * 2); g.fill(); }
+    if (c.ruins) for (const o of c.ruins) { g.fillStyle = "rgba(150,140,100,.95)"; g.fillRect(o.box.x0, o.box.y0, o.box.x1 - o.box.x0, o.box.y1 - o.box.y0); } // Ruines d'Alpha
     if (c.crates) for (const q of c.crates) { g.fillStyle = "rgba(170,120,70,.9)"; g.fillRect(q.x - 18, q.y - 18, 36, 36); }
     if (c.graves) for (const gr of c.graves) { g.fillStyle = "rgba(160,150,180,.75)"; g.fillRect(gr.x - 14, gr.y - 18, 28, 30); }
     if (c.pillars) for (const q of c.pillars) { g.fillStyle = "rgba(190,180,210,.9)"; g.beginPath(); g.arc(q.x, q.y, q.r * 1.4, 0, Math.PI * 2); g.fill(); }
@@ -294,6 +295,7 @@ function drawProp(f, t) {
     cx.fillStyle = "#6a4028"; cx.fillRect(x - 7, y - 17, 14, 4); cx.fillStyle = "#b07a4c"; ell(cx, x - 5, y - 4, 3, 6, "#b07a4c");
     cx.strokeStyle = "#d8b060"; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(x - 11, y + 1); cx.lineTo(x + 11, y + 1); cx.stroke();
   } else { // rocher fissuré (Éclate-Roc)
+    if (LEVEL.alph && AL.img) { ell(cx, x, y + 12, 17, 5, "rgba(0,0,0,.25)"); cx.imageSmoothingEnabled = false; alSpr(cx, "smash", x - 7 * 2.6, y + 14 - 13 * 2.6, 2.6); return; } // Ruines d'Alpha : rocher Éclate-Roc de HGSS
     if (moonOn()) { const q = MM.R.smash, K = 1.4; ell(cx, x, y + 14, 18, 5, "rgba(0,0,0,.3)"); cx.imageSmoothingEnabled = false; cx.drawImage(MM.img, q[0], q[1], q[2], q[3], x - q[2] * K / 2, y + 16 - q[3] * K, q[2] * K, q[3] * K); return; } // rocher Éclate-Roc de HGSS
     ell(cx, x, y + 13, 20, 6, "rgba(0,0,0,.3)"); drawBoulder(x, y, 18, 1.3);
     cx.strokeStyle = "#3a3240"; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(x - 4, y - 14); cx.lineTo(x + 1, y - 5); cx.lineTo(x - 3, y + 2); cx.lineTo(x + 4, y + 10);
@@ -361,6 +363,7 @@ function render(now) {
     else { const a = Math.min(1, (rk.t + .7) * 2); cx.globalAlpha = a; drawBoulder(rk.x, rk.y, rk.r * .7, rk.ph); cx.globalAlpha = 1; }
   }
   drawJohtoUnder(t);
+  drawAlphUnder(t);
   for (const P of S.players) if (P.moves.grozyeux?.rad && !P.down) {
     const rad = P.moves.grozyeux.rad;
     circ(cx, P.x, P.y, rad, "rgba(226,81,63,.06)");
@@ -441,7 +444,7 @@ function render(now) {
     if (f.d.bird) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y - 10, f.r * 2.4, f.raged ? "255,90,90" : BIRD_COL[f.d.bird], .4 + .15 * Math.sin(t * 5)); cx.restore(); }
     if (f.jz) ell(cx, f.x, f.y + f.r * .6, f.r * (1 - f.jz / 400), f.r * .4 * (1 - f.jz / 400), "rgba(0,0,0,.35)");
     if (f.copyK) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y, f.r * 2, "200,120,255", .35 + .1 * Math.sin(t * 6 + f.ph)); cx.restore(); }
-    drawMon(cx, f.copyK || f.d.sprite || f.kind, f.x, f.y - (f.jz || 0) - (f.d.bird ? 5 * Math.sin(t * 3 + f.ph) - (f.d.sprDy || 0) : 0), f.d.sprR || f.r, f.flip, t + f.ph, f.copySt || 0, f.dir, f.dashMode !== "aim"); }
+    drawMon(cx, f.copyK || f.spr || f.d.sprite || f.kind, f.x, f.y - (f.jz || 0) - (f.d.bird ? 5 * Math.sin(t * 3 + f.ph) - (f.d.sprDy || 0) : 0), f.d.sprR || f.r, f.flip, t + f.ph, f.copySt || 0, f.dir, f.dashMode !== "aim"); }
     if (!f.d.types.includes("vol")) grassOver(f.x, f.y, f.r, t + f.ph);
     if (f.hurt > 0) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y, f.r * 1.5, "255,255,255", f.hurt / .12 * .75); cx.restore(); }
     if (f.shieldT > 0) { // Barrière de Mewtwo
@@ -610,6 +613,17 @@ function render(now) {
       cx.strokeStyle = "rgba(255,170,210,.8)"; cx.lineWidth = 1.5; for (let k = 0; k < 2; k++) { const rr = s.r * (1.3 + ((t * 3 + k * .5) % 1) * 1.2); cx.globalAlpha = 1 - ((t * 3 + k * .5) % 1); cx.beginPath(); cx.arc(s.x, s.y, rr, 0, Math.PI * 2); cx.stroke(); } cx.globalAlpha = 1;
       continue;
     }
+    if (s.type === "vol") { // Lame d'Air / Picpic : croissant d'air blanc
+      const a = Math.atan2(s.vy, s.vx); cx.save(); cx.globalCompositeOperation = "lighter"; glow(s.x, s.y, s.r * 2.2, "200,190,255", .45); cx.restore();
+      cx.save(); cx.translate(s.x, s.y); cx.rotate(a); cx.lineCap = "round";
+      cx.strokeStyle = "rgba(120,100,200,.8)"; cx.lineWidth = 5; cx.beginPath(); cx.arc(-s.r * .6, 0, s.r * 1.3, -1.1, 1.1); cx.stroke();
+      cx.strokeStyle = "#f4f2ff"; cx.lineWidth = 2.6; cx.beginPath(); cx.arc(-s.r * .6, 0, s.r * 1.3, -1.1, 1.1); cx.stroke(); cx.restore();
+      continue;
+    }
+    if (s.type === "tenebres") { // orbe sombre
+      cx.save(); cx.globalCompositeOperation = "lighter"; glow(s.x, s.y, s.r * 2.2, "120,80,110", .5); cx.restore();
+      circ(cx, s.x, s.y, s.r, "#1c1418"); circ(cx, s.x, s.y, s.r * .62, "#5a3c50"); circ(cx, s.x - s.r * .3, s.y - s.r * .3, s.r * .25, "#c8a0b8"); continue;
+    }
     if (s.type === "eau") { const a = Math.atan2(s.vy, s.vx); ell(cx, s.x, s.y, s.r * 2, s.r * .9, "rgba(90,158,240,.85)", a); ell(cx, s.x + Math.cos(a) * 2, s.y + Math.sin(a) * 2, s.r, s.r * .45, "#e8f4ff", a); continue; }
     circ(cx, s.x, s.y, s.r * 1.8, "rgba(246,209,58,.3)");
     for (const [col, w] of [["rgba(110,80,0,.75)", 4.5], ["#fff6b0", 2.5]]) { cx.strokeStyle = col; cx.lineWidth = w; cx.beginPath(); cx.moveTo(s.x - 6, s.y - 6); cx.lineTo(s.x + 2, s.y - 1); cx.lineTo(s.x - 2, s.y + 1); cx.lineTo(s.x + 6, s.y + 6); cx.stroke(); } // contour sombre : visible aussi sur le sol blanc
@@ -696,6 +710,7 @@ function render(now) {
     circ(cx, bm.sx, bm.sy, bm.w * .9 * (1 + (1 - k) * .4), `rgba(200,235,255,${.8 * k})`);
   }
   drawJohtoOver(t, CAM, vw, vh);
+  drawAlphOver(t, CAM, vw, vh);
   for (const tl of S.tails) { // Draco-Queue (et Hydroqueue) : arc de queue qui balaie le cercle
     const P = tl.o || S.P, k = tl.life / .3, sw = (1 - k) * Math.PI * 2.2 + tl.a;
     cx.save(); cx.lineCap = "round";
@@ -803,6 +818,7 @@ function render(now) {
   drawMap7Over(t);
   if (LEVEL.league) drawLeagueOver(camX, camY, vw, vh, t);
   drawCanopy(camX, camY, vw, vh, t, P);
+  drawAlphRoofs(camX, camY, vw, vh);
   drawMotes(camX, camY, vw, vh, t, Math.min(.05, t - (render.lt || t))); render.lt = t;
   if (LEVEL.cave) drawCaveLight(camX, camY, vw, vh, t, CAM);
   if (S.white > 0) { cx.fillStyle = `rgba(255,255,255,${Math.min(1, S.white / .8)})`; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120); } // écran blanc : Mewtwo s'enfuit

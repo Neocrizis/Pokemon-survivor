@@ -33,7 +33,7 @@ function newGame(line, mapK) {
   S = {
     t:0, nuz:NUZ, kills:0, spawnAcc:0, bossIdx:0, boss:null, nextRing:120, shake:0, msgs:[], chestQ:[],
     players:lines.map((l, i) => mkPlayer(l, i, lines.length)),
-    foes:[], shots:[], eshots:[], waves:[], clouds:[], tornados:[], beams:[], tails:[], suns:[], sunbeams:[], gusts:[], slashes:[], patches:[], smokes:[], carpets:[], petalT:0, flames:[], gems:[], texts:[], fxs:[], parts:[], sludge:[], bolts:[], rocks:[], claws:[], eclaws:[], bites:[], ghosts:[], chains:[], falls:[], gas:[],
+    foes:[], shots:[], eshots:[], waves:[], clouds:[], tornados:[], beams:[], tails:[], suns:[], sunbeams:[], gusts:[], slashes:[], patches:[], smokes:[], carpets:[], petalT:0, flames:[], gems:[], texts:[], fxs:[], parts:[], sludge:[], bolts:[], rocks:[], claws:[], eclaws:[], bites:[], ghosts:[], chains:[], falls:[], gas:[], muds:[], marks:[],
   };
   S.P = S.players[0]; S.cam = { x:0, y:START_Y }; S.rerolls = shop.reroll || 0;
   for (const p of S.players) if (p.spiky) { S.P = p; banner(`${pTag()}Un Pichu Troizépi ! Il n'évolue pas, mais maîtrise déjà Fatal-Foudre.`); }

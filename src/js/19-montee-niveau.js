@@ -94,7 +94,7 @@ function openChest(who, remote) {
 function showChest(n, got, P) {
   NET.lastChest = { n, got };
   $("chestTitle").textContent = n === 5 ? "Hyper Ball… 5 améliorations !" : n === 3 ? "Super Ball… 3 améliorations !" : "Poké Ball !"; if (S.players.length > 1) $("chestTitle").textContent = `Joueur ${P.idx + 1} · ` + $("chestTitle").textContent;
-  $("chestSub").textContent = "Le boss a laissé une Poké Ball. Voici ce qu'elle contenait :";
+  $("chestSub").textContent = "Tu as trouvé une Poké Ball. Voici ce qu'elle contenait :";
   $("chestList").innerHTML = got.map((ch, i) => {
     const name = ch.kind === "move" ? MOVES[ch.id].name : ch.kind === "item" ? itemIcon(ch.id) + ITEMS[ch.id].name : itemIcon("superpotion") + "Super Potion";
     const tag = ch.kind === "heal" ? "+40 PV" : `Niveau ${ch.lv}`;

@@ -1,4 +1,5 @@
 /* ---------- Ennemis et niveaux ---------- */
+const ZARBI_L = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split(""); // Zarbi : une forme par lettre, plus ! et ? (HeartGold/SoulSilver)
 const FOES = {
   chenipan:   { name:"Chenipan",   types:["insecte"],          hp:10,  speed:46,  dmg:4,  r:12, xp:1 },
   chrysacier: { name:"Chrysacier", types:["insecte"],          hp:42,  speed:16,  dmg:5,  r:14, xp:3 },
@@ -54,6 +55,17 @@ const FOES = {
   bossChetiflor: { name:"Chétiflor géant", sprite:"chetiflor", types:["plante","poison"], hp:1500, speed:70, dmg:18, r:40, xp:50,  boss:true, johto:true, dash:true, vine:true },
   bossBoustiflor:{ name:"Boustiflor géant", sprite:"boustiflor", types:["plante","poison"], hp:2800, speed:64, dmg:22, r:44, xp:85, boss:true, johto:true, vine:true, spit:true },
   bossEmpiflor:  { name:"Empiflor géant", sprite:"empiflor", types:["plante","poison"], hp:6200, speed:60, dmg:26, r:48, xp:130, boss:true, johto:true, dash:true, bigDash:true, vine:true, leafRing:true },
+  // Johto : Ruines d'Alpha (entre Mauville et Écorcia)
+  zarbi:      { name:"Zarbi",      types:["psy"],              hp:14,  speed:66,  dmg:5,  r:12, xp:1, johto:true, erratic:true, zarbi:true },
+  natu:       { name:"Natu",       types:["psy","vol"],        hp:18,  speed:80,  dmg:5,  r:11, xp:2, johto:true, erratic:true, ranged:true, shot:"vol", shotCd:6 },
+  xatu:       { name:"Xatu",       types:["psy","vol"],        hp:75,  speed:78,  dmg:11, r:17, xp:6, johto:true, blink:true, ranged:true, shot:"vol", volley:3 },
+  axoloto:    { name:"Axoloto",    types:["eau","sol"],        hp:24,  speed:54,  dmg:6,  r:12, xp:2, johto:true, pond:true, swim:true },
+  maraiste:   { name:"Maraiste",   types:["eau","sol"],        hp:115, speed:46,  dmg:13, r:18, xp:7, johto:true, pond:true, swim:true, mud:true },
+  queulorior: { name:"Queulorior", types:["normal"],           hp:80,  speed:88,  dmg:10, r:15, xp:8, johto:true, ranged:true, sketch:true },
+  bossAxoloto:{ name:"Axoloto géant", sprite:"axoloto", types:["eau","sol"], hp:1600, speed:64, dmg:18, r:40, xp:50, boss:true, johto:true, aquaFan:true, mud:true },
+  bossXatu:   { name:"Xatu géant",    sprite:"xatu",    types:["psy","vol"], hp:3000, speed:70, dmg:22, r:44, xp:85, boss:true, johto:true, blink:true, gust:true },
+  bossZarbiQ: { name:"Zarbi ? géant", sprite:"zarbi_?", types:["psy"], hp:3400, speed:58, dmg:24, r:44, xp:110, boss:true, johto:true, zarbiBoss:"?" },
+  bossZarbiX: { name:"Zarbi ! géant", sprite:"zarbi_!", types:["psy"], hp:3400, speed:62, dmg:24, r:44, xp:110, boss:true, johto:true, zarbiBoss:"!", dash:true, bigDash:true },
   rattatac:   { name:"Rattatac",   types:["normal"],           hp:52,  speed:104, dmg:9,  r:15, xp:4 },
   bossSpectrum:{ name:"Spectrum géant", sprite:"spectrum", types:["spectre","poison"], hp:2600, speed:70, dmg:22, r:44, xp:75, boss:true, ghost:true, dash:true, bigDash:true, toxTrail:true },
   bossOssa:   { name:"Esprit d'Ossatueur", sprite:"ossatueur",  types:["sol"],              hp:2600, speed:66, dmg:22, r:44, xp:75,  boss:true, ghost:true, spirit:true, hideDex:true },
@@ -431,6 +443,29 @@ const LEVELS = [
       if (m > 3.5) o.push(["fouinar", 1 + m / 8]);
       if (m > 4.5) o.push(["noarfang", 1 + m / 6]);
       if (m > 5.5) o.push(["empiflor", .8 + m / 6]);
+    } },
+  { name:"Ruines d'Alpha", num:11, label:2, region:"johto", title:"Tu as percé le secret des Ruines d'Alpha !", cave:false, alph:true, track:"forest", prop:"crackrock", where:"dans les Ruines d'Alpha", from:"surgit des ruines",
+    intro:"Au sud de Mauville, les Ruines d'Alpha gardent les secrets d'une civilisation disparue. Des essaims de Zarbi s'en échappent et s'alignent parfois pour écrire des mots, les Natu se téléportent dans les hautes herbes, les Axoloto et Maraiste surgissent des étangs et un Queulorior copie tes attaques. Un Axoloto géant, puis Xatu géant, gardent les lieux, et les Zarbi ? et ! géants attendent au fond. Résous la dalle-puzzle si elle apparaît, et tiens dix minutes.",
+    win:"a percé le secret des Ruines d'Alpha. Les Zarbi retournent dormir dans leurs salles… pour l'instant.",
+    matchup:{ plante:["Avantagé", "La Plante fait des ravages sur les Axoloto et Maraiste (Eau/Sol). Attention aux Natu et Xatu, qui volent."],
+              eau:["Neutre", "L'Eau touche tout le monde normalement : les Axoloto et Maraiste (Eau/Sol) ne lui résistent pas."],
+              feu:["Neutre", "Le Feu brûle les Zarbi et les Natu, mais les Axoloto et Maraiste l'éteignent."],
+              miaouss:["Neutre", "Le Normal frappe tout le monde normalement. Les coups critiques font le ménage dans les essaims de Zarbi."],
+              pika:["Variable", "L'Électrik foudroie les Natu et Xatu (Vol), mais n'a aucun effet sur les Axoloto et Maraiste (Sol)."],
+              evoli:["Variable", "Normal au départ, puis le type de ton évolution au N.10. Phyllali est idéal contre les Axoloto."],
+              draco:["Neutre", "Le Dragon n'a ni avantage ni faiblesse face aux Pokémon des ruines."],
+              mew:["Variable", "Métronome peut tirer n'importe quel type : chaque partie est une surprise."],
+              kaiminus:["Avantagé", "Mâchouille (Ténèbres) croque les Zarbi, Natu et Xatu (Psy)."],
+              fee:["Neutre", "La Fée frappe tout le monde normalement, mais Aurasphère (Combat) glisse sur les Zarbi, Natu et Xatu (Psy)."] },
+    rings:["zarbi", "natu", "axoloto", "zarbi"],
+    event:{ kind:"puzzle", from:200, to:225 }, // une dalle-puzzle (Kabuto, Ptéra, Ho-Oh ou Amonita) à résoudre
+    bosses:[{ at:170, kind:"bossAxoloto" }, { at:300, kind:"bossXatu" }, { at:450, kind:"bossZarbiQ" }, { at:450, kind:"bossZarbiX" }],
+    table(m, o) {
+      o.push(["zarbi", m < 3 ? 3 : 1.8], ["natu", m < 4 ? 2 : 1], ["axoloto", m < 3 ? 1.8 : 1]);
+      if (m > 1.5) o.push(["queulorior", .3]);
+      if (m > 2.5) o.push(["maraiste", 1 + m / 8]);
+      if (m > 3.5) o.push(["xatu", 1 + m / 6]);
+      if (m > 5.5) o.push(["zarbi", 1.5]);
     } },
 ];
 for (const lv of LEVELS) if (lv.maps) Object.assign(lv, lv.maps[0], { mapIdx:0 });
