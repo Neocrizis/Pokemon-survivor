@@ -613,6 +613,17 @@ function render(now) {
       cx.strokeStyle = "rgba(255,170,210,.8)"; cx.lineWidth = 1.5; for (let k = 0; k < 2; k++) { const rr = s.r * (1.3 + ((t * 3 + k * .5) % 1) * 1.2); cx.globalAlpha = 1 - ((t * 3 + k * .5) % 1); cx.beginPath(); cx.arc(s.x, s.y, rr, 0, Math.PI * 2); cx.stroke(); } cx.globalAlpha = 1;
       continue;
     }
+    if (s.type === "vol") { // Lame d'Air / Picpic : croissant d'air blanc
+      const a = Math.atan2(s.vy, s.vx); cx.save(); cx.globalCompositeOperation = "lighter"; glow(s.x, s.y, s.r * 2.2, "200,190,255", .45); cx.restore();
+      cx.save(); cx.translate(s.x, s.y); cx.rotate(a); cx.lineCap = "round";
+      cx.strokeStyle = "rgba(120,100,200,.8)"; cx.lineWidth = 5; cx.beginPath(); cx.arc(-s.r * .6, 0, s.r * 1.3, -1.1, 1.1); cx.stroke();
+      cx.strokeStyle = "#f4f2ff"; cx.lineWidth = 2.6; cx.beginPath(); cx.arc(-s.r * .6, 0, s.r * 1.3, -1.1, 1.1); cx.stroke(); cx.restore();
+      continue;
+    }
+    if (s.type === "tenebres") { // orbe sombre
+      cx.save(); cx.globalCompositeOperation = "lighter"; glow(s.x, s.y, s.r * 2.2, "120,80,110", .5); cx.restore();
+      circ(cx, s.x, s.y, s.r, "#1c1418"); circ(cx, s.x, s.y, s.r * .62, "#5a3c50"); circ(cx, s.x - s.r * .3, s.y - s.r * .3, s.r * .25, "#c8a0b8"); continue;
+    }
     if (s.type === "eau") { const a = Math.atan2(s.vy, s.vx); ell(cx, s.x, s.y, s.r * 2, s.r * .9, "rgba(90,158,240,.85)", a); ell(cx, s.x + Math.cos(a) * 2, s.y + Math.sin(a) * 2, s.r, s.r * .45, "#e8f4ff", a); continue; }
     circ(cx, s.x, s.y, s.r * 1.8, "rgba(246,209,58,.3)");
     for (const [col, w] of [["rgba(110,80,0,.75)", 4.5], ["#fff6b0", 2.5]]) { cx.strokeStyle = col; cx.lineWidth = w; cx.beginPath(); cx.moveTo(s.x - 6, s.y - 6); cx.lineTo(s.x + 2, s.y - 1); cx.lineTo(s.x - 2, s.y + 1); cx.lineTo(s.x + 6, s.y + 6); cx.stroke(); } // contour sombre : visible aussi sur le sol blanc

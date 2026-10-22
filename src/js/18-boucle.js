@@ -240,7 +240,7 @@ function update(dt) {
       if (l < 190) sp *= -.3;
       f.shotT = (f.shotT ?? 1 + Math.random() * 2) - dt;
       if (f.shotT <= 0 && l < 420) {
-        f.shotT = 2.4 + Math.random();
+        f.shotT = (f.d.shotCd || 2.4) + Math.random();
         const n = f.d.volley || 1; // Magnéton : trois éclairs en éventail
         for (let i = 0; i < n; i++) { const a = Math.atan2(dy, dx) + (i - (n - 1) / 2) * .22; S.eshots.push({ x:f.x, y:f.y, vx:Math.cos(a) * 230, vy:Math.sin(a) * 230, dmg:f.d.dmg, life:2.4, type:f.copyT || f.skT || f.d.shot || "electrik", r:6 }); }
       }
