@@ -1,0 +1,40 @@
+/* ---------- Écran Succès : vitrine par thèmes (v184) ---------- */
+#ach { place-items: start center; padding-top: 24px; } /* pas de saut quand un onglet a peu de succès */
+#ach .sheet { gap: 14px; }
+#achList.shopList { --or: #f6c845; --argent: #cfd9e2; --bronze: #d08a4c; width: min(1080px, 100%); gap: 12px; min-width: 0; }
+#achSub { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 0; }
+.acGlobal { display: flex; align-items: center; gap: 10px; } .acGlobal b, .acMoney b { font-family: var(--num); font-size: 12px; color: var(--ink); } .acMoney b { color: var(--accent); }
+.acBar { display: block; height: 7px; border-radius: 6px; background: #0e1a13; border: 1px solid var(--panel-edge); overflow: hidden; margin-top: 6px; }
+.acBar > i { display: block; height: 100%; background: linear-gradient(90deg, #5fd16a, #a6ea6e); border-radius: 6px; }
+.acBar.big { width: 240px; height: 12px; margin: 0; } .acBar.big > i { background: linear-gradient(90deg, #e9b33a, #f6c845); }
+.acTabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.acTab { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 12px; background: var(--panel); border: 2px solid var(--panel-edge); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.acTab img { width: 32px; height: 32px; image-rendering: pixelated; } .acTab img.sil { filter: brightness(0); opacity: .8; }
+.acTab span { flex: 1; font-weight: 700; font-size: 14px; min-width: 0; } .acTab .acBar { margin-top: 4px; }
+.acTab > b { font-family: var(--num); font-size: 9px; color: var(--ink-dim); }
+.acTab.on { border-color: var(--accent); background: linear-gradient(90deg, rgba(246,200,69,.18), var(--panel)); } .acTab.on > b { color: var(--accent); }
+.acChips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.acChip { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--panel-edge); background: var(--panel); font: inherit; font-weight: 700; font-size: 13px; color: var(--ink-dim); cursor: pointer; }
+.acChip.on { border-color: var(--accent); color: #1a1405; background: var(--accent); }
+.acGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.acEmpty { grid-column: 1 / -1; text-align: center; color: var(--ink-dim); }
+.acCard { --rk: var(--bronze); display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: #1a2a21; border: 2px solid var(--panel-edge); text-align: left; }
+.acCard.or { --rk: var(--or); } .acCard.argent { --rk: var(--argent); }
+.acCard.ok { border-color: color-mix(in srgb, var(--rk) 70%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--rk) 14%, var(--panel)), var(--panel) 60%); }
+.acIco { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #35553f, #142219); border: 3px solid var(--rk); box-shadow: 0 0 0 2px #0c150f inset; }
+.acIco img { width: 48px; height: 48px; image-rendering: pixelated; }
+.acIco.off, .acIco.sil { border-color: var(--panel-edge); } .acIco.off img { filter: grayscale(1) brightness(.55); }
+.acIco.sil { border-style: dashed; } .acIco.sil img { filter: brightness(0); opacity: .8; }
+.acTxt { display: flex; flex-direction: column; flex: 1; min-width: 0; } .acTxt b { font-size: 15px; } .acTxt small { color: var(--ink-dim); font-size: 12.5px; line-height: 1.35; margin-top: 2px; }
+.acProg { font-family: var(--num); font-size: 8px; color: var(--ink-dim); margin-top: 4px; }
+.acUnl { margin-top: 5px; font-size: 11px; font-weight: 700; color: #8fd6ff; background: rgba(90,168,240,.15); border: 1px solid rgba(90,168,240,.45); border-radius: 20px; padding: 1px 8px; width: max-content; max-width: 100%; }
+.acRew { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-family: var(--num); font-size: 10px; color: var(--accent); white-space: nowrap; }
+.acRew em { font-family: var(--body); font-style: normal; font-size: 11px; font-weight: 700; color: #7ee08a; }
+.acCard.todo .acRew { color: var(--ink-dim); }
+.acMed { font-size: 7px; padding: 3px 5px; border-radius: 4px; color: #1a1405; background: var(--rk); } .acCard.todo .acMed { background: var(--panel-edge); color: var(--ink-dim); }
+@media (max-width: 900px) { .acGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .acGrid { grid-template-columns: minmax(0, 1fr); gap: 6px; } .acBar.big { width: 160px; } #achSub { gap: 6px 14px; }
+  .acCard { padding: 7px 10px; } .acIco { width: 46px; height: 46px; } .acIco img { width: 40px; height: 40px; } .acRew { font-size: 9px; }
+  .acTabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; } .acTab { padding: 5px 9px; } .acTab img { width: 26px; height: 26px; } .acTab span { font-size: 13px; } .acChip { padding: 5px 10px; font-size: 12px; }
+}
