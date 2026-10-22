@@ -91,13 +91,13 @@ function achCheck(win) {
   if (P.stage >= 2) achGet("evo");
   if (Object.values(P.moves).some(m => m.lv >= 5)) achGet("move5");
   if (Object.keys(P.items).length >= 6) achGet("items6");
+  achRecord("ko", S.kills); achRecord("items", Object.keys(P.items).length);
   if (S.kills >= 1000) achGet("kills1k");
   if (P.shiny) achGet("shiny");
   if (win) { achGet("win" + LEVEL.num); if (P.spiky) achGet("spiky"); if (S.nuz) achGet("nuzwin"); }
 }
 function openAch() {
-  $("achSub").textContent = `${ACHS.filter(a => achs[a.id]).length} / ${ACHS.length} succès · ${achMoney().toLocaleString("fr-FR")} ₽ gagnés`;
-  $("achList").innerHTML = ACHS.filter(a => !a.secret || (a.id === "win10" || a.id === "togepi" ? achs.win9 : achs.win8)).map(a => `<div class="shopRow ${achs[a.id] ? "done" : "todo"}"><div><b>${achs[a.id] ? "🏆" : "🔒"} ${a.name}</b><small>${a.desc}${a.unlock ? ` Débloque ${unlockNames(a)}.` : ""}</small></div><span class="reward">${a.reward} ₽</span></div>`).join("");
+  renderAch(); // vitrine par thèmes : 38-succes.js
   state = "ach"; $("start").hidden = true; $("ach").hidden = false; $("achClose").focus({ preventScroll:true });
 }
 function closeAch() { $("ach").hidden = true; $("home").hidden = false; state = "home"; }
