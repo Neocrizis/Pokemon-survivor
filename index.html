@@ -575,7 +575,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v185)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v186)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -6877,7 +6877,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v185";
+const NET_VER = "v186";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -7677,7 +7677,7 @@ renderRoute();
 // Grille de cartes (sprite du Pokémon lié, cadre bronze/argent/or selon la récompense, barre de progression),
 // onglets de thèmes et filtres Tous / À faire / Obtenus. Les succès secrets restent des « ??? » tant qu'ils sont cachés.
 const ACH_ICON = { pika50:["pikachu"], money:["rmiaouss"], surv5:["roucool"], boss:["ronflex"], nohit:["spectrum"], evo:["feu", 2], move5:["pika", 2],
-  kills1k:["mackogneur"], win1:["papilusion"], win2:["melodelfe"], win3:["evoli"], win4:["ectoplasma"], win5:["rhinocorne"], win6:["smogogo"],
+  kills1k:["mackogneur"], win1:["papilusion"], win2:["melodelfe"], win3:["evoli"], win4:["ossatueur", 0, "spirit"], win5:["kangourex"], win6:["smogogo"],
   win7:["artikodin"], win8:["alakazam"], win9:["mew"], win10:["chetiflor"], togepi:["togepi"], mewtwo:["mewtwo"], legend:["electhor"],
   draco:["minidraco"], nuzwin:["fantominus"], shiny:["pika_s", 1], spiky:["pichuspiky"] }; // items6 : Poké Ball dessinée
 const ACH_CATS = [
@@ -7699,7 +7699,8 @@ function achIcon(id) {
   if (ACH_IMG[id]) return ACH_IMG[id];
   const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
   if (!ACH_ICON[id]) { pokeBallIcon(g, 32, 32, 20); return ACH_IMG[id] = c.toDataURL(); }
-  const [k, st = 0] = ACH_ICON[id], sh = sheetFor(k, st); if (!sh) return "";
+  const [k, st = 0, fx] = ACH_ICON[id], sh = sheetFor(k, st); if (!sh) return "";
+  if (fx === "spirit") { g.globalAlpha = .8; g.filter = "grayscale(1) brightness(1.6) drop-shadow(0 0 4px rgba(140,180,255,.9))"; } // esprit de la Mère Ossatueur, comme en jeu
   const b = sheetBox(sh), sc = Math.min(56 / b.h, 56 / b.w, 3);
   g.drawImage(sh.img, b.x0, b.y0, b.w, b.h, 32 - b.w * sc / 2, 32 - b.h * sc / 2, b.w * sc, b.h * sc);
   return ACH_IMG[id] = c.toDataURL();

@@ -2,7 +2,7 @@
 // Grille de cartes (sprite du Pokémon lié, cadre bronze/argent/or selon la récompense, barre de progression),
 // onglets de thèmes et filtres Tous / À faire / Obtenus. Les succès secrets restent des « ??? » tant qu'ils sont cachés.
 const ACH_ICON = { pika50:["pikachu"], money:["rmiaouss"], surv5:["roucool"], boss:["ronflex"], nohit:["spectrum"], evo:["feu", 2], move5:["pika", 2],
-  kills1k:["mackogneur"], win1:["papilusion"], win2:["melodelfe"], win3:["evoli"], win4:["ectoplasma"], win5:["rhinocorne"], win6:["smogogo"],
+  kills1k:["mackogneur"], win1:["papilusion"], win2:["melodelfe"], win3:["evoli"], win4:["ossatueur", 0, "spirit"], win5:["kangourex"], win6:["smogogo"],
   win7:["artikodin"], win8:["alakazam"], win9:["mew"], win10:["chetiflor"], togepi:["togepi"], mewtwo:["mewtwo"], legend:["electhor"],
   draco:["minidraco"], nuzwin:["fantominus"], shiny:["pika_s", 1], spiky:["pichuspiky"] }; // items6 : Poké Ball dessinée
 const ACH_CATS = [
@@ -24,7 +24,8 @@ function achIcon(id) {
   if (ACH_IMG[id]) return ACH_IMG[id];
   const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
   if (!ACH_ICON[id]) { pokeBallIcon(g, 32, 32, 20); return ACH_IMG[id] = c.toDataURL(); }
-  const [k, st = 0] = ACH_ICON[id], sh = sheetFor(k, st); if (!sh) return "";
+  const [k, st = 0, fx] = ACH_ICON[id], sh = sheetFor(k, st); if (!sh) return "";
+  if (fx === "spirit") { g.globalAlpha = .8; g.filter = "grayscale(1) brightness(1.6) drop-shadow(0 0 4px rgba(140,180,255,.9))"; } // esprit de la Mère Ossatueur, comme en jeu
   const b = sheetBox(sh), sc = Math.min(56 / b.h, 56 / b.w, 3);
   g.drawImage(sh.img, b.x0, b.y0, b.w, b.h, 32 - b.w * sc / 2, 32 - b.h * sc / 2, b.w * sc, b.h * sc);
   return ACH_IMG[id] = c.toDataURL();
