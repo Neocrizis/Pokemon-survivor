@@ -60,7 +60,7 @@ function drawMotes(camX, camY, vw, vh, t, dt) {
 function drawCaveLight(camX, camY, vw, vh, t, P) {
   const r0 = Math.min(vw, vh) * .26, r1 = Math.max(vw, vh) * .62;
   const dg = cx.createRadialGradient(P.x, P.y, r0, P.x, P.y, r1);
-  dg.addColorStop(0, "rgba(6,4,16,0)"); dg.addColorStop(1, LEVEL.tower ? (LEVEL.sprout ? "rgba(26,14,4,.68)" : "rgba(14,4,24,.82)") : LEVEL.theme ? CAVE_PAL[LEVEL.theme].dark : "rgba(6,4,16,.78)");
+  dg.addColorStop(0, "rgba(6,4,16,0)"); dg.addColorStop(1, LEVEL.tower ? (LEVEL.sprout ? "rgba(26,14,4,.55)" : "rgba(14,4,24,.82)") : LEVEL.theme ? CAVE_PAL[LEVEL.theme].dark : "rgba(6,4,16,.78)");
   if (LEVEL.rocket) {
     forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const sp of c.spinners || []) {
       cx.save(); cx.translate(sp.x, sp.y); cx.rotate(Math.atan2(sp.dy, sp.dx)); cx.strokeStyle = "#7ad0ff"; cx.lineWidth = 4; cx.lineCap = "round";

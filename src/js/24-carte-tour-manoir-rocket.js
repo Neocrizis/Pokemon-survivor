@@ -17,6 +17,12 @@ function towerChunk(ci, cj) {
     if (!clear(x, y, 75) || graves.some(g => Math.hypot(g.x - x, g.y - y) < 36) || pillars.some(q => Math.hypot(q.x - x, q.y - y) < q.r + 20)) continue;
     candles.push({ x, y, ph:R() * 6, blue:R() < .6 });
   }
+  let hgWalls = [];
+  if (LEVEL.sprout) { // moins de statues que de tombes, et de longues barrières de bois (24b-tour-chetiflor.js)
+    for (let i = graves.length - 1; i >= 0; i--) if (hash(graves[i].x * .7, graves[i].y * 1.3) > .45) graves.splice(i, 1);
+    hgWalls = sproutWalls(R, x0, y0, graves, pillars, candles);
+    for (const w of hgWalls) for (let k = 10; k < w.len; k += 20) solids.push({ x:w.x + k, y:w.y - 14, r:14 });
+  }
   for (const g of graves) solids.push({ x:g.x, y:g.y, r:14 });
   for (const q of pillars) solids.push({ x:q.x, y:q.y, r:q.r });
   if (LEVEL.sprout) { // Tour Chétiflor : le grand pilier central, au-dessus du point de départ
@@ -24,9 +30,10 @@ function towerChunk(ci, cj) {
     const px = 0, py = START_Y - 300; if (px >= x0 && px < x0 + CH && py >= y0 && py < y0 + CH) { pillars.push({ x:px, y:py, r:58, big:true }); solids.push({ x:px, y:py, r:58 }); }
   }
   for (const c of candles) solids.push({ x:c.x, y:c.y, r:6 });
-  return { ponds:[], trees:[], rocks:[], logs:[], walls:[], spikes:[], crystals:[], shrooms:[], graves, pillars, candles, solids, canvas:null, used:0 };
+  return { ponds:[], trees:[], rocks:[], logs:[], walls:[], spikes:[], crystals:[], shrooms:[], graves, pillars, candles, hgWalls, solids, canvas:null, used:0 };
 }
 function renderTowerChunk(ci, cj) {
+  if (LEVEL.sprout && HG.img) return renderSproutChunk(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;
   const g = cv2.getContext("2d"); g.scale(CH_SCALE, CH_SCALE); g.translate(-x0, -y0);
