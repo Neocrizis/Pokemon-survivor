@@ -170,7 +170,7 @@ function drawPuzzle(z, t) { // dalle de pierre 4×4 : les pièces se remettent e
 function drawAlphOver(t, CAM, vw, vh) { // flèche vers la dalle-puzzle quand elle est hors de l'écran
   if (!LEVEL.alph || !S.puz || S.puz.done) return;
   const z = S.puz, hx = vw / 2 - 34, hy = vh / 2 - 44, L = inZone(CAM.x) ? layAt(CAM.x, CAM.y) : null;
-  const tg = !z.ruin || (L && L === LAYS[z.ruin.lay]) ? z : L ? { x:(L.x0 + L.x1) / 2, y:L.exitY + TILE } : { x:z.ruin.ax, y:z.ruin.box.y1 + 20 }; // la porte du bâtiment, ou la sortie de la mauvaise salle
+  const tg = !z.ruin || (L && L === LAYS[z.ruin.lay]) ? z : L ? { x:(L.ex.x0 + L.ex.x1) / 2, y:L.ex.y1 } : { x:z.ruin.ax, y:z.ruin.box.y1 + 20 }; // la porte du bâtiment, ou la sortie de la mauvaise salle
   const dx = tg.x - CAM.x, dy = tg.y - CAM.y;
   if (Math.abs(dx) < hx && Math.abs(dy) < hy) return;
   const k = Math.min(hx / Math.abs(dx || 1), hy / Math.abs(dy || 1)), x = CAM.x + dx * k, y = CAM.y + dy * k, a = Math.atan2(dy, dx);
