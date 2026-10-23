@@ -6,6 +6,9 @@ const LINES = {
             blurb:"Rapide et fragile. Brasier : +10 % de dégâts. Ses Flammèches visent seules l'ennemi le plus proche." },
   eau:    { names:["Carapuce","Carabaffe","Tortank"], type:"eau", move:"pistolet", hp:44, speed:155, cd:.92,
             blurb:"Équilibré. Torrent : capacités rechargées 8 % plus vite. Son Pistolet à O tire droit devant et transperce plusieurs ennemis." },
+  magicarpe:{ names:["Magicarpe","Léviator"], evoLevels:[20], evo:"évolue au N.20",
+            type:"eau", move:"magibulle", hp:52, speed:130, dmg:.65,
+            blurb:"" },
   pika:   { names:["Pichu","Pikachu","Raichu"], type:"electrik", move:"tonnerre", hp:38, speed:168,
             blurb:"Rapide et nerveux. Statik : un ennemi qui le touche est paralysé 1 s. Tonnerre saute d'ennemi en ennemi. Dans la forêt, Pichu, Pikachu et Raichu sauvages laissent place à Lixy, Luxio et Luxray." },
   evoli:  { names:["Évoli","Évoli","Évoli"], type:"normal", move:"meteores", hp:42, speed:166, evo:"choisit son évolution au N.10, se renforce N.22",
@@ -38,4 +41,3 @@ const EEVEE = { // évolutions d'Évoli : type, capacité offerte, bonus
 const veiled = d => LEVEL.tower && !LEVEL.sprout && d.ghost && !scopeOn(); // Spectre non identifié (pas de Scope Sylphe)
 const foeName = d => veiled(d) ? "???" : d.name;
 const ptype = () => S.P.etype || LINES[S.P.line].type; // type actuel du joueur (Évoli prend celui de son évolution)
-

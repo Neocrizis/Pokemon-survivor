@@ -2,7 +2,7 @@ function updateMoves(dt) {
   const P = S.P;
   if (P.line === "mew") updateMetro(P, dt);
   updateJohto(P, dt);
-  const gy = P.moves.grozyeux;
+  const gy = P.moves.grozyeux || (P.line === "magicarpe" && P.stage > 0 ? { lv:3 } : null);
   if (gy) {
     const lv = gy.lv, mul = lv >= 3 ? 1.3 : 1.2; gy.rad = (90 + 15 * lv + (lv >= 4 ? 15 : 0)) * AREA();
     for (const f of S.foes) if ((f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (gy.rad + f.r) ** 2) {
@@ -14,7 +14,24 @@ function updateMoves(dt) {
   const tagNew = () => { if (srcLens) [S.shots, S.waves, S.tornados, S.patches].forEach((a, i) => { for (let k = srcLens[i]; k < a.length; k++) a[k].src ||= HIT_SRC; }); };
   for (const [id, m] of Object.entries(P.moves)) {
     tagNew(); HIT_SRC = id; srcLens = [S.shots.length, S.waves.length, S.tornados.length, S.patches.length];
+    if (id === "magibulle") {
+      m.untouched = (m.untouched || 0) + dt;
+    }
     m.t -= dt; const lv = m.lv;
+    if (id === "hydrocanon" && m.spinT > 0) {
+      const step = Math.min(dt, m.spinT), angle = m.spinA;
+      m.spinA += Math.PI * 2 * step / 1.5; m.spinT -= step;
+      const len = 900, w = 42 * AREA(), dmg = (12 + 2*lv) * (lv >= 3 ? 1.4 : 1);
+      const ex = P.x + Math.cos(angle) * len, ey = P.y + Math.sin(angle) * len;
+      S.beams.push({ sx:P.x, sy:P.y, ex, ey, w, life:.08 });
+      for (const f of S.foes) {
+        const t2 = Math.max(0, Math.min(1, ((f.x - P.x) * Math.cos(angle) * len + (f.y - P.y) * Math.sin(angle) * len) / (len * len)));
+        const qx = P.x + Math.cos(angle) * len * t2, qy = P.y + Math.sin(angle) * len * t2;
+        if ((f.x - qx) ** 2 + (f.y - qy) ** 2 > (w / 2 + f.r) ** 2 || (m.spinHits.get(f) || 0) > S.t) continue;
+        m.spinHits.set(f, S.t + .22); hitFoe(f, dmg, "eau", Math.cos(angle), Math.sin(angle));
+      }
+      continue;
+    }
     if (id === "tranchherbe" || id === "siphon" || id === "feufollet" || id === "combogriffe" || id === "grozyeux" || MOVES[id].tier) continue;
     if (m.t > 0) continue;
     if (JMOVE[id]) { JMOVE[id](P, m, lv, dt); continue; }
@@ -174,13 +191,19 @@ function updateMoves(dt) {
         const a = base + (i - (n-1)/2) * (n === 2 ? .1 : .22); // à 2 jets, éventail serré pour ne pas rater la cible droit devant
         S.shots.push({ kind:"water", x:P.x, y:P.y, vx:Math.cos(a)*500, vy:Math.sin(a)*500, r:6 + P.stage, dmg, life:.85, pierce:3 + (lv >= 2 ? 2 : 0), type:"eau", hit:new Set() });
       }
-    } else if (id === "bullesdo") {
-      m.t = (lv >= 3 ? 1.0 : 1.25) * P.cdMul;
-      const n = 2 + (lv >= 2) + (lv >= 4) + EXTRA(), dmg = 6 + 2*lv, ts = nearestFoes(n + 4);
+    } else if (id === "bullesdo" || id === "magibulle") {
+      const magi = id === "magibulle";
+      const gyrados = magi && P.stage > 0;
+      const n = magi ? 1 + EXTRA() : 2 + (lv >= 2) + (lv >= 4) + EXTRA();
+      m.t = (magi ? gyrados ? 1.1 : 2.4 : lv >= 3 ? 1.0 : 1.25) * P.cdMul;
+      const dmg = magi ? (4 + 2*lv) * (lv >= 3 ? 1.4 : 1) * (gyrados ? 2.5 : 1) : 6 + 2*lv, ts = nearestFoes(magi ? n : n + 4);
+      if (magi && !ts.length) { m.t = .2; continue; }
+      if (magi) { P.hopAt = S.t; emit(P.x, P.y + P.r * .6, 10, "eau", { sp:110, life:.45, r:2.5 }); } // Trempette : Magicarpe bondit et éclabousse
       for (let i = 0; i < n; i++) {
-        const f = ts.length ? ts[Math.floor(Math.random() * ts.length)] : null;
-        const a = P.aiming ? P.aimA + (Math.random() - .5) * .6 : f ? Math.atan2(f.y - P.y, f.x - P.x) + (Math.random() - .5) * .5 : Math.random() * Math.PI * 2;
-        S.shots.push({ kind:"bubble", x:P.x, y:P.y, vx:Math.cos(a)*230, vy:Math.sin(a)*230, r:8 + P.stage, dmg, life:1.6, pierce:1, type:"eau", slow: lv >= 5 ? .4 : .6, ph:Math.random() * 6 });
+        const f = magi ? ts[i % ts.length] : ts.length ? ts[Math.floor(Math.random() * ts.length)] : null;
+        const a = magi ? Math.atan2(f.y - P.y, f.x - P.x) : P.aiming ? P.aimA + (Math.random() - .5) * .6 : f ? Math.atan2(f.y - P.y, f.x - P.x) + (Math.random() - .5) * .5 : Math.random() * Math.PI * 2;
+        const speed = magi ? gyrados ? 190 : 65 : 230, growth = magi ? Math.min(4, Math.floor(m.untouched / 5)) : 0;
+        S.shots.push({ kind:"bubble", x:P.x, y:P.y, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, r:(gyrados ? 14 : 8) + P.stage + growth * 3, grow:magi ? (gyrados ? 12 : 5) + growth * 2 : 0, dmg, life: magi ? 5 : 1.6, pierce:1, type:"eau", boom:magi, boomR:magi ? ((gyrados ? 115 : 48) + growth * 16 + Math.max(0, lv - 1) * 4) * AREA() : undefined, boomMul:gyrados ? 1 : .65, slow: magi ? lv >= 5 ? .8 : lv >= 2 ? .65 : 0 : lv >= 5 ? .8 : .6, sleepChance:magi && lv >= 5 ? .25 : 0, home:magi ? f : null, homeSpeed:magi ? gyrados ? 240 : 85 : undefined, homeTurn:magi ? gyrados ? 6 : lv >= 4 ? 3.5 : 2.5 : undefined, ph:Math.random() * 6 });
       }
     } else if (id === "vampigraine") {
       m.t = (lv >= 4 ? 1.7 : 2.2) * P.cdMul;
@@ -250,8 +273,27 @@ function updateMoves(dt) {
       if (!P.moving) continue;
       S.patches.push({ x:P.x + (Math.random() - .5) * 8, y:P.y + P.r * .6, r:(18 + 2*lv + (lv >= 4 ? 8 : 0)) * AREA(), life:(1.6 + .4*lv) * DUR(), max:(1.6 + .4*lv) * DUR(), dmg:(3 + lv) * (lv >= 5 ? 1.6 : 1), burn: lv >= 3, ph:Math.random() * 6 });
     } else if (id === "hydrocanon") {
+      const gyarados = P.line === "magicarpe" && P.stage > 0;
       const near = nearestFoes(1)[0];
       if (!near && !P.aiming) { m.t = .3; continue; }
+      if (gyarados) {
+        m.t = (lv >= 4 ? 4 : 4.8) * P.cdMul;
+        const target = nearestFoes(1)[0], a = P.aiming ? P.aimA : target ? Math.atan2(target.y - P.y, target.x - P.x) : Math.atan2(P.fy, P.fx);
+        if (lv >= 5) {
+          m.spinA = a; m.spinT = 1.5; m.spinHits = new Map();
+        } else {
+          const len = 900, w = (34 + 4*lv) * AREA(), dmg = (40 + 8*lv) * (lv >= 3 ? 1.4 : 1);
+          const ex = P.x + Math.cos(a) * len, ey = P.y + Math.sin(a) * len;
+          S.beams.push({ sx:P.x, sy:P.y, ex, ey, w, life:.4 });
+          for (const f of S.foes) {
+            const t2 = Math.max(0, Math.min(1, ((f.x - P.x) * Math.cos(a) * len + (f.y - P.y) * Math.sin(a) * len) / (len * len)));
+            const qx = P.x + Math.cos(a) * len * t2, qy = P.y + Math.sin(a) * len * t2;
+            if ((f.x - qx) ** 2 + (f.y - qy) ** 2 <= (w / 2 + f.r) ** 2) hitFoe(f, dmg, "eau", Math.cos(a), Math.sin(a));
+          }
+        }
+        S.shake = lv >= 5 ? .3 : .2;
+        continue;
+      }
       m.t = (lv >= 4 ? 3.2 : 4) * P.cdMul;
       const a = P.aiming ? P.aimA : Math.atan2(near.y - P.y, near.x - P.x), len = 760, w = (26 + 5*lv) * AREA(), dmg = (70 + 18*lv) * (lv >= 3 ? 1.4 : 1);
       const offs = lv >= 5 ? [-w * .5, w * .5] : [0];
@@ -435,4 +477,3 @@ function updateMoves(dt) {
     }
   }
 }
-

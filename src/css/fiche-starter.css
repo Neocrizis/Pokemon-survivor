@@ -1,5 +1,15 @@
 /* Fiche du starter modernisée : hexagone des stats, évolution en images, icônes de type */
 #sStats { display:flex; justify-content:center; }
+.pkbox.surprise .pkh { font-size:clamp(15px, 2.5vw, 22px); text-align:center; justify-content:center; }
+.pkbox.surprise #sStats { min-height:222px; align-content:center; }
+.unknownRadar { width:300px; max-width:100%; height:222px; margin:auto; position:relative; }
+.unknownRadar span { position:absolute; font:800 18px var(--num); color:#5a5442; }
+.unknownRadar span:nth-child(1) { top:9%; left:calc(50% - 18px); }
+.unknownRadar span:nth-child(2) { top:31%; right:5%; }
+.unknownRadar span:nth-child(3) { bottom:23%; right:5%; }
+.unknownRadar span:nth-child(4) { bottom:5%; left:calc(50% - 18px); }
+.unknownRadar span:nth-child(5) { bottom:23%; left:5%; }
+.unknownRadar span:nth-child(6) { top:31%; left:5%; }
 #sRadar { width:300px; height:222px; max-width:100%; }
 .talB { display:flex; flex-direction:column; gap:1px; background:#fff3dc; border-radius:8px; padding:5px 9px; border-left:4px solid var(--c); }
 .talB b { font:800 13px var(--body); color:#c8402a; } .talB span { font:12px var(--body); color:#4a4434; }

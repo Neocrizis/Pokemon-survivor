@@ -20,6 +20,7 @@ function hitFoe(f, base, type, kx = 0, ky = 0, forceCrit = false) {
   if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(.2, dmg * .003)); // Sans Limite : chaque coup soigne un tout petit peu
   if (S.parts.length < 450) emit(f.x, f.y - f.r * .2, 3, type, { sp:170, life:.3, jit:f.r * .6 });
   const src = HIT_SRC || "autre", real = Math.min(dmg, Math.max(0, f.hp + dmg)); (S.dmgBy ||= {})[src] = (S.dmgBy[src] || 0) + real;
+  if (S.P.line === "magicarpe" && S.P.stage > 0 && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + real * .01);
   const pb = (S.P.dmgBy ||= {}); pb[src] = (pb[src] || 0) + real; f.lastBy = S.P.idx; // récap par joueur
   if (!f.d.boss && !f.d.heavy) { f.x += kx * 6; f.y += ky * 6; }
   S.texts.push({ x:f.x + (Math.random()-.5)*10, y:f.y - f.r, txt:Math.round(dmg), col: crit ? "#ff8a3d" : m > 1 ? "#ffd84a" : m < 1 ? "#a9b4a6" : "#fff", life:.6, big:m > 1 || crit });

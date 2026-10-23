@@ -40,7 +40,8 @@ function evoStages(line) {
   const L = LINES[line];
   if (line === "mew") return null;
   if (line === "evoli") return [[line, 0, L.names[0], ""], ...Object.keys(EEVEE).map(k => [k, 0, EEVEE[k].name, `N.${EVO_LEVELS[0]}`])];
-  const n = line === "miaouss" ? 2 : 3; return L.names.slice(0, n).map((nm, s) => [line, s, nm, s ? `N.${EVO_LEVELS[s - 1]}` : "Départ"]);
+  const n = line === "miaouss" ? 2 : L.names.length;
+  return L.names.slice(0, n).map((nm, s) => [line, s, nm, s ? `N.${(L.evoLevels || EVO_LEVELS)[s - 1]}` : "Départ"]);
 }
 // Évoli : clic sur une évolution = ses attaques dans le panneau de droite (même règle que buildChoices avec le type de l'évolution)
 const formMoves = k => { const t = EEVEE[k].type;
@@ -63,6 +64,11 @@ function decorateFiche() {
   const line = carLine, L = LINES[line], box = $("sStats"); if (!box) return;
   if (FICHE.line !== line) { FICHE.line = line; FICHE.ef = null; }
   const pkm = $("sMoves").closest(".pkbox"); pkm.classList.remove("form");
+  if (line === "magicarpe") {
+    box.innerHTML = `<div class="unknownRadar">${Array.from({ length:6 }, () => "<span>???</span>").join("")}</div>`;
+    $("sTal").innerHTML = "";
+    return;
+  }
   let cv = $("sRadar"); if (!cv) { cv = document.createElement("canvas"); cv.id = "sRadar"; }
   box.innerHTML = ""; box.appendChild(cv); drawRadar(cv, L);
   const t = TALENTS[line], st = evoStages(line);
@@ -80,7 +86,8 @@ function decorateFiche() {
 (function evoLoop(ts) {
   if (!$("start").hidden) for (const c of FICHE.evo) {
     const g = c.getContext("2d"); g.clearRect(0, 0, c.width, c.height);
-    drawMon(g, c.dataset.k, c.width / 2, c.height / 2 + 4, c.width < 80 ? 12 : 15, false, ts / 1000, +c.dataset.s, 0, false);
+    const r = c.width < 80 ? 8 : 9, size = c.dataset.k === "magicarpe" && +c.dataset.s > 0 ? 11.5 : r;
+    drawMon(g, c.dataset.k, c.width / 2, c.height / 2 + 4, size, false, ts / 1000, +c.dataset.s, 0, false);
   }
   requestAnimationFrame(evoLoop);
 })(0);

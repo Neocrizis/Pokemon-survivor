@@ -1,5 +1,5 @@
 /* ---------- Écran titre ---------- */
-const starterOrder = ["plante", "feu", "eau", "miaouss", "pika", "evoli", "draco", "mew", "germignon", "heri", "kaiminus", "togepi"];
+const starterOrder = ["plante", "feu", "eau", "magicarpe", "miaouss", "pika", "evoli", "draco", "mew", "germignon", "heri", "kaiminus", "togepi"];
 const levelBtns = [];
 $("lgBtn").addEventListener("click", nextRoom);
 const levelOpen = i => i === 0 || !!achs[LEVELS[i].jFirst ? "win9" : "win" + i]; // un niveau se débloque en terminant le précédent (Johto : après la Caverne Azurée)
@@ -39,10 +39,10 @@ const TALENTS = { plante:["Engrais", "récupère 0,4 PV par seconde."], feu:["Br
 const lineMoves = line => { // capacités que ce starter peut apprendre (même règle que buildChoices, tous stades confondus)
   const L = LINES[line], out = [];
   for (const [id, m] of Object.entries(MOVES)) {
-    if (m.line && m.line !== line) continue;
+    if (m.line && ![].concat(m.line).includes(line)) continue;
     const alt = m.alt && m.alt.line === line, also = (m.also || []).includes(line);
     if (m.only && ![].concat(m.only).includes(L.type) && !alt && !also) continue;
-    if (m.only && L.own && !also) continue;
+    if (m.only && (L.own || L.restricted) && !also && !alt) continue;
     if (!m.only && !m.line) continue;
     out.push([id, m, alt]);
   }
@@ -70,14 +70,18 @@ function renderCar() {
   const mu = LEVEL.matchup[line] || (L.own && LEVEL.matchup[L.type]) || (line === "mew" ? ["Variable", "Métronome peut tirer n'importe quel type : chaque partie est une surprise."] : ["Neutre", "Pas d'avantage ni de faiblesse marqués dans ce niveau."]);
   $("sMu").innerHTML = `<b>${mu[0]}</b> ${LEVEL.where}. ${mu[1]}`;
   $("sLock").hidden = !lock; $("sLock").textContent = lock ? `🔒 Succès « ${lock.name} » : ${lock.desc}` : "";
-  $("sEvo").textContent = "N.1";
-  const evo = line === "mew" ? "n'évolue pas, se renforce N.10 et N.22" : line === "evoli" ? "Pyroli, Aquali, Phyllali ou Voltali au N.10" : line === "miaouss" ? `${L.names[1]} au N.${EVO_LEVELS[0]}` : `${L.names[1]} au N.${EVO_LEVELS[0]}, ${L.names[2]} au N.${EVO_LEVELS[1]}`;
+  const mystery = line === "magicarpe";
+  const statsBox = $("sStats").parentElement, statsHeader = statsBox.querySelector(".pkh");
+  statsBox.hidden = false; statsBox.classList.toggle("surprise", mystery); statsHeader.hidden = false; $("sTal").hidden = mystery;
+  statsHeader.querySelector("span").textContent = mystery ? "Surprise !" : "Stats";
+  $("sEvo").hidden = mystery; $("sEvo").textContent = mystery ? "" : "N.1";
+  const evo = line === "mew" ? "n'évolue pas, se renforce N.10 et N.22" : line === "evoli" ? "Pyroli, Aquali, Phyllali ou Voltali au N.10" : line === "magicarpe" ? L.evo : line === "miaouss" ? `${L.names[1]} au N.${EVO_LEVELS[0]}` : `${L.names[1]} au N.${EVO_LEVELS[0]}, ${L.names[2]} au N.${EVO_LEVELS[1]}`;
   const st = [["PV", L.hp, L.hp / 56, false], ["Attaque", Math.round(100 * (L.dmg || 1)), (L.dmg || 1) / 1.2, (L.dmg || 1) > 1],
     ["Vitesse", L.speed, (L.speed - 135) / 45, false], ["Recharge", Math.round(100 / (L.cd || 1)), (100 / (L.cd || 1) - 70) / 45, (L.cd || 1) < 1],
     ["Critique", `${Math.round(100 * (L.crit || 0))} %`, (L.crit || 0) / .2, !!L.crit], ["Régén.", String(L.regen || 0).replace(".", ","), (L.regen || 0) / .8, !!L.regen]];
-  $("sStats").innerHTML = st.map(([n, val, f, up]) => `<div class="pst${up ? " up" : ""}"><span>${n}${up ? " ▲" : ""}</span><span class="v">${val}</span><div class="bb"><i style="width:${Math.round(Math.max(.06, Math.min(1, f)) * 100)}%"></i></div></div>`).join("");
-  const t = TALENTS[line]; $("sTal").innerHTML = (t ? `<b>Talent · ${t[0]}</b> : ${t[1]}<br>` : "") + `<b>Évolution</b> : ${evo}`;
-  const mv = lineMoves(line); $("sMvN").textContent = mv.length; $("sMoves").classList.toggle("many", mv.length > 7);
+  $("sStats").innerHTML = mystery ? Array.from({ length:6 }, () => `<div class="pst"><span>???</span><span class="v">???</span><span></span></div>`).join("") : st.map(([n, val, f, up]) => `<div class="pst${up ? " up" : ""}"><span>${n}${up ? " ▲" : ""}</span><span class="v">${val}</span><div class="bb"><i style="width:${Math.round(Math.max(.06, Math.min(1, f)) * 100)}%"></i></div></div>`).join("");
+  const t = TALENTS[line]; $("sTal").innerHTML = mystery ? "" : (t ? `<b>Talent · ${t[0]}</b> : ${t[1]}<br>` : "") + `<b>Évolution</b> : ${evo}`;
+  const mv = mystery ? lineMoves(line).filter(([id]) => id === L.move) : lineMoves(line); $("sMvN").textContent = mv.length; $("sMoves").classList.toggle("many", mv.length > 7);
   $("sMoves").innerHTML = mv.map(([id, m, alt]) => { const d = m.desc(1).split(/(?<=\.) /)[0].replace(/\.$/, "");
     const tg = id === L.move ? `<span class="tg">Départ</span>` : m.rare ? `<span class="tg r">Rare N.${m.rare.minLvl}</span>` : alt ? `<span class="tg a">${L.names[m.alt.stage]}</span>` : m.tier ? `<span class="tg r" title="Proposé après Métronome ${m.tier - 1}">après M.${m.tier - 1}</span>` : "<span></span>";
     return `<div class="mv"><span class="ty" style="background:${TYPE_COLORS[m.type] || "#888"}">${TYPE_NAMES[m.type] || m.type}</span><div><b>${m.name}</b><small>${d}</small></div>${m.tier === 1 ? "<span></span>" : tg}</div>`; }).join("");
@@ -207,4 +211,3 @@ function pickStarter(line) {
 $("mpBtn").addEventListener("click", () => setPlayers(NPL % 4 + 1));
 window.addEventListener("gamepadconnected", () => mpHint()); window.addEventListener("gamepaddisconnected", () => mpHint());
 requestAnimationFrame(drawPreviews);
-
