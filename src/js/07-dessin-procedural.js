@@ -44,6 +44,34 @@ function flame(c, x, y, s, t) {
 }
 
 const DRAW = {
+  magicarpe(c, r, t, st) {
+    if (st > 0) {
+      const sway = Math.sin(t * 3) * r * .06;
+      poly(c, [-r*.45, -r*.1, -r*1.05, -r*.85 + sway, -r*.9, -r*.25], "#d63b35");
+      poly(c, [-r*.45, -r*.05, -r*1.0, r*.55 + sway, -r*.8, r*.15], "#e34b3d");
+      ell(c, -r*.1, r*.15, r*.95, r*.48, "#3c82bf");
+      ell(c, r*.15, r*.15, r*.65, r*.3, "#f2e7c8");
+      poly(c, [-r*.5, -r*.05, -r*.95, -r*.7, -r*.6, r*.0], "#e2b847");
+      poly(c, [-r*.5, r*.05, -r*.95, r*.7, -r*.6, r*.25], "#e2b847");
+      for (let i = 0; i < 4; i++) poly(c, [r*(.15+i*.19), -r*.15, r*(.3+i*.19), -r*.55, r*(.4+i*.19), -r*.1], "#e2b847");
+      poly(c, [r*.65, r*.05, r*1.05, r*.25, r*.65, r*.4], "#e2b847");
+      circ(c, r*.62, -r*.12, r*.1, "#fff"); circ(c, r*.65, -r*.12, r*.045, "#1d2630");
+      return;
+    }
+    const wag = Math.sin(t * 12) * r * .08;
+    poly(c, [-r*.65, r*.05, -r*1.2, -r*.65 + wag, -r*1.05, r*.15, -r*1.35, r*.65 + wag, -r*.65, r*.4], "#e6ad32");
+    ell(c, -r*.05, r*.12, r*.78, r*.43, "#e7a92e");
+    ell(c, r*.08, r*.1, r*.65, r*.3, "#f4cf62");
+    for (let i = 0; i < 4; i++) {
+      const x = -r*.42 + i*r*.28;
+      poly(c, [x, -r*.08, x + r*.12, -r*.38, x + r*.23, -r*.08], "#e6ad32");
+    }
+    poly(c, [r*.45, r*.08, r*.82, -r*.18, r*.72, r*.18], "#e6ad32");
+    circ(c, r*.6, -r*.15, r*.18, "#f4cf62");
+    circ(c, r*.65, -r*.16, r*.07, "#fff"); circ(c, r*.68, -r*.16, r*.035, "#1d2630");
+    c.strokeStyle = "#9b5725"; c.lineWidth = r*.045; c.beginPath(); c.moveTo(r*.55, r*.22); c.quadraticCurveTo(r*.68, r*.3, r*.78, r*.2); c.stroke();
+  },
+  leviator(c, r, t) { DRAW.magicarpe(c, r, t, 1); },
   feu(c, r, t, st) {
     const col = ["#f2873a", "#de4f37", "#f08a30"][st];
     if (st === 2) {
