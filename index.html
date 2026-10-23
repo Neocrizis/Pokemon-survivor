@@ -522,6 +522,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
 .hudBody { display: flex; flex-direction: column; gap: 4px; width: 200px; }
 .hudName { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .hudName b { font: 800 16px var(--body); text-shadow: 0 2px 0 rgba(0,0,0,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hudName b.long { font-size: 12.5px; } /* nom long (Magicarpe La Légende) : police réduite pour tenir dans le cadre */
 .hudName .tyi { width: 18px; height: 18px; flex: none; } .hudName .tyi svg { width: 11px; height: 11px; }
 .hudHp { position: relative; height: 16px; background: #2c3a30; border: 2px solid #404c44; border-radius: 9px; overflow: hidden; }
 .hudHp > i { display: block; height: 100%; width: 100%; border-radius: 6px; background: var(--hp); transition: width .15s; }
@@ -552,7 +553,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
 .boss { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); } /* au-dessus de la barre des capacités */
 @media (max-width: 640px), (orientation: landscape) and (max-height: 520px) {
   .hudBox { padding: 4px 9px 4px 4px; gap: 7px; } .hudPort { width: 42px; height: 42px; border-width: 2px; } .hudLv { min-width: 18px; height: 18px; font-size: 8px; }
-  .hudBody { width: 150px; gap: 3px; } .hudName b { font-size: 13px; } .hudHp { height: 13px; } .hudHp span { font-size: 8px; }
+  .hudBody { width: 150px; gap: 3px; } .hudName b { font-size: 13px; } .hudName b.long { font-size: 10.5px; } .hudHp { height: 13px; } .hudHp span { font-size: 8px; }
   .hudBar { bottom: calc(6px + env(safe-area-inset-bottom, 0px)); padding: 4px 6px 3px; gap: 2px; }
   .hbMv { width: 46px; } .hbIco { width: 24px; height: 24px; } .hbIco .tyi { width: 20px; height: 20px; } .hbIco .tyi svg { width: 14px; height: 14px; }
   .hbMv b { font-size: 8px; max-width: 50px; } .hbIt { width: 18px; height: 18px; } .hbIt img { width: 14px; height: 14px; } .hbSep { height: 22px; }
@@ -635,7 +636,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v195)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v196)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -5076,7 +5077,7 @@ function hudPortrait() { // portrait SpriteCollab du Pokémon dans le rond du ca
 }
 function refreshHud() {
   const P = S.P, pct = P.hp / P.maxHp, ty = P.eform ? EEVEE[P.eform].type : LINES[P.line].type;
-  $("hudName").textContent = pTag() + pName(); $("hudName").style.color = S.players.length > 1 ? PCOL[P.idx] : ""; $("hudLvl").textContent = P.lvl;
+  $("hudName").textContent = pTag() + pName(); $("hudName").classList.toggle("long", $("hudName").textContent.length > 15); $("hudName").style.color = S.players.length > 1 ? PCOL[P.idx] : ""; $("hudLvl").textContent = P.lvl;
   if ($("hudBox").dataset.ty !== ty) { $("hudBox").dataset.ty = ty; $("hudBox").style.setProperty("--tc", TYPE_COLORS[ty]); $("hudType").innerHTML = typeIcon(ty); }
   hudPortrait();
   const fill = $("hpFill"); fill.style.width = (Math.max(0, pct) * 100) + "%";
@@ -7480,7 +7481,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v195";
+const NET_VER = "v196";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();

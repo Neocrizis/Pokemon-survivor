@@ -7,7 +7,7 @@ function hudPortrait() { // portrait SpriteCollab du Pokémon dans le rond du ca
 }
 function refreshHud() {
   const P = S.P, pct = P.hp / P.maxHp, ty = P.eform ? EEVEE[P.eform].type : LINES[P.line].type;
-  $("hudName").textContent = pTag() + pName(); $("hudName").style.color = S.players.length > 1 ? PCOL[P.idx] : ""; $("hudLvl").textContent = P.lvl;
+  $("hudName").textContent = pTag() + pName(); $("hudName").classList.toggle("long", $("hudName").textContent.length > 15); $("hudName").style.color = S.players.length > 1 ? PCOL[P.idx] : ""; $("hudLvl").textContent = P.lvl;
   if ($("hudBox").dataset.ty !== ty) { $("hudBox").dataset.ty = ty; $("hudBox").style.setProperty("--tc", TYPE_COLORS[ty]); $("hudType").innerHTML = typeIcon(ty); }
   hudPortrait();
   const fill = $("hpFill"); fill.style.width = (Math.max(0, pct) * 100) + "%";
