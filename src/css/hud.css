@@ -10,6 +10,7 @@
 .hudBody { display: flex; flex-direction: column; gap: 4px; width: 200px; }
 .hudName { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .hudName b { font: 800 16px var(--body); text-shadow: 0 2px 0 rgba(0,0,0,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hudName b.long { font-size: 12.5px; } /* nom long (Magicarpe La Légende) : police réduite pour tenir dans le cadre */
 .hudName .tyi { width: 18px; height: 18px; flex: none; } .hudName .tyi svg { width: 11px; height: 11px; }
 .hudHp { position: relative; height: 16px; background: #2c3a30; border: 2px solid #404c44; border-radius: 9px; overflow: hidden; }
 .hudHp > i { display: block; height: 100%; width: 100%; border-radius: 6px; background: var(--hp); transition: width .15s; }
@@ -40,7 +41,7 @@
 .boss { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); } /* au-dessus de la barre des capacités */
 @media (max-width: 640px), (orientation: landscape) and (max-height: 520px) {
   .hudBox { padding: 4px 9px 4px 4px; gap: 7px; } .hudPort { width: 42px; height: 42px; border-width: 2px; } .hudLv { min-width: 18px; height: 18px; font-size: 8px; }
-  .hudBody { width: 150px; gap: 3px; } .hudName b { font-size: 13px; } .hudHp { height: 13px; } .hudHp span { font-size: 8px; }
+  .hudBody { width: 150px; gap: 3px; } .hudName b { font-size: 13px; } .hudName b.long { font-size: 10.5px; } .hudHp { height: 13px; } .hudHp span { font-size: 8px; }
   .hudBar { bottom: calc(6px + env(safe-area-inset-bottom, 0px)); padding: 4px 6px 3px; gap: 2px; }
   .hbMv { width: 46px; } .hbIco { width: 24px; height: 24px; } .hbIco .tyi { width: 20px; height: 20px; } .hbIco .tyi svg { width: 14px; height: 14px; }
   .hbMv b { font-size: 8px; max-width: 50px; } .hbIt { width: 18px; height: 18px; } .hbIt img { width: 14px; height: 14px; } .hbSep { height: 22px; }
