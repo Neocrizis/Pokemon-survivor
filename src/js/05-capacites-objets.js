@@ -124,7 +124,7 @@ const MOVES = {
     desc: lv => ["Toutes les 6 s, agite les doigts et emprunte au hasard l'attaque d'un autre starter.", "Attaques empruntées plus puissantes.", "Attaques encore plus puissantes.", "Change toutes les 5 s.", "Deux attaques à la fois."][lv-1] },
 };
 const ITEMS = {
-  carbone:  { name:"Carbone", max:5, desc:"Attaque +12 % pour toutes les capacités." },
+  carbone:  { name:"Protéine", max:5, desc:"Attaque +12 % pour toutes les capacités." },
   pvplus:   { name:"PV Plus", max:5, desc:"PV max +20 et soigne de 20 PV." },
   aimant:   { name:"Aimant", max:5, desc:"Attire les Bonbons Exp. de plus loin." },
   vivegriffe:{ name:"Vive Griffe", max:5, desc:"Recharge des capacités −8 %." },
