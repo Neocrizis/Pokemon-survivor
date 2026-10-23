@@ -73,7 +73,7 @@ function renderCar() {
   const mystery = line === "magicarpe";
   const statsBox = $("sStats").parentElement, statsHeader = statsBox.querySelector(".pkh");
   statsBox.hidden = false; statsBox.classList.toggle("surprise", mystery); statsHeader.hidden = false; $("sTal").hidden = mystery;
-  statsHeader.querySelector("span").textContent = mystery ? "Surprise !" : "Stats";
+  statsHeader.querySelector("span").textContent = mystery ? "Surprise Mother Fucker" : "Stats";
   $("sEvo").hidden = mystery; $("sEvo").textContent = mystery ? "" : "N.1";
   const evo = line === "mew" ? "n'évolue pas, se renforce N.10 et N.22" : line === "evoli" ? "Pyroli, Aquali, Phyllali ou Voltali au N.10" : line === "magicarpe" ? L.evo : line === "miaouss" ? `${L.names[1]} au N.${EVO_LEVELS[0]}` : `${L.names[1]} au N.${EVO_LEVELS[0]}, ${L.names[2]} au N.${EVO_LEVELS[1]}`;
   const st = [["PV", L.hp, L.hp / 56, false], ["Attaque", Math.round(100 * (L.dmg || 1)), (L.dmg || 1) / 1.2, (L.dmg || 1) > 1],
