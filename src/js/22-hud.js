@@ -1,13 +1,9 @@
 /* ---------- HUD ---------- */
 let hudCache = "", bossKey = "", hudPortKey = "";
 let hudCd = {}, hudCdT = {}, hudLv = {}, hudNew = {}, hudLastT = 1e9; // recharge max vue, niveau précédent et mise en avant (N.2 !) de chaque capacité ; remis à zéro quand le chrono repart
-function hudPortrait() { // sprite du Pokémon dans le rond du cadre (redessiné quand il évolue ou que la planche arrive)
-  const k = pKind(), sh = sheetFor(k, S.P.stage), key = k + S.P.stage + !!sh;
-  if (key === hudPortKey) return; hudPortKey = key;
-  const g = $("hudPort").getContext("2d"); g.clearRect(0, 0, 64, 64); g.imageSmoothingEnabled = false;
-  if (!sh) return;
-  const b = sheetBox(sh), sc = Math.min(52 / b.h, 52 / b.w, 3);
-  g.drawImage(sh.img, b.x0, b.y0, b.w, b.h, 32 - b.w * sc / 2, 36 - b.h * sc / 2, b.w * sc, b.h * sc);
+function hudPortrait() { // portrait SpriteCollab du Pokémon dans le rond du cadre (change quand il évolue)
+  const d = DEX[pKind()], id = Array.isArray(d) ? d[S.P.stage] : d;
+  if (id !== hudPortKey) { hudPortKey = id; $("hudPort").src = portraitOf(id || ""); }
 }
 function refreshHud() {
   const P = S.P, pct = P.hp / P.maxHp, ty = P.eform ? EEVEE[P.eform].type : LINES[P.line].type;
