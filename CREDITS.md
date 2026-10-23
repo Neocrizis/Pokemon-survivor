@@ -83,6 +83,9 @@ Les contributeurs sont identifiés par leur ID Discord dans `sprite/<n°>/credit
 
 Pokémon © Nintendo, Creatures Inc., Game Freak. Projet de fan non commercial.
 
+## Portraits
+Les portraits du cadre en jeu (émotion « Normal », 40 × 40) viennent aussi de SpriteCollab (https://sprites.pmdcollab.org/), CC BY-NC 4.0, pour les Pokémon jouables, leurs évolutions et leurs versions chromatiques. Auteurs : voir le fichier `credits.txt` du dossier `portrait/` de chaque Pokémon. Pichu Troizépi n'a pas de portrait : celui de Pichu est utilisé.
+
 ## Icônes des objets
 Icônes des objets (et de la Baie Sitrus, la Potion, la Super Potion, la Poké Flûte, la Poké Ball et la Master Ball) tirées de PokéSprite (https://github.com/msikma/pokesprite, msikma/pokesprite, code sous licence MIT ; les images restent © Nintendo / Game Freak / Creatures, usage non commercial). L'icône du Dé Pipé est dessinée pour le jeu (absent de PokéSprite).
 
