@@ -6,7 +6,7 @@ const LINES = {
             blurb:"Rapide et fragile. Brasier : +10 % de dégâts. Ses Flammèches visent seules l'ennemi le plus proche." },
   eau:    { names:["Carapuce","Carabaffe","Tortank"], type:"eau", move:"pistolet", hp:44, speed:155, cd:.92,
             blurb:"Équilibré. Torrent : capacités rechargées 8 % plus vite. Son Pistolet à O tire droit devant et transperce plusieurs ennemis." },
-  magicarpe:{ names:["Magicarpe","Léviator"], evoLevels:[20], evo:"évolue au N.20",
+  magicarpe:{ names:["Magicarpe La Légende","Léviator"], evoLevels:[20], evo:"évolue au N.20",
             type:"eau", move:"magibulle", hp:52, speed:130, dmg:.65,
             blurb:"" },
   pika:   { names:["Pichu","Pikachu","Raichu"], type:"electrik", move:"tonnerre", hp:38, speed:168,

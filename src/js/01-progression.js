@@ -95,7 +95,7 @@ function achCheck(win) {
   if (Object.keys(P.items).length >= 6) achGet("items6");
   achRecord("ko", S.kills); achRecord("items", Object.keys(P.items).length);
   if (S.kills >= 1000) achGet("kills1k");
-  if (P.shiny) achGet("shiny");
+  if (P.shiny && P.line !== "magicarpe") achGet("shiny"); // Magicarpe, toujours chromatique, ne compte pas
   if (win) { achGet("win" + LEVEL.num); if (P.spiky) achGet("spiky"); if (S.nuz) achGet("nuzwin"); }
 }
 function openAch() {
