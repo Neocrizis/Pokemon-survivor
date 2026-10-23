@@ -19,7 +19,7 @@ const pTag = (p = S.P) => S.players.length > 1 ? `J${p.idx + 1} · ` : "";
 function mkPlayer(line, idx, n) {
   const L = LINES[line];
   const P = { idx, x:(idx - (n - 1) / 2) * 44, y:START_Y, r:13, line, stage:0, hp:L.hp, maxHp:L.hp, baseSpeed:L.speed, lvl:1, xp:0, need:6, fx:1, fy:0, flip:false,
-    inv:0, dmgMul:L.dmg || 1, cdMul:L.cd || 1, magnet:70, regen:L.regen || 0, moves:{}, items:{}, dealt:0, evoFlash:0, pendingLv:0, spiky: line === "pika" && Math.random() < 1/30, shiny: (idx === 0 && secretShiny) || Math.random() < 1/30 };
+    inv:0, dmgMul:L.dmg || 1, cdMul:L.cd || 1, magnet:70, regen:L.regen || 0, moves:{}, items:{}, dealt:0, evoFlash:0, pendingLv:0, spiky: line === "pika" && Math.random() < 1/30, shiny: line === "magicarpe" || (idx === 0 && secretShiny) || Math.random() < 1/30 }; // Magicarpe La Légende est toujours chromatique
   P.moves[L.move] = { lv:1, t:.3 };
   P.dmgMul *= 1 + .02 * (shop.dmg || 0); P.baseSpeed *= 1 + .02 * (shop.spd || 0); P.maxHp = P.hp = Math.round(P.maxHp * (1 + .02 * (shop.hp || 0))); // achats du Marchand
   if (shop.rappel && !NUZ) P.revives = 1; // Rappel du Marchand

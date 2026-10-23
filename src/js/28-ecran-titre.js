@@ -168,12 +168,12 @@ function drawPreviews(now) {
     if (c.width !== 280 * dpr) { c.width = 280 * dpr; c.height = 210 * dpr; }
     const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, 280, 210);
     const line = ballAnim ? ballAnim.line : carLine, sp = sheetFor(line, 0), MX = 140, MY = sp ? 142 : 140, MR = sp ? 28 : 46; // ×4
-    if (!ballAnim) drawMon(g, line, MX, sp ? MY : MY + Math.sin(now / 300) * 3, MR, false, now / 1000, 0, 1, true);
+    if (!ballAnim) drawMon(g, line === "magicarpe" ? "magicarpe_s" : line, MX, sp ? MY : MY + Math.sin(now / 300) * 3, MR, false, now / 1000, 0, 1, true);
     else drawBallAnim(g, (now - ballAnim.t0) / 1000, line, MX, MY, MR, now);
     for (const id of ["sPrev", "sNext"]) {
       const el = $(id), l = el.dataset.l; if (!l) continue; const cc = el.querySelector("canvas"), gg = cc.getContext("2d"), sp2 = sheetFor(l, 0);
       if (cc.width !== 150 * dpr) { cc.width = 150 * dpr; cc.height = 112 * dpr; }
-      gg.setTransform(dpr, 0, 0, dpr, 0, 0); gg.clearRect(0, 0, 150, 112); drawMon(gg, l, 75, sp2 ? 64 : 66, sp2 ? 14 : 30, false, now / 1000, 0, 1, true); // ×2
+      gg.setTransform(dpr, 0, 0, dpr, 0, 0); gg.clearRect(0, 0, 150, 112); drawMon(gg, l === "magicarpe" ? "magicarpe_s" : l, 75, sp2 ? 64 : 66, sp2 ? 14 : 30, false, now / 1000, 0, 1, true); // ×2
     }
   }
   requestAnimationFrame(drawPreviews);
