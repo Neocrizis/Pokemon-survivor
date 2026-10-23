@@ -10,6 +10,7 @@
 <!-- @include css/fiche-starter.css -->
 <!-- @include css/route-niveaux.css -->
 <!-- @include css/succes.css -->
+<!-- @include css/hud.css -->
 </style>
 <div class="rotateMsg" id="rotateMsg"><div class="phone">📱</div><div>Tourne ton téléphone<br>pour jouer en paysage</div></div>
 
@@ -17,16 +18,18 @@
 
 <div class="hud" id="hud" hidden>
   <div class="who">
-    <div class="who-name"><span id="hudName">Salamèche</span><span class="lvl" id="hudLvl">N.1</span></div>
-    <div class="hp-row"><div class="bar"><i id="hpFill"></i></div><b id="hpText">40/40</b></div>
-    <div class="moves" id="hudMoves"></div>
+    <div class="hudBox" id="hudBox"><span class="hudPort"><canvas id="hudPort" width="64" height="64"></canvas><span class="hudLv" id="hudLvl">1</span></span>
+      <div class="hudBody"><div class="hudName"><b id="hudName">Salamèche</b><span id="hudType"></span></div>
+        <div class="hudHp"><i id="hpFill"></i><span id="hpText">40 / 40</span></div>
+        <div class="hudXp"><i id="xpFill"></i></div></div></div>
+    <div class="hudBar" id="hudMoves"></div>
     <div class="pp" id="pp1" hidden></div><div class="pp" id="pp2" hidden></div><div class="pp" id="pp3" hidden></div>
   </div>
   <div class="timer"><span id="hudTime">0:00</span><small id="hudLevel">Forêt de Jade · 10:00</small></div>
   <div class="score"><span><b id="hudKills">0</b> K.O.</span><button class="pause-btn" id="pauseBtn" type="button">Pause</button><canvas id="minimap" aria-label="Mini-carte"></canvas></div>
 </div>
 <div class="boss" id="boss" hidden></div><div class="netWait" id="netWait" hidden></div>
-<div class="xpbar" id="xpbar" hidden><i id="xpFill"></i></div>
+<div class="xpbar" id="xpbar" hidden></div>
 
 <!-- Fork : menu d'accueil -->
 <div class="overlay forkHome" id="home">
@@ -85,7 +88,7 @@
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v191)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v192)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>

@@ -500,6 +500,54 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
   .acCard { padding: 7px 10px; } .acIco { width: 46px; height: 46px; } .acIco img { width: 40px; height: 40px; } .acRew { font-size: 9px; }
   .acTabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; } .acTab { padding: 5px 9px; } .acTab img { width: 26px; height: 26px; } .acTab span { font-size: 13px; } .acChip { padding: 5px 10px; font-size: 12px; }
 }
+/* ---------- HUD en jeu (v192) : cadre portrait / PV / EXP en haut à gauche, barre des capacités en bas ---------- */
+#xpbar { display: none !important; } /* l'EXP est dans le cadre */
+.hudBox { display: flex; align-items: center; gap: 10px; width: fit-content; padding: 6px 12px 6px 6px; background: rgba(10,18,14,.72); border: 2px solid rgba(255,255,255,.14);
+  border-radius: 40px 14px 14px 40px; backdrop-filter: blur(3px); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+.hudPort { position: relative; flex: none; width: 58px; height: 58px; border-radius: 50%; border: 3px solid var(--tc, #888); background: radial-gradient(circle at 50% 40%, #e4f2e4, #a9cdb0);
+  box-shadow: 0 0 0 2px #0c150f, 0 0 12px color-mix(in srgb, var(--tc, #888) 60%, transparent); }
+.hudPort canvas { width: 100%; height: 100%; border-radius: 50%; image-rendering: pixelated; display: block; }
+.hudLv { position: absolute; right: -6px; bottom: -4px; min-width: 22px; height: 22px; padding: 0 3px; box-sizing: border-box; border-radius: 11px; display: grid; place-items: center;
+  background: var(--accent); color: #1a1405; font: 10px var(--num); border: 2px solid #0c150f; }
+.hudBody { display: flex; flex-direction: column; gap: 4px; width: 200px; }
+.hudName { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.hudName b { font: 800 16px var(--body); text-shadow: 0 2px 0 rgba(0,0,0,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hudName .tyi { width: 18px; height: 18px; flex: none; } .hudName .tyi svg { width: 11px; height: 11px; }
+.hudHp { position: relative; height: 16px; background: #2c3a30; border: 2px solid #404c44; border-radius: 9px; overflow: hidden; }
+.hudHp > i { display: block; height: 100%; width: 100%; border-radius: 6px; background: var(--hp); transition: width .15s; }
+.hudHp span { position: absolute; inset: 0; display: grid; place-items: center; font: 9px var(--num); color: #fff; text-shadow: 0 1px 0 #000, 0 0 3px #000; }
+.hudXp { height: 5px; background: #2c3a30; border: 1px solid #404c44; border-radius: 6px; overflow: hidden; }
+.hudXp > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #3b7fd0, #6ac0ff); transition: width .1s; }
+.hudBox.low { border-color: rgba(226,81,63,.9); animation: hudGlow .7s ease-in-out infinite alternate; }
+@keyframes hudGlow { to { box-shadow: 0 0 22px rgba(226,81,63,.8); } }
+/* barre des capacités et des objets, en bas au centre */
+.hudBar { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; align-items: flex-end; gap: 4px;
+  padding: 5px 8px 4px; background: rgba(10,18,14,.72); border: 2px solid rgba(255,255,255,.14); border-radius: 12px; backdrop-filter: blur(3px); box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+.hudBar:empty { display: none; }
+.hbMv { position: relative; width: 64px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.hbIco { position: relative; width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--t); border: 2px solid color-mix(in srgb, var(--t) 60%, #fff);
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.2); }
+.hbIco::after { content: ""; position: absolute; inset: 0; border-radius: 6px; background: conic-gradient(rgba(0,0,0,.42) var(--cd, 0deg), transparent 0); }
+.hbIco .tyi { position: relative; z-index: 1; width: 24px; height: 24px; background: none; box-shadow: none; } .hbIco .tyi svg { width: 18px; height: 18px; }
+.hbMv b { font: 800 9px/1.1 var(--body); color: #fff; text-align: center; white-space: nowrap; max-width: 74px; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 0 #000; }
+.hbPips { display: flex; gap: 2px; } .hbPips i { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.25); } .hbPips i.on { background: #ffe34a; }
+.hbMv.new .hbIco { box-shadow: 0 0 0 3px #ffe34a, 0 0 14px #ffe34a; }
+.hbToast { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); white-space: nowrap; font: 800 10px var(--body); color: #1a1405; background: #ffe34a; padding: 2px 7px;
+  border-radius: 9px; box-shadow: 0 2px 0 #b0661e; }
+.hbToast::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-bottom: 0; border-top-color: #ffe34a; }
+.hbSep { align-self: center; width: 2px; height: 28px; margin: 0 2px; border-radius: 2px; background: rgba(255,255,255,.2); }
+.hbIt { position: relative; align-self: center; width: 22px; height: 22px; border-radius: 7px; background: rgba(10,18,14,.72); border: 1px solid rgba(255,255,255,.2); display: grid; place-items: center; }
+.hbIt img { width: 16px; height: 16px; image-rendering: pixelated; }
+.hbIt b { position: absolute; right: -4px; bottom: -4px; font: 7px var(--num); color: #fff; background: #0c150f; border-radius: 5px; padding: 2px 3px; }
+.boss { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); } /* au-dessus de la barre des capacités */
+@media (max-width: 640px), (orientation: landscape) and (max-height: 520px) {
+  .hudBox { padding: 4px 9px 4px 4px; gap: 7px; } .hudPort { width: 42px; height: 42px; border-width: 2px; } .hudLv { min-width: 18px; height: 18px; font-size: 8px; }
+  .hudBody { width: 150px; gap: 3px; } .hudName b { font-size: 13px; } .hudHp { height: 13px; } .hudHp span { font-size: 8px; }
+  .hudBar { bottom: calc(6px + env(safe-area-inset-bottom, 0px)); padding: 4px 6px 3px; gap: 2px; }
+  .hbMv { width: 46px; } .hbIco { width: 24px; height: 24px; } .hbIco .tyi { width: 20px; height: 20px; } .hbIco .tyi svg { width: 14px; height: 14px; }
+  .hbMv b { font-size: 8px; max-width: 50px; } .hbIt { width: 18px; height: 18px; } .hbIt img { width: 14px; height: 14px; } .hbSep { height: 22px; }
+  .boss { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+}
 </style>
 <div class="rotateMsg" id="rotateMsg"><div class="phone">📱</div><div>Tourne ton téléphone<br>pour jouer en paysage</div></div>
 
@@ -507,16 +555,18 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
 
 <div class="hud" id="hud" hidden>
   <div class="who">
-    <div class="who-name"><span id="hudName">Salamèche</span><span class="lvl" id="hudLvl">N.1</span></div>
-    <div class="hp-row"><div class="bar"><i id="hpFill"></i></div><b id="hpText">40/40</b></div>
-    <div class="moves" id="hudMoves"></div>
+    <div class="hudBox" id="hudBox"><span class="hudPort"><canvas id="hudPort" width="64" height="64"></canvas><span class="hudLv" id="hudLvl">1</span></span>
+      <div class="hudBody"><div class="hudName"><b id="hudName">Salamèche</b><span id="hudType"></span></div>
+        <div class="hudHp"><i id="hpFill"></i><span id="hpText">40 / 40</span></div>
+        <div class="hudXp"><i id="xpFill"></i></div></div></div>
+    <div class="hudBar" id="hudMoves"></div>
     <div class="pp" id="pp1" hidden></div><div class="pp" id="pp2" hidden></div><div class="pp" id="pp3" hidden></div>
   </div>
   <div class="timer"><span id="hudTime">0:00</span><small id="hudLevel">Forêt de Jade · 10:00</small></div>
   <div class="score"><span><b id="hudKills">0</b> K.O.</span><button class="pause-btn" id="pauseBtn" type="button">Pause</button><canvas id="minimap" aria-label="Mini-carte"></canvas></div>
 </div>
 <div class="boss" id="boss" hidden></div><div class="netWait" id="netWait" hidden></div>
-<div class="xpbar" id="xpbar" hidden><i id="xpFill"></i></div>
+<div class="xpbar" id="xpbar" hidden></div>
 
 <!-- Fork : menu d'accueil -->
 <div class="overlay forkHome" id="home">
@@ -575,7 +625,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <span class="tag" id="levelTag">Niveau 1 · Forêt de Jade</span><span class="tag" id="mpTag" hidden></span>
     <div class="netBox" id="netBox" hidden>
       <div class="netRow"><button class="lvbtn" id="netHost" type="button">Créer un salon</button><span class="netOr">ou</span><input id="netCode" maxlength="5" placeholder="CODE" aria-label="Code du salon" autocomplete="off"><button class="lvbtn" id="netJoin" type="button">Rejoindre</button><button class="lvbtn" id="netQuit" type="button" hidden>Quitter le salon</button></div>
-      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v191)</small></div>
+      <div class="netInfo" id="netInfo">Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. <small style="opacity:.6">(version v192)</small></div>
       <button class="lvbtn netGo" id="netGo" type="button" hidden>Lancer la partie</button>
     </div><span class="tag nuzTag" id="nuzTag" hidden>💀 Nuzlocke : pas de Rappel ni de soin au sol</span>
     <p class="lede" id="levelIntro"></p>
@@ -4909,18 +4959,45 @@ function setMute(m) {
 }
 
 /* ---------- HUD ---------- */
-let hudCache = "", bossKey = "";
+let hudCache = "", bossKey = "", hudPortKey = "";
+let hudCd = {}, hudCdT = {}, hudLv = {}, hudNew = {}, hudLastT = 1e9; // recharge max vue, niveau précédent et mise en avant (N.2 !) de chaque capacité ; remis à zéro quand le chrono repart
+function hudPortrait() { // sprite du Pokémon dans le rond du cadre (redessiné quand il évolue ou que la planche arrive)
+  const k = pKind(), sh = sheetFor(k, S.P.stage), key = k + S.P.stage + !!sh;
+  if (key === hudPortKey) return; hudPortKey = key;
+  const g = $("hudPort").getContext("2d"); g.clearRect(0, 0, 64, 64); g.imageSmoothingEnabled = false;
+  if (!sh) return;
+  const b = sheetBox(sh), sc = Math.min(52 / b.h, 52 / b.w, 3);
+  g.drawImage(sh.img, b.x0, b.y0, b.w, b.h, 32 - b.w * sc / 2, 36 - b.h * sc / 2, b.w * sc, b.h * sc);
+}
 function refreshHud() {
-  const P = S.P, pct = P.hp / P.maxHp;
-  $("hudName").textContent = pTag() + pName(); $("hudName").style.color = S.players.length > 1 ? PCOL[P.idx] : ""; $("hudLvl").textContent = `N.${P.lvl}`;
-  const fill = $("hpFill"); fill.style.width = (pct * 100) + "%";
+  const P = S.P, pct = P.hp / P.maxHp, ty = P.eform ? EEVEE[P.eform].type : LINES[P.line].type;
+  $("hudName").textContent = pTag() + pName(); $("hudName").style.color = S.players.length > 1 ? PCOL[P.idx] : ""; $("hudLvl").textContent = P.lvl;
+  if ($("hudBox").dataset.ty !== ty) { $("hudBox").dataset.ty = ty; $("hudBox").style.setProperty("--tc", TYPE_COLORS[ty]); $("hudType").innerHTML = typeIcon(ty); }
+  hudPortrait();
+  const fill = $("hpFill"); fill.style.width = (Math.max(0, pct) * 100) + "%";
   fill.style.background = pct > .5 ? "var(--hp)" : pct > .2 ? "var(--hp-low)" : "var(--hp-crit)";
-  $("hpText").textContent = `${Math.ceil(P.hp)}/${P.maxHp}`;
+  $("hudBox").classList.toggle("low", pct <= .2 && P.hp > 0);
+  $("hpText").textContent = `${Math.ceil(P.hp)} / ${P.maxHp}`;
   $("hudTime").textContent = fmt(S.t); $("hudKills").textContent = S.kills;
   $("xpFill").style.width = (P.xp / P.need * 100) + "%";
-  const mv = realMoves(P).map(([id, m]) => `<span class="move" style="--c:${TYPE_COLORS[MOVES[id].type]}">${MOVES[id].name} ${MOVES[id].tier ? `(${m.lv})${m.cur?.length ? ` : ${m.cur.map(c => MOVES[c].name).join(" + ")}` : ""}` : m.lv}</span>`).join("")
-    + Object.entries(P.items).map(([id, lv]) => `<span class="move item" style="--c:#e8e2c8">${itemIcon(id)}${ITEMS[id].name} ${lv}</span>`).join("");
+  if (S.t + 1 < hudLastT) { hudCd = {}; hudCdT = {}; hudLv = {}; hudNew = {}; hudCache = ""; } hudLastT = S.t;
+  const moves = realMoves(P);
+  for (const [id, m] of moves) { // une capacité qui monte de niveau (ou qui arrive) est mise en avant 2,5 s
+    if (hudLv[id] !== undefined && hudLv[id] !== m.lv) hudNew[id] = { until:S.t + 2.5, txt:`N.${m.lv} !` };
+    else if (hudLv[id] === undefined && hudCache) hudNew[id] = { until:S.t + 2.5, txt:"Nouvelle !" };
+    hudLv[id] = m.lv;
+  }
+  const isNew = id => hudNew[id] && S.t < hudNew[id].until;
+  const pips = (lv, max) => `<span class="hbPips">${Array.from({ length:max }, (_, k) => `<i${k < lv ? ` class="on"` : ""}></i>`).join("")}</span>`;
+  const mv = moves.map(([id, m]) => { const M = MOVES[id], nw = isNew(id);
+      return `<span class="hbMv${nw ? " new" : ""}" data-mv="${id}" style="--t:${TYPE_COLORS[M.type]}" title="${M.name} N.${m.lv}${m.cur?.length ? ` : ${m.cur.map(c => MOVES[c].name).join(" + ")}` : ""}">`
+        + `<span class="hbIco">${typeIcon(M.type)}</span><b>${M.name}</b>${pips(m.lv, M.max || 5)}${nw ? `<span class="hbToast">${hudNew[id].txt}</span>` : ""}</span>`; }).join("")
+    + (Object.keys(P.items).length ? `<span class="hbSep"></span>` : "")
+    + Object.entries(P.items).map(([id, lv]) => `<span class="hbIt" title="${ITEMS[id].name} ${lv}">${itemIcon(id, "")}<b>${lv}</b></span>`).join("");
   if (mv !== hudCache) { $("hudMoves").innerHTML = mv; hudCache = mv; }
+  for (const el of $("hudMoves").children) { const id = el.dataset.mv, m = id && P.moves[id]; if (!m) continue; // recharge : secteur sombre qui se vide
+    const t = Math.max(0, m.t || 0); if (!(t <= hudCd[id]) || t > (hudCdT[id] ?? 0) + .05) hudCd[id] = Math.max(t, .01); hudCdT[id] = t;
+    el.firstChild.style.setProperty("--cd", Math.min(1, t / hudCd[id]) * 360 + "deg"); }
   for (let k = 1; k <= 3; k++) { // panneaux de J2, J3 et J4, empilés sous celui de J1
     const el = $("pp" + k), Q = S.players.filter(p => p !== S.P)[k - 1] || null, me = S.P;
     el.hidden = !Q; if (!Q) continue;
@@ -7289,7 +7366,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v191";
+const NET_VER = "v192";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
