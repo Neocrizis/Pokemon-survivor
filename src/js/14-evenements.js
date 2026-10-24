@@ -212,14 +212,15 @@ function updateManor(dt) {
     for (const q of c.statues || []) if (Math.hypot(P.x - q.x, P.y - q.y) < 15 + P.r + 8) onStatue = true;
   }, 1);
   if (onStatue && S.statueCd <= 0) {
-    S.statueCd = 2; S.fireOff = !S.fireOff; sfx("chest"); S.shake = .12;
+    S.statueCd = 2; S.fireOff = !S.fireOff; S.fireOffT = 10 + Math.random() * 5; sfx("chest"); S.shake = .12;
     banner(S.fireOff ? "Clic ! La statue s'enfonce… les portes de feu s'éteignent." : "Clic ! La statue s'enfonce… les portes de feu se rallument !");
   }
+  if (S.fireOff && (S.fireOffT -= dt) <= 0) { S.fireOff = false; sfx("chest"); banner("Les portes de feu se rallument !"); } // extinction temporaire : 10 à 15 s
   S.fireT = (S.fireT || 0) - dt;
   if (inFire && S.fireT <= 0 && P.inv <= 0) { S.fireT = .45; emit(P.x, P.y, 6, "feu", { sp:90, life:.4, up:40 }); if (hurtP(9 * eff("feu", [ptype()]) * (1 + S.t / 900))) return; }
   const j = S.journal;
   if (j && Math.hypot(j.x - P.x, j.y - P.y) < P.r + 20) {
-    banner(JOURNAL[j.n]); sfx("xp"); j.n++;
+    if (MN.page && MN.page.complete) showJournalPage(j.n); else banner(JOURNAL[j.n]); sfx("xp"); j.n++;
     emit(j.x, j.y, 12, "normal", { sp:120, life:.5, r:2.5 });
     if (j.n < 4) journalNext();
     else { S.journal = null; S.mewAt = S.t + 5; S.seq = [[S.t + 2.5, "Le manoir tremble… Une pression psychique terrible envahit les couloirs !"]]; S.shake = .4; }

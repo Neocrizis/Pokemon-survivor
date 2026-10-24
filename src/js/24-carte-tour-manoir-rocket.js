@@ -113,20 +113,35 @@ function manorChunk(ci, cj) {
   const R = rng(Math.floor(hash(ci + 5300, cj - 6100) * 4294967295));
   const x0 = ci * CH, y0 = cj * CH, mwalls = [], shelves = [], statues = [], fires = [], solids = [];
   const clear = (x, y, m) => Math.hypot(x, y - START_Y) > 300 && !nearPath(x, y, m);
-  const free = (x, y, m) => !mwalls.some(w => Math.hypot(w.x - x, w.y - y) < w.len / 2 + m) && !shelves.some(q => Math.hypot(q.x - x, q.y - y) < 60 + m) && !statues.some(q => Math.hypot(q.x - x, q.y - y) < m + 30);
+  const hole = mnHole(ci, cj);
+  const free = (x, y, m) => !(hole && Math.hypot(hole.x - x, hole.y - y) < 70 + m) && !mwalls.some(w => Math.hypot(w.x - x, w.y - y) < w.len / 2 + m) && !shelves.some(q => Math.hypot(q.x - x, q.y - y) < 60 + m) && !statues.some(q => Math.hypot(q.x - x, q.y - y) < m + 30);
   for (let i = 0; i < 2; i++) { const x = x0 + 60 + R() * (CH - 120), y = y0 + 60 + R() * (CH - 120), len = 110 + R() * 120;
     if (R() < .3 || !clear(x, y, 150) || !free(x, y, 60)) continue; mwalls.push({ x, y, len, a:R() < .5 ? 0 : Math.PI / 2, broken:R() }); }
-  for (let i = 0; i < 2; i++) { const x = x0 + R() * CH, y = y0 + R() * CH;
+  for (let i = 0; i < 2; i++) { const x = x0 + 110 + R() * (CH - 205), y = y0 + 65 + R() * (CH - 145); // le tapis reste dans son morceau de carte
     if (R() < .4 || !clear(x, y, 110) || !free(x, y, 40)) continue; shelves.push({ x, y, v:Math.floor(R() * 3) }); }
   if (R() < .4) { const x = x0 + 80 + R() * (CH - 160), y = y0 + 80 + R() * (CH - 160); if (clear(x, y, 90) && free(x, y, 50)) statues.push({ x, y, ph:R() * 6 }); }
   for (let i = 0; i < 2; i++) { const x = x0 + 50 + R() * (CH - 100), y = y0 + 50 + R() * (CH - 100);
     if (R() < .35 || Math.hypot(x, y - START_Y) < 380 || !free(x, y, 30)) continue; fires.push({ x, y, len:120 + R() * 90, a:R() * Math.PI }); }
+  if (mwalls.length > 1) mwalls.length = 1; // un seul pan de mur par morceau de carte
+  // pas de superposition : murs et grilles ramenés dans leur morceau de carte, puis on retire ce qui chevauche un objet déjà posé
+  for (const w of mwalls) { const L = w.len / 2 + 12; if (w.a === 0) w.x = Math.min(Math.max(w.x, x0 + L), x0 + CH - L); else w.y = Math.min(Math.max(w.y, y0 + L + 60), y0 + CH - L); }
+  for (const f of fires) { const ex = Math.abs(Math.cos(f.a)) * f.len / 2 + 14, ey = Math.abs(Math.sin(f.a)) * f.len / 2 + 14;
+    f.x = Math.min(Math.max(f.x, x0 + ex), x0 + CH - ex); f.y = Math.min(Math.max(f.y, y0 + ey + 46), y0 + CH - ey); }
+  const box = (o, t) => t === "hole" ? [o.x - 55, o.y - 72, o.x + 55, o.y + 72] : t === "statue" ? [o.x - 26, o.y - 64, o.x + 26, o.y + 12]
+    : t === "shelf" ? [o.x - 106, o.y - 60, o.x + 88, o.y + 74]
+    : t === "wall" ? (o.a === 0 ? [o.x - o.len / 2, o.y - 72, o.x + o.len / 2, o.y + 24] : [o.x - 18, o.y - o.len / 2 - 62, o.x + 18, o.y + o.len / 2 + 8])
+    : [o.x - Math.abs(Math.cos(o.a)) * o.len / 2 - 14, o.y - Math.abs(Math.sin(o.a)) * o.len / 2 - 50, o.x + Math.abs(Math.cos(o.a)) * o.len / 2 + 14, o.y + Math.abs(Math.sin(o.a)) * o.len / 2 + 14];
+  const kept = hole ? [box(hole, "hole")] : [], hit = b => kept.some(k => b[0] < k[2] + 8 && k[0] < b[2] + 8 && b[1] < k[3] + 8 && k[1] < b[3] + 8);
+  for (const [list, t] of [[statues, "statue"], [mwalls, "wall"], [fires, "fire"], [shelves, "shelf"]])
+    for (let i = list.length - 1; i >= 0; i--) { const b = box(list[i], t); if (hit(b) || t === "fire" && Math.hypot(list[i].x, list[i].y - START_Y) < 330) list.splice(i, 1); else kept.push(b); }
+  if (hole) for (const [dx, dy, r] of [[-4, -22, 34], [-4, 6, 22], [-8, -46, 20]]) solids.push({ x:hole.x + dx, y:hole.y + dy, r });
   for (const w of mwalls) for (let k = -3; k <= 3; k++) { if (w.broken > .5 && k === 1) continue; solids.push({ x:w.x + Math.cos(w.a) * k * w.len / 7, y:w.y + Math.sin(w.a) * k * w.len / 7, r:13 }); }
   for (const q of shelves) for (let k = -1; k <= 1; k++) solids.push({ x:q.x + k * 22, y:q.y, r:13 });
   for (const q of statues) solids.push({ x:q.x, y:q.y, r:15 });
   return { ponds:[], trees:[], rocks:[], logs:[], walls:[], spikes:[], crystals:[], shrooms:[], mwalls, shelves, statues, fires, solids, canvas:null, used:0 };
 }
 function renderManorChunk(ci, cj) {
+  if (manorOn()) return renderManorHG(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;
   const g = cv2.getContext("2d"); g.scale(CH_SCALE, CH_SCALE); g.translate(-x0, -y0);

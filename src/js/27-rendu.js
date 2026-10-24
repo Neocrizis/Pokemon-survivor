@@ -109,8 +109,9 @@ function drawCaveLight(camX, camY, vw, vh, t, P) {
       for (const q of c.statues || []) glow(q.x, q.y - 30, 26, on ? "255,140,60" : "120,180,255", .35 + .15 * Math.sin(t * 3 + q.ph));
     });
     cx.restore();
-    if (on) forView(camX, camY, vw, vh, 40, (i, j, c) => { for (const f of c.fires || []) for (let k = -f.len / 2 + 6; k < f.len / 2; k += 11) {
+    if (on) forView(camX, camY, vw, vh, 40, (i, j, c) => { for (const f of c.fires || []) for (let k = -f.len / 2 + 6; k < f.len / 2; k += MN.flame ? 16 : 11) {
       const x = f.x + Math.cos(f.a) * k, y = f.y + Math.sin(f.a) * k, fl = 1 + Math.sin(t * 13 + k * .7) * .25;
+      if (MN.flame) { const fr = Math.floor(t * 14 + k * .37 + 60) % 6, h = 46 * (1 + Math.sin(t * 7 + k * .9) * .12); cx.drawImage(MN.flame, fr * 40, 0, 40, 81, x - 12, y + 7 - h, 24, h); continue; }
       flameShape(x, y + 4, 5, 22 * fl, "#ff6a1a", Math.sin(t * 8 + k) * 2.5); flameShape(x, y + 4, 2.6, 12 * fl, "#ffd060", Math.sin(t * 8 + k) * 1.5);
     } });
     return;
@@ -825,8 +826,8 @@ function render(now) {
   if (S.journal) { // page du journal qui volette
     const j = S.journal, bob = Math.sin(t * 3 + j.ph) * 3, rot = Math.sin(t * 2 + j.ph) * .25;
     cx.save(); cx.globalCompositeOperation = "lighter"; glow(j.x, j.y + bob, 34, "255,240,200", .45 + .2 * Math.sin(t * 4)); cx.restore();
-    cx.save(); cx.translate(j.x, j.y + bob); cx.rotate(rot); cx.fillStyle = "#f2e8cc"; cx.fillRect(-9, -12, 18, 24); cx.strokeStyle = "#a89a7a"; cx.lineWidth = 1; cx.strokeRect(-9, -12, 18, 24);
-    cx.strokeStyle = "rgba(80,60,40,.6)"; for (let k = 0; k < 5; k++) { cx.beginPath(); cx.moveTo(-6, -7 + k * 4); cx.lineTo(6 - (k === 4 ? 5 : 0), -7 + k * 4); cx.stroke(); } cx.restore();
+    if (MN.page && MN.page.complete) { cx.save(); cx.translate(j.x, j.y + bob); cx.rotate(rot); cx.imageSmoothingEnabled = true; cx.drawImage(MN.page, -12, -13, 24, 26); cx.restore(); } else { cx.save(); cx.translate(j.x, j.y + bob); cx.rotate(rot); cx.fillStyle = "#f2e8cc"; cx.fillRect(-9, -12, 18, 24); cx.strokeStyle = "#a89a7a"; cx.lineWidth = 1; cx.strokeRect(-9, -12, 18, 24);
+    cx.strokeStyle = "rgba(80,60,40,.6)"; for (let k = 0; k < 5; k++) { cx.beginPath(); cx.moveTo(-6, -7 + k * 4); cx.lineTo(6 - (k === 4 ? 5 : 0), -7 + k * 4); cx.stroke(); } cx.restore(); }
   }
   if (S.dracoJump) { // Minidraco jaillit de l'étang
     const dj = S.dracoJump, k = Math.min(1, dj.t / .9), x = dj.sx + (dj.tx - dj.sx) * k, y = dj.sy + (dj.ty - dj.sy) * k, z = Math.sin(k * Math.PI) * 90;
