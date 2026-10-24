@@ -67,10 +67,24 @@ function drawCaveLight(camX, camY, vw, vh, t, P) {
       for (let k = 0; k < 2; k++) { const o = ((t * 40 + k * 22) % 44) - 22; cx.globalAlpha = 1 - Math.abs(o) / 22; cx.beginPath(); cx.moveTo(o - 7, -11); cx.lineTo(o + 5, 0); cx.lineTo(o - 7, 11); cx.stroke(); }
       cx.restore();
     } });
-    forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const m of c.machines || []) { // écrans qui défilent
+    if (!rocketHG()) forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const m of c.machines || []) { // écrans qui défilent
       const x = m.x - m.w / 2 + 8, y = m.y - m.h / 2 + 7, w = m.w * .45, h = m.h - 14, sc = t * 14 + m.ph * 10, off = sc % 6;
       cx.save(); cx.beginPath(); cx.rect(x, y, w, h); cx.clip(); cx.fillStyle = "#1c2a24"; cx.fillRect(x, y, w, h); cx.fillStyle = "rgba(90,230,140,.75)";
       for (let k = 0; k < h / 6 + 2; k++) cx.fillRect(x + 4, y + 4 + k * 6 - off, (.25 + hash(Math.round(m.x) + k + Math.floor(sc / 6), Math.round(m.y)) * .75) * (w - 8), 2);
+      cx.restore();
+    } });
+    if (rocketHG()) forView(camX, camY, vw, vh, 160, (i, j, c) => { for (const q of c.gens || []) { // arcs électriques entre électrodes et générateur
+      cx.save(); cx.globalCompositeOperation = "lighter"; const fl = .6 + .4 * Math.sin(t * 9 + q.ph);
+      glow(q.x, q.y - 70, 70, "255,230,120", .18 * fl);
+      for (const s of [-1, 1]) {
+        const ax = q.x + s * 105, ay = q.y - 30, bx = q.x + s * 56, by = q.y - 44, sd = Math.floor(t * 14 + q.ph * 7 + s);
+        glow(ax, ay, 22, "255,240,150", .7 * fl);
+        for (const [w, col] of [[5, "rgba(255,200,40,.35)"], [2, "rgba(255,250,210,.95)"]]) {
+          cx.strokeStyle = col; cx.lineWidth = w; cx.lineJoin = "round"; cx.beginPath(); cx.moveTo(ax, ay);
+          for (let k = 1; k < 6; k++) { const u = k / 6; cx.lineTo(ax + (bx - ax) * u, ay + (by - ay) * u + (hash(sd + k, Math.round(q.x)) - .5) * 14); }
+          cx.lineTo(bx, by); cx.stroke();
+        }
+      }
       cx.restore();
     } });
     const al = .5 + .5 * Math.sin(t * 3); // gyrophare d'alarme

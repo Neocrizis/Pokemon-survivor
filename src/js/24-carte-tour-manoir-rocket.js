@@ -206,13 +206,26 @@ function rocketChunk(ci, cj) {
     props.push(q);
   }
   for (let i = 0; i < 2; i++) lamps.push({ x:x0 + R() * CH, y:y0 + R() * CH, r:110 + R() * 50 });
+  // générateurs électriques et cages de Pokémon capturés (tirés après le reste pour garder la disposition)
+  const gens = [], cages = [], busy = (x, y, m) => machines.some(q => Math.abs(q.x - x) < q.w / 2 + m * .6 && Math.abs(q.y - y) < q.h / 2 + m * .6) || props.some(q => Math.hypot(q.x - x, q.y - y) < q.r + m) || spinners.some(q => Math.hypot(q.x - x, q.y - y) < m + 30) || gens.some(q => Math.abs(q.x - x) < 130 + m && Math.abs(q.y - 50 - y) < 70 + m) || cages.some(q => Math.hypot(q.x - x, q.y - y) < m + 34);
+  for (let i = 0; i < 2; i++) if (R() < .4) { const x = x0 + 150 + R() * (CH - 300), y = y0 + 150 + R() * (CH - 220);
+    if (forestDensity(x, y) > .4 && clear(x, y - 50, 150) && !busy(x, y - 60, 120) && !busy(x, y - 130, 90) && !busy(x - 105, y, 40) && !busy(x + 105, y, 40)) gens.push({ x, y, ph:R() * 6 }); }
+  const CAPT = ["evoli", "evoli", "pikachu", "goupix", "caninos", "psykokwak", "melofee"];
+  for (let i = 0; i < 2; i++) { const x = x0 + 80 + R() * (CH - 160), y = y0 + 80 + R() * (CH - 160), n = 1 + Math.floor(R() * 3), k0 = Math.floor(R() * 99);
+    if (R() < .55 || forestDensity(x, y) < .4) continue;
+    const row = []; for (let k = 0; k < n; k++) row.push({ x:x + (k - (n - 1) / 2) * 72, y, kind:CAPT[(k0 + k * 3) % CAPT.length], ph:R() * 6 });
+    if (row.every(q => clear(q.x, q.y, 80) && !busy(q.x, q.y, 50))) cages.push(...row); }
+  for (let k = crates.length - 1; k >= 0; k--) { const q = crates[k]; // les cartons cèdent la place
+    if (gens.some(o => Math.abs(o.x - q.x) < 150 && q.y > o.y - 150 && q.y < o.y + 30) || cages.some(o => Math.abs(o.x - q.x) < 56 && Math.abs(o.y - 25 - q.y) < 60)) crates.splice(k, 1); }
+  for (const q of gens) { solids.push({ x:q.x - 30, y:q.y - 34, r:36 }, { x:q.x + 30, y:q.y - 34, r:36 }); for (const s of [-1, 1]) solids.push({ x:q.x + s * 105, y:q.y - 8, r:15 }); }
+  for (const q of cages) solids.push({ x:q.x - 14, y:q.y - 12, r:20 }, { x:q.x + 14, y:q.y - 12, r:20 });
   for (const q of props) {
     if (q.kind === "shelf") for (const o of [-28, 0, 28]) solids.push({ x:q.x + o, y:q.y, r:15 });
     else for (const b of q.bs) solids.push({ x:b.x, y:b.y, r:13 });
   }
   for (const q of crates) solids.push({ x:q.x, y:q.y, r:19 });
   for (const m of machines) { const k = Math.max(1, Math.round(m.w / m.h)); for (let i = 0; i < k; i++) solids.push({ x:m.x - m.w / 2 + m.h / 2 + i * (m.w - m.h) / Math.max(1, k - 1), y:m.y, r:m.h * .55 }); }
-  return { ponds:[], trees:[], rocks:[], logs:[], walls:[], spikes:[], crystals:[], shrooms:[], crates, machines, spinners, solids, props, lamps, canvas:null, used:0 };
+  return { ponds:[], trees:[], rocks:[], logs:[], walls:[], spikes:[], crystals:[], shrooms:[], crates, machines, spinners, solids, props, lamps, gens, cages, canvas:null, used:0 };
 }
 function pokeBallIcon(g, x, y, r) {
   circ(g, x, y, r, "#f2f2f2"); g.beginPath(); g.arc(x, y, r, Math.PI, 0); g.fillStyle = "#e23a3a"; g.fill();
@@ -258,6 +271,7 @@ function drawRocketProp(g, q) { // objets du Repaire Rocket, peints dans le sol 
   }
 }
 function renderRocketChunk(ci, cj) {
+  if (rocketHG()) return renderRocketHG(ci, cj); // décor style HGSS (24c-repaire-rocket.js)
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;
   const g = cv2.getContext("2d"); g.scale(CH_SCALE, CH_SCALE); g.translate(-x0, -y0);
