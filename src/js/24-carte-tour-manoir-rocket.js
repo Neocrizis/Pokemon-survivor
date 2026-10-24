@@ -5,7 +5,7 @@ function towerChunk(ci, cj) {
   for (let gy = 0; gy < CH; gy += 92) for (let gx = 0; gx < CH; gx += 74) {
     const x = x0 + gx + 37 + (R() - .5) * 10, y = y0 + gy + 46 + (R() - .5) * 8;
     if (forestDensity(x, y) < .48 || !clear(x, y, 105) || R() < .3) continue;
-    graves.push({ x, y, v:Math.floor(R() * 3), ph:R() * 6, fl:R() < .3 });
+    graves.push({ x, y, v:Math.floor(R() * 3), ph:R() * 6, fl:R() < .3, gi:gx / 74, gj:gy / 92 });
   }
   for (let i = 0; i < 2; i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
@@ -18,22 +18,26 @@ function towerChunk(ci, cj) {
     candles.push({ x, y, ph:R() * 6, blue:R() < .6 });
   }
   let hgWalls = [];
+  if (LEVEL.tower && !LEVEL.sprout) pokeTowerRows(x0, y0, graves, pillars, candles); // Tour Pokémon : rangées de tombes façon Let's Go (24d-tour-pokemon.js)
   if (LEVEL.sprout) { // moins de statues que de tombes, et de longues barrières de bois (24b-tour-chetiflor.js)
     for (let i = graves.length - 1; i >= 0; i--) if (hash(graves[i].x * .7, graves[i].y * 1.3) > .45) graves.splice(i, 1);
     hgWalls = sproutWalls(R, x0, y0, graves, pillars, candles);
     for (const w of hgWalls) for (let k = 10; k < w.len; k += 20) solids.push({ x:w.x + k, y:w.y - 14, r:14 });
   }
-  for (const g of graves) solids.push({ x:g.x, y:g.y, r:14 });
+  for (const g of graves) if (!g.row) solids.push({ x:g.x, y:g.y, r:14 });
+  for (const g of graves) if (g.row && g.next) for (let k = 0; k <= 74; k += 25) solids.push({ x:g.x + k, y:g.y - 4, r:15 }); else if (g.row) solids.push({ x:g.x, y:g.y - 4, r:16 });
   for (const q of pillars) solids.push({ x:q.x, y:q.y, r:q.r });
   if (LEVEL.sprout) { // Tour Chétiflor : le grand pilier central, au-dessus du point de départ
     for (const c of candles) c.blue = false;
     const px = 0, py = START_Y - 300; if (px >= x0 && px < x0 + CH && py >= y0 && py < y0 + CH) { pillars.push({ x:px, y:py, r:58, big:true }); solids.push({ x:px, y:py, r:58 }); }
   }
   for (const c of candles) solids.push({ x:c.x, y:c.y, r:6 });
-  return { ponds:[], trees:[], rocks:[], logs:[], walls:[], spikes:[], crystals:[], shrooms:[], graves, pillars, candles, hgWalls, solids, canvas:null, used:0 };
+  const fogs = LEVEL.tower && !LEVEL.sprout ? pokeTowerFogs(x0, y0, graves) : [];
+  return { ponds:[], trees:[], rocks:[], logs:[], walls:[], spikes:[], crystals:[], shrooms:[], graves, pillars, candles, hgWalls, fogs, solids, canvas:null, used:0 };
 }
 function renderTowerChunk(ci, cj) {
   if (LEVEL.sprout && HG.img) return renderSproutChunk(ci, cj);
+  if (pokeTowerOn()) return renderPokeTowerChunk(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;
   const g = cv2.getContext("2d"); g.scale(CH_SCALE, CH_SCALE); g.translate(-x0, -y0);
