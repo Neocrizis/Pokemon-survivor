@@ -60,7 +60,7 @@ function drawMotes(camX, camY, vw, vh, t, dt) {
 function drawCaveLight(camX, camY, vw, vh, t, P) {
   const r0 = Math.min(vw, vh) * .26, r1 = Math.max(vw, vh) * .62;
   const dg = cx.createRadialGradient(P.x, P.y, r0, P.x, P.y, r1);
-  dg.addColorStop(0, "rgba(6,4,16,0)"); dg.addColorStop(1, LEVEL.tower ? (LEVEL.sprout ? "rgba(26,14,4,.55)" : "rgba(14,4,24,.82)") : LEVEL.theme ? CAVE_PAL[LEVEL.theme].dark : LEVEL.moon ? "rgba(4,6,8,.6)" : "rgba(6,4,16,.78)");
+  dg.addColorStop(0, "rgba(6,4,16,0)"); dg.addColorStop(1, LEVEL.tower ? (LEVEL.sprout ? "rgba(26,14,4,.55)" : pokeTowerOn() ? "rgba(30,10,50,.38)" : "rgba(14,4,24,.82)") : LEVEL.theme ? CAVE_PAL[LEVEL.theme].dark : LEVEL.moon ? "rgba(4,6,8,.6)" : "rgba(6,4,16,.78)");
   if (LEVEL.rocket) {
     forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const sp of c.spinners || []) {
       cx.save(); cx.translate(sp.x, sp.y); cx.rotate(Math.atan2(sp.dy, sp.dx)); cx.strokeStyle = "#7ad0ff"; cx.lineWidth = 4; cx.lineCap = "round";
@@ -122,6 +122,7 @@ function drawCaveLight(camX, camY, vw, vh, t, P) {
       const pu = .8 + .2 * Math.sin(t * 9 + cd.ph) + .1 * Math.sin(t * 23 + cd.ph * 3), col = cd.blue ? "110,140,255" : "255,170,80";
       glow(cd.x, cd.y - 14, 70 * pu, col, .32); glow(cd.x, cd.y - 14, 16, col, .9);
     } });
+    if (pokeTowerOn()) { cx.restore(); drawTowerFog(camX, camY, vw, vh, t); cx.save(); } else
     for (let k = 0; k < 7; k++) { // brume qui dérive
       const fx = camX + ((k * 211 + t * (8 + k * 3)) % (vw + 400)) - 200, fy = camY + vh * ((k * .37) % 1) + Math.sin(t * .3 + k) * 30;
       glow(fx, fy, 160 + k * 15, LEVEL.sprout ? "220,170,110" : "120,100,170", .07);
@@ -304,6 +305,7 @@ function drawProp(f, t) {
     ell(cx, x, y + 15, 17, 5, "rgba(0,0,0,.35)"); cx.fillStyle = "#a87a44"; cx.fillRect(x - 14, y - 14, 28, 28); cx.strokeStyle = "#5a3e20"; cx.lineWidth = 2; cx.strokeRect(x - 14, y - 14, 28, 28);
     cx.fillStyle = "#e23a3a"; cx.font = "900 15px 'Pixelify Sans', monospace"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText("R", x, y + 1); cx.textBaseline = "alphabetic";
   } else if (f.kind === "urn") { // jarre de la Tour (Potion)
+    if (pokeTowerOn()) { const q = TW.R.vase, k = .55; ell(cx, x, y + 14, 15, 5, "rgba(0,0,0,.35)"); cx.imageSmoothingEnabled = true; cx.drawImage(TW.img, q[0], q[1], q[2], q[3], x - q[2] * k / 2, y + 16 - q[3] * k, q[2] * k, q[3] * k); return; } // vase de Wind Waker
     ell(cx, x, y + 14, 15, 5, "rgba(0,0,0,.35)");
     cx.fillStyle = "#8a5a3a"; cx.beginPath(); cx.moveTo(x - 6, y - 14); cx.quadraticCurveTo(x - 17, y - 4, x - 9, y + 13); cx.lineTo(x + 9, y + 13); cx.quadraticCurveTo(x + 17, y - 4, x + 6, y - 14); cx.closePath(); cx.fill();
     cx.fillStyle = "#6a4028"; cx.fillRect(x - 7, y - 17, 14, 4); cx.fillStyle = "#b07a4c"; ell(cx, x - 5, y - 4, 3, 6, "#b07a4c");
@@ -447,7 +449,8 @@ function render(now) {
       }
       const fade = f.vanish > 0 ? f.vanish / (f.vanMax || .45) : f.appear > 0 ? 1 - f.appear / .4 : 1, wob = Math.sin(t * 3 + f.ph) * 3;
       cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y + wob, f.r * 2.2, f.d.spirit ? "120,160,255" : "140,90,220", .35 * fade); cx.restore();
-      if (veiled(f.d)) { // silhouette « ??? » sans Scope Sylphe
+      if (veiled(f.d) && TW.img) drawVeiledGhost(cx, f, f.x, f.y + wob, t, fade); // spectre non identifié façon Let's Go
+      else if (veiled(f.d)) { // silhouette « ??? » sans Scope Sylphe
         const Rr = f.r * 1.1, y = f.y + wob, x = f.x;
         cx.save(); cx.globalAlpha = fade * .92; cx.beginPath(); cx.moveTo(x - Rr, y + Rr * .85); cx.lineTo(x - Rr, y - Rr * .1); cx.arc(x, y - Rr * .1, Rr, Math.PI, 0); cx.lineTo(x + Rr, y + Rr * .85);
         for (let k = 0; k < 4; k++) { const xa = x + Rr - k * Rr / 2, xb = xa - Rr / 2; cx.quadraticCurveTo((xa + xb) / 2, y + Rr * .85 + (k % 2 ? -1 : 1) * Rr * .22 + Math.sin(t * 6 + k + f.ph) * 2, xb, y + Rr * .85); }
