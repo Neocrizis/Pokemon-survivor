@@ -98,3 +98,40 @@ function drawSafariGate(camX, camY, vw, vh) {
   szGates(camX, camY, vw, vh, 400, (G, x, y) => { if (G.img) cx.drawImage(G.img, x - G.ox * G.k, y - G.oy * G.k, G.w * G.k, G.h * G.k); });
   cx.imageSmoothingEnabled = true;
 }
+/* IA : carte des distances (parcours en largeur sur les cases de 16 px) autour de chaque joueur, refaite quelques fois par seconde ;
+   chaque Pokémon sauvage descend vers la case voisine la plus proche du joueur, il contourne ainsi falaises, clôtures et étangs */
+const SZ_FR = 72; // rayon de la carte, en cases (plus de 1100 px)
+function szFlow(P) {
+  const ox = szOX(), oy = szOY(), ci = Math.floor((P.x - ox) / SZ_T), cj = Math.floor((P.y - oy) / SZ_T);
+  let F = P.szFlow;
+  if (F && S.t - F.t < .4 && Math.abs(ci - F.ci) + Math.abs(cj - F.cj) < 3) return F;
+  const W = SZ_FR * 2 + 1, i0 = ci - SZ_FR, j0 = cj - SZ_FR, dist = F && F.dist.length === W * W ? F.dist : new Int16Array(W * W);
+  dist.fill(-1); const q = new Int32Array(W * W); let h = 0, t = 0;
+  const open = F && F.open.length === W * W ? F.open : new Uint8Array(W * W);
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) open[y * W + x] = szBlocked(ox + (i0 + x + .5) * SZ_T, oy + (j0 + y + .5) * SZ_T, false) ? 0 : 1;
+  const free = (i, j) => open[(j - j0) * W + i - i0];
+  dist[SZ_FR * W + SZ_FR] = 0; q[t++] = SZ_FR * W + SZ_FR;
+  while (h < t) {
+    const k = q[h++], x = k % W, y = (k / W) | 0, d = dist[k] + 1;
+    if (x > 0 && dist[k - 1] < 0 && free(i0 + x - 1, j0 + y)) { dist[k - 1] = d; q[t++] = k - 1; }
+    if (x < W - 1 && dist[k + 1] < 0 && free(i0 + x + 1, j0 + y)) { dist[k + 1] = d; q[t++] = k + 1; }
+    if (y > 0 && dist[k - W] < 0 && free(i0 + x, j0 + y - 1)) { dist[k - W] = d; q[t++] = k - W; }
+    if (y < W - 1 && dist[k + W] < 0 && free(i0 + x, j0 + y + 1)) { dist[k + W] = d; q[t++] = k + W; }
+  }
+  P.szFlow = F = { t:S.t, ci, cj, i0, j0, W, dist, open }; return F;
+}
+function szFlowDir(f, P) {
+  const F = szFlow(P), ox = szOX(), oy = szOY(), x = Math.floor((f.x - ox) / SZ_T) - F.i0, y = Math.floor((f.y - oy) / SZ_T) - F.j0, W = F.W;
+  if (x < 1 || y < 1 || x >= W - 1 || y >= W - 1) return null; // trop loin : il fonce tout droit
+  const here = F.dist[y * W + x]; if (here < 0 || here < 3) return null; // tout près du joueur (ou coincé dans un obstacle) : tout droit
+  let best = here, bx = 0, by = 0;
+  for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++) {
+    if (!a && !b) continue; const d = F.dist[(y + b) * W + x + a];
+    if (d < 0 || d >= best) continue;
+    if (a && b && (F.dist[y * W + x + a] < 0 || F.dist[(y + b) * W + x] < 0)) continue; // pas de diagonale qui rase un coin
+    best = d; bx = a; by = b;
+  }
+  if (!bx && !by) return null;
+  const tx = ox + (F.i0 + x + bx + .5) * SZ_T - f.x, ty = oy + (F.j0 + y + by + .5) * SZ_T - f.y, l = Math.hypot(tx, ty) || 1;
+  return [tx / l, ty / l];
+}

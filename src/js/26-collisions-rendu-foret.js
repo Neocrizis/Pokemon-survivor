@@ -29,6 +29,37 @@ function gateDist(e, g) { // distance au segment de la barrière, et point le pl
   return [Math.hypot(e.x - px, e.y - py), px, py];
 }
 function gatePush(e, r, g) { const [d, px, py] = gateDist(e, g), min = r * .7 + 8; if (d < min) { const dd = d || .01; e.x = px + (e.x - px) / dd * min; e.y = py + (e.y - py) / dd * min; } }
+// le point (x, y) est-il pris par un obstacle pour un Pokémon de rayon r ? (mêmes obstacles que collide)
+function blockedAt(x, y, r, swim) {
+  if (LEVEL.safari && szBlocked(x, y, swim)) return true;
+  for (const o of solidsNear(x, y)) {
+    if ((swim && o.pond) || o.gate) continue;
+    const min = r * .7 + o.r; if ((x - o.x) ** 2 + (y - o.y) ** 2 < min * min) return true;
+  }
+  return false;
+}
+// IA des Pokémon sauvages : si un obstacle barre la route vers le joueur, on tourne du côté libre (et on y reste un moment pour ne pas hésiter)
+const STEER_A = [.5, 1, 1.5, 2.1];
+function steer(f, ax, ay, dt, P) {
+  if (LEVEL.safari && P && !f.d.swim) { // Parc Safari : vrai chemin dans le labyrinthe des biomes (carte des distances autour du joueur)
+    const l = Math.hypot(P.x - f.x, P.y - f.y) || 1;
+    if ((ax * (P.x - f.x) + ay * (P.y - f.y)) / l > .3) { const d = szFlowDir(f, P); if (d) return d; } // seulement s'il se dirige vers le joueur
+  }
+  f.stT = (f.stT || 0) - dt;
+  if (f.stT <= 0) {
+    f.stT = .15 + Math.random() * .05; const look = f.r + 22, swim = !!f.d.swim;
+    if (!blockedAt(f.x + ax * look, f.y + ay * look, f.r, swim)) { f.stA = 0; if (!(--f.stHold > 0)) f.stSide = 0; }
+    else {
+      f.stA = 0; const sides = f.stSide ? [f.stSide, -f.stSide] : Math.random() < .5 ? [1, -1] : [-1, 1];
+      search: for (const a of STEER_A) for (const s of sides) {
+        const c = Math.cos(a * s), sn = Math.sin(a * s), bx = ax * c - ay * sn, by = ax * sn + ay * c;
+        if (!blockedAt(f.x + bx * look, f.y + by * look, f.r, swim)) { f.stA = a * s; f.stSide = s; f.stHold = 6; break search; }
+      }
+    }
+  }
+  if (!f.stA) return [ax, ay];
+  const c = Math.cos(f.stA), s = Math.sin(f.stA); return [ax * c - ay * s, ax * s + ay * c];
+}
 const inWater = (x, y) => LEVEL.safari ? szAt(x, y) === "~" : solidsNear(x, y).some(o => o.pond && (x-o.x)**2 + (y-o.y)**2 < o.r*o.r);
 
 function renderChunk(ci, cj) {

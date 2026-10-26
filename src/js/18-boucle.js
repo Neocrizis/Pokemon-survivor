@@ -249,6 +249,7 @@ function update(dt) {
     if (f.sleepT > 0 || f.stunT > 0 || f.hold > 0) sp = 0; // hold : attaque en cours (Repos, Laser Glace, Explosion)
     const flies = f.d.types.includes("vol");
     if (!flies && !f.d.boss && tallGrassAt(f.x, f.y)) sp *= .85; // les boss ignorent le décor
+    if (sp > 0 && !flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase && !f.stamp && !f.run && f.dashMode !== "go" && !f.d.rare) [ax, ay] = steer(f, ax, ay, dt, P); // contourne murs et décor
     f.x += ax * sp * dt; f.y += ay * sp * dt;
     if (f.kbx || f.kby) { f.x += f.kbx * dt; f.y += f.kby * dt; const k = Math.pow(.02, dt); f.kbx *= k; f.kby *= k; if (Math.abs(f.kbx) + Math.abs(f.kby) < 8) f.kbx = f.kby = 0; }
     if (!flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase) collide(f, f.r, !!f.d.swim);

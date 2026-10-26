@@ -4736,6 +4736,7 @@ function update(dt) {
     if (f.sleepT > 0 || f.stunT > 0 || f.hold > 0) sp = 0; // hold : attaque en cours (Repos, Laser Glace, Explosion)
     const flies = f.d.types.includes("vol");
     if (!flies && !f.d.boss && tallGrassAt(f.x, f.y)) sp *= .85; // les boss ignorent le décor
+    if (sp > 0 && !flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase && !f.stamp && !f.run && f.dashMode !== "go" && !f.d.rare) [ax, ay] = steer(f, ax, ay, dt, P); // contourne murs et décor
     f.x += ax * sp * dt; f.y += ay * sp * dt;
     if (f.kbx || f.kby) { f.x += f.kbx * dt; f.y += f.kby * dt; const k = Math.pow(.02, dt); f.kbx *= k; f.kby *= k; if (Math.abs(f.kbx) + Math.abs(f.kby) < 8) f.kbx = f.kby = 0; }
     if (!flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase) collide(f, f.r, !!f.d.swim);
@@ -6840,6 +6841,37 @@ function gateDist(e, g) { // distance au segment de la barrière, et point le pl
   return [Math.hypot(e.x - px, e.y - py), px, py];
 }
 function gatePush(e, r, g) { const [d, px, py] = gateDist(e, g), min = r * .7 + 8; if (d < min) { const dd = d || .01; e.x = px + (e.x - px) / dd * min; e.y = py + (e.y - py) / dd * min; } }
+// le point (x, y) est-il pris par un obstacle pour un Pokémon de rayon r ? (mêmes obstacles que collide)
+function blockedAt(x, y, r, swim) {
+  if (LEVEL.safari && szBlocked(x, y, swim)) return true;
+  for (const o of solidsNear(x, y)) {
+    if ((swim && o.pond) || o.gate) continue;
+    const min = r * .7 + o.r; if ((x - o.x) ** 2 + (y - o.y) ** 2 < min * min) return true;
+  }
+  return false;
+}
+// IA des Pokémon sauvages : si un obstacle barre la route vers le joueur, on tourne du côté libre (et on y reste un moment pour ne pas hésiter)
+const STEER_A = [.5, 1, 1.5, 2.1];
+function steer(f, ax, ay, dt, P) {
+  if (LEVEL.safari && P && !f.d.swim) { // Parc Safari : vrai chemin dans le labyrinthe des biomes (carte des distances autour du joueur)
+    const l = Math.hypot(P.x - f.x, P.y - f.y) || 1;
+    if ((ax * (P.x - f.x) + ay * (P.y - f.y)) / l > .3) { const d = szFlowDir(f, P); if (d) return d; } // seulement s'il se dirige vers le joueur
+  }
+  f.stT = (f.stT || 0) - dt;
+  if (f.stT <= 0) {
+    f.stT = .15 + Math.random() * .05; const look = f.r + 22, swim = !!f.d.swim;
+    if (!blockedAt(f.x + ax * look, f.y + ay * look, f.r, swim)) { f.stA = 0; if (!(--f.stHold > 0)) f.stSide = 0; }
+    else {
+      f.stA = 0; const sides = f.stSide ? [f.stSide, -f.stSide] : Math.random() < .5 ? [1, -1] : [-1, 1];
+      search: for (const a of STEER_A) for (const s of sides) {
+        const c = Math.cos(a * s), sn = Math.sin(a * s), bx = ax * c - ay * sn, by = ax * sn + ay * c;
+        if (!blockedAt(f.x + bx * look, f.y + by * look, f.r, swim)) { f.stA = a * s; f.stSide = s; f.stHold = 6; break search; }
+      }
+    }
+  }
+  if (!f.stA) return [ax, ay];
+  const c = Math.cos(f.stA), s = Math.sin(f.stA); return [ax * c - ay * s, ax * s + ay * c];
+}
 const inWater = (x, y) => LEVEL.safari ? szAt(x, y) === "~" : solidsNear(x, y).some(o => o.pond && (x-o.x)**2 + (y-o.y)**2 < o.r*o.r);
 
 function renderChunk(ci, cj) {
@@ -7258,6 +7290,43 @@ function drawSafariGate(camX, camY, vw, vh) {
   cx.imageSmoothingEnabled = false;
   szGates(camX, camY, vw, vh, 400, (G, x, y) => { if (G.img) cx.drawImage(G.img, x - G.ox * G.k, y - G.oy * G.k, G.w * G.k, G.h * G.k); });
   cx.imageSmoothingEnabled = true;
+}
+/* IA : carte des distances (parcours en largeur sur les cases de 16 px) autour de chaque joueur, refaite quelques fois par seconde ;
+   chaque Pokémon sauvage descend vers la case voisine la plus proche du joueur, il contourne ainsi falaises, clôtures et étangs */
+const SZ_FR = 72; // rayon de la carte, en cases (plus de 1100 px)
+function szFlow(P) {
+  const ox = szOX(), oy = szOY(), ci = Math.floor((P.x - ox) / SZ_T), cj = Math.floor((P.y - oy) / SZ_T);
+  let F = P.szFlow;
+  if (F && S.t - F.t < .4 && Math.abs(ci - F.ci) + Math.abs(cj - F.cj) < 3) return F;
+  const W = SZ_FR * 2 + 1, i0 = ci - SZ_FR, j0 = cj - SZ_FR, dist = F && F.dist.length === W * W ? F.dist : new Int16Array(W * W);
+  dist.fill(-1); const q = new Int32Array(W * W); let h = 0, t = 0;
+  const open = F && F.open.length === W * W ? F.open : new Uint8Array(W * W);
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) open[y * W + x] = szBlocked(ox + (i0 + x + .5) * SZ_T, oy + (j0 + y + .5) * SZ_T, false) ? 0 : 1;
+  const free = (i, j) => open[(j - j0) * W + i - i0];
+  dist[SZ_FR * W + SZ_FR] = 0; q[t++] = SZ_FR * W + SZ_FR;
+  while (h < t) {
+    const k = q[h++], x = k % W, y = (k / W) | 0, d = dist[k] + 1;
+    if (x > 0 && dist[k - 1] < 0 && free(i0 + x - 1, j0 + y)) { dist[k - 1] = d; q[t++] = k - 1; }
+    if (x < W - 1 && dist[k + 1] < 0 && free(i0 + x + 1, j0 + y)) { dist[k + 1] = d; q[t++] = k + 1; }
+    if (y > 0 && dist[k - W] < 0 && free(i0 + x, j0 + y - 1)) { dist[k - W] = d; q[t++] = k - W; }
+    if (y < W - 1 && dist[k + W] < 0 && free(i0 + x, j0 + y + 1)) { dist[k + W] = d; q[t++] = k + W; }
+  }
+  P.szFlow = F = { t:S.t, ci, cj, i0, j0, W, dist, open }; return F;
+}
+function szFlowDir(f, P) {
+  const F = szFlow(P), ox = szOX(), oy = szOY(), x = Math.floor((f.x - ox) / SZ_T) - F.i0, y = Math.floor((f.y - oy) / SZ_T) - F.j0, W = F.W;
+  if (x < 1 || y < 1 || x >= W - 1 || y >= W - 1) return null; // trop loin : il fonce tout droit
+  const here = F.dist[y * W + x]; if (here < 0 || here < 3) return null; // tout près du joueur (ou coincé dans un obstacle) : tout droit
+  let best = here, bx = 0, by = 0;
+  for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++) {
+    if (!a && !b) continue; const d = F.dist[(y + b) * W + x + a];
+    if (d < 0 || d >= best) continue;
+    if (a && b && (F.dist[y * W + x + a] < 0 || F.dist[(y + b) * W + x] < 0)) continue; // pas de diagonale qui rase un coin
+    best = d; bx = a; by = b;
+  }
+  if (!bx && !by) return null;
+  const tx = ox + (F.i0 + x + bx + .5) * SZ_T - f.x, ty = oy + (F.j0 + y + by + .5) * SZ_T - f.y, l = Math.hypot(tx, ty) || 1;
+  return [tx / l, ty / l];
 }
 let frameNo = 0;
 const liveChunks = new Set();
