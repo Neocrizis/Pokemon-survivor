@@ -1552,6 +1552,7 @@ const LEVELS = [
       const bs = typeof S !== "undefined" && S && S.P ? [szBiomeAt(S.P.x, S.P.y)] : SAFARI_FOES.map((_, b) => b);
       for (const b of bs) for (const [k, from, w] of SAFARI_FOES[b]) if (m >= from) o.push([k, from ? w + m / 8 : m < 3 ? w : w * .4]);
       if (m > 1) o.push(["leveinard", .22]); // rares : soignent quand on les met K.O.
+      if (m > 2.5) o.push(["noadkoko", 1.2 + m / 6]); // partout, comme avant
     } },
   { name:"Manoir Pokémon", num:6, title:"Tu as exploré le Manoir Pokémon !", cave:true, manor:true, track:"manor", prop:"urn", where:"dans le Manoir", from:"surgit des décombres",
     intro:"À Cramois'Île, le vieux Manoir Pokémon tombe en ruines. Goupix, Caninos, Ponyta, Magmar et Tadmorv rôdent dans ses couloirs, et des statues actionnent les portes de feu : touche-en une pour éteindre ou rallumer les flammes. Les pages du journal d'un chercheur sont éparpillées dans le manoir… retrouve-les toutes, si tu oses découvrir ce qu'il cache. Tiens dix minutes.",
