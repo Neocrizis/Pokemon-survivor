@@ -3892,11 +3892,11 @@ function drawIlexTop(camX, camY, vw, vh, t) { // de nuit : seuls les Pokémon jo
   if (ILEX_DARK.width !== W0 || ILEX_DARK.height !== H0) { ILEX_DARK.width = W0; ILEX_DARK.height = H0; }
   const g = ILEX_DARK.getContext("2d");
   g.globalCompositeOperation = "source-over"; g.clearRect(0, 0, W0, H0);
-  g.fillStyle = `rgba(6,4,22,${.84 + .1 * n})`; g.fillRect(0, 0, W0, H0);
+  g.fillStyle = `rgba(6,4,22,${.66 + .14 * n})`; g.fillRect(0, 0, W0, H0);
   g.globalCompositeOperation = "destination-out";
   const hole = (x, y, r, a = 1) => { const X = (x - x0) * k, Y = (y - y0) * k, R = r * k, gr = g.createRadialGradient(X, Y, R * .25, X, Y, R);
     gr.addColorStop(0, `rgba(0,0,0,${a})`); gr.addColorStop(.6, `rgba(0,0,0,${a * .55})`); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(X - R, Y - R, R * 2, R * 2); };
-  const R0 = 250 - 70 * n; // Noarfang géant : la nuit se resserre encore
+  const R0 = 340 - 80 * n; // Noarfang géant : la nuit se resserre encore
   for (const P of S.players) if (!P.down) hole(P.x, P.y, R0 + Math.sin(t * 2 + P.idx) * 6, .95);
   const c = S.celO; if (c && c.f.pure) hole(c.f.x, c.f.y, CEL_CAP_R * 2.2, .9);
   if (S.farf && S.farf.st === "wild") hole(S.farf.x, S.farf.y, 70, .6); // Canarticho reste repérable dans le noir
