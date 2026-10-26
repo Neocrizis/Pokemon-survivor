@@ -37,6 +37,7 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
     cx.drawImage(sp.cv, tr.x - sp.size / 2 + sw, cyc - sp.size / 2, sp.size, sp.size);
   } });
   cx.globalAlpha = 1;
+  if (LEVEL.safari) drawSafariGate(camX, camY, vw, vh);
   drawIlexShrines(camX, camY, vw, vh);
 }
 const motes = [];
