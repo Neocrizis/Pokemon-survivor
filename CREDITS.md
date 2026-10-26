@@ -32,7 +32,9 @@ Les sprites originaux sont de Spike Chunsoft (Pokémon Donjon Mystère). Retouch
 | 0094 | Ectoplasma | CHUNSOFT + 1 contributeur SpriteCollab |
 | 0104 | Osselait | CHUNSOFT + 2 contributeurs SpriteCollab |
 | 0143 | Ronflex (événement) | CHUNSOFT |
-| 0251 | Célébi (événement) | CHUNSOFT + 2 contributeurs SpriteCollab |
+| 0251 | Célébi (événement, Celebi Obscur, starter secret) | CHUNSOFT + 2 contributeurs SpriteCollab |
+| 0251 forme 0000/0001 | Celebi chromatique (rose) | auteurs indiqués dans le credits.txt SpriteCollab |
+| 0043, 0044, 0204, 0205, 0083 | Mystherbe, Ortide, Pomdepik, Foretress, Canarticho (Bois aux Chênes) | auteurs indiqués dans les credits.txt SpriteCollab de chaque dossier |
 | 0029 | Nidoran♀ | CHUNSOFT |
 | 0030 | Nidorina | CHUNSOFT |
 | 0032 | Nidoran♂ | CHUNSOFT |

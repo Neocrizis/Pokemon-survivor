@@ -20,5 +20,5 @@ function ctrlFor(P) {
   const li = loc.indexOf(P), gps = padList(), gp = gps[li - (gps.length >= loc.length ? 0 : 1)] || null;
   return Object.assign({ kb:li === 0, x:0, y:0, ax:0, ay:0, gp }, gp ? padAxes(gp) : {});
 }
-const speed = () => S.P.baseSpeed * (1 + .08 * (S.P.items.mouchoir || 0)) * (1 + S.P.stage * .04) * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * (S.P.slowT > 0 ? .55 : 1) * (S.P.nitroT > 0 ? 1 + .04 * (S.P.nitro || 0) : 1); // Laser Glace : ralenti ; Nitrocharge : accéléré
+const speed = () => S.P.baseSpeed * (1 + .08 * (S.P.items.mouchoir || 0)) * (1 + S.P.stage * .04) * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * (S.P.slowT > 0 ? .55 : 1) * (S.P.ancT > 0 ? 1.1 : 1) * (S.P.nitroT > 0 ? 1 + .04 * (S.P.nitro || 0) : 1); // Laser Glace : ralenti ; Nitrocharge : accéléré
 

@@ -188,11 +188,11 @@ function getChunk(ci, cj) {
   const clear = (x, y, m) => Math.hypot(x, y - START_Y) > 260 && !nearPath(x, y, m);
   if (R() < (LEVEL.safari ? .42 : .24)) { const px = x0 + 130 + R() * 252, py = y0 + 130 + R() * 252; if (clear(px, py, 200)) ponds.push({ x:px, y:py, rx:85 + R()*70, ry:58 + R()*35, rot:(R() - .5) * .6, ph:R() * 6 }); }
   const inPond = (x, y, m) => ponds.some(p => ((x-p.x) / (p.rx + m))**2 + ((y-p.y) / (p.ry + m))**2 < 1);
-  const tries = Math.round(3 + forestDensity(x0 + CH/2, y0 + CH/2) * 13);
+  const tries = Math.round((LEVEL.ilex ? 6 : 3) + forestDensity(x0 + CH/2, y0 + CH/2) * (LEVEL.ilex ? 16 : 13));
   for (let i = 0; i < tries; i++) {
     const x = x0 + R() * CH, y = y0 + R() * CH;
-    if (forestDensity(x, y) < (LEVEL.safari ? .64 : .45) || !clear(x, y, 125) || inPond(x, y, 50)) continue;
-    if (trees.some(t => Math.hypot(t.x - x, t.y - y) < (LEVEL.safari ? 230 : 125))) continue;
+    if (forestDensity(x, y) < (LEVEL.safari ? .64 : LEVEL.ilex ? .36 : .45) || !clear(x, y, 125) || inPond(x, y, 50)) continue;
+    if (trees.some(t => Math.hypot(t.x - x, t.y - y) < (LEVEL.safari ? 230 : LEVEL.ilex ? 112 : 125))) continue; // Bois aux Chênes : plus serré
     const r = 46 + R() * 30; trees.push({ x, y, r, trunk:r * .3, v:Math.floor(R() * (LEVEL.safari ? 3 : 6)), ph:R() * 6 });
   }
   for (let i = 0; i < (LEVEL.safari ? 5 : 4); i++) {

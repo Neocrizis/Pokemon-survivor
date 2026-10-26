@@ -14,7 +14,7 @@ function hitFoe(f, base, type, kx = 0, ky = 0, forceCrit = false) {
   S.P.orbHit = true;
   const m = eff(type, f.d.types);
   const crit = forceCrit || Math.random() < .05 * IT("lentilscope") + .01 * (shop.lentil || 0) + (LINES[S.P.line].crit || 0);
-  const dmg = (veiled(f.d) ? .5 : 1) * base * S.P.dmgMul * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * m * (.9 + Math.random() * .2) * (crit ? 2 : 1) * (f.leerT > 0 ? f.leerMul : 1) * (f.shieldT > 0 ? .15 : 1) * (f.d.armor || 1) * (f.d.solidRock && m > 1 ? .75 : 1) * jBoost(type); // Rhinoféros / Rhinastoc : blindés
+  const dmg = (veiled(f.d) ? .5 : 1) * base * S.P.dmgMul * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * m * (.9 + Math.random() * .2) * (crit ? 2 : 1) * (f.leerT > 0 ? f.leerMul : 1) * (S.P.ancT > 0 ? 1.2 : 1) * (f.shieldT > 0 ? .15 : 1) * (f.d.armor || 1) * (f.d.solidRock && m > 1 ? .75 : 1) * jBoost(type); // Rhinoféros / Rhinastoc : blindés
   if (m === 0) { maybeMsg(f, "Aucun effet…", "#c9c9c9"); return; }
   f.hp -= dmg; f.hurt = .12; S.P.dealt += dmg; sfx("hit");
   if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(.2, dmg * .003)); // Sans Limite : chaque coup soigne un tout petit peu
