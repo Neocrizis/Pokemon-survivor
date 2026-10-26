@@ -253,7 +253,8 @@ function drawMinimap(P) {
   g.translate(R2, R2); g.scale(sc, sc); g.translate(-P.x, -P.y);
   if (LEVEL.league) { const A = arena(); g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(P.x - 1300, P.y - 1300, 2600, 2600); g.fillStyle = "rgba(170,190,220,.35)"; g.fillRect(A.x0, A.y0, A.x1 - A.x0, A.y1 - A.y0); }
   g.strokeStyle = LEVEL.rocket ? "rgba(232,192,50,.7)" : LEVEL.tower ? "rgba(150,50,90,.8)" : LEVEL.manor ? "rgba(140,40,30,.85)" : LEVEL.cave ? "rgba(150,132,112,.7)" : LEVEL.safari ? "rgba(200,120,70,.85)" : "rgba(196,170,120,.85)"; g.lineWidth = 70; g.beginPath();
-  for (let x = P.x - 1200; x <= P.x + 1200; x += 60) x === P.x - 1200 ? g.moveTo(x, pathY(x)) : g.lineTo(x, pathY(x)); g.stroke();
+  if (LEVEL.safari) szMinimap(g, P); // Parc Safari : les biomes en miniature, pas de sentier
+  else { for (let x = P.x - 1200; x <= P.x + 1200; x += 60) x === P.x - 1200 ? g.moveTo(x, pathY(x)) : g.lineTo(x, pathY(x)); g.stroke(); }
   around(P.x, P.y, c => {
     for (const p of c.ponds) { g.fillStyle = "#4f9fc0"; g.beginPath(); g.ellipse(p.x, p.y, p.rx, p.ry, p.rot, 0, Math.PI * 2); g.fill(); }
     if (c.lava) for (const p of c.lava) { g.fillStyle = "#ff7a2a"; g.beginPath(); g.ellipse(p.x, p.y, p.rx, p.ry, p.rot, 0, Math.PI * 2); g.fill(); }

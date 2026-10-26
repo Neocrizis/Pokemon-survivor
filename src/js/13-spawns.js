@@ -16,6 +16,7 @@ function spawnFoe(kind, x, y) {
       }
     }
   }
+  if (LEVEL.safari) [x, y] = szFree(x, y); // Parc Safari : jamais dans une falaise ou un étang
   if (LEVEL.league) arenaClamp({ get x() { return x; }, set x(v) { x = v; }, get y() { return y; }, set y(v) { y = v; } }, 40);
   if (!d.boss && LEVEL.foeHp) scale *= 1 + (LEVEL.foeHp - 1) * Math.min(1, tS / 360); // Caverne Azurée : sauvages plus coriaces au fil du temps
   const f = { kind, d, x, y, vx:0, vy:0, hp:d.hp * scale, maxHp:d.hp * scale, r:d.r, hurt:0, leafT:0, ph:Math.random()*10, flip:false, trail:[] };

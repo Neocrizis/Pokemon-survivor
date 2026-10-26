@@ -15,6 +15,7 @@ function collide(e, r, swim) {
     const dx = e.x - o.x, dy = e.y - o.y, min = r * .7 + o.r;
     if (dx*dx + dy*dy < min*min) { const d = Math.hypot(dx, dy) || .01; e.x = o.x + dx / d * min; e.y = o.y + dy / d * min; }
   }
+  if (LEVEL.safari) szCollide(e, r, swim); // Parc Safari : falaises, arbres, clôtures et eau des biomes
   collideFalls(e, r);
 }
 // stalactites et rochers tombés : obstacles temporaires
@@ -28,7 +29,7 @@ function gateDist(e, g) { // distance au segment de la barrière, et point le pl
   return [Math.hypot(e.x - px, e.y - py), px, py];
 }
 function gatePush(e, r, g) { const [d, px, py] = gateDist(e, g), min = r * .7 + 8; if (d < min) { const dd = d || .01; e.x = px + (e.x - px) / dd * min; e.y = py + (e.y - py) / dd * min; } }
-const inWater = (x, y) => solidsNear(x, y).some(o => o.pond && (x-o.x)**2 + (y-o.y)**2 < o.r*o.r);
+const inWater = (x, y) => LEVEL.safari ? szAt(x, y) === "~" : solidsNear(x, y).some(o => o.pond && (x-o.x)**2 + (y-o.y)**2 < o.r*o.r);
 
 function renderChunk(ci, cj) {
   if (LEVEL.tower) return renderTowerChunk(ci, cj);
@@ -37,6 +38,7 @@ function renderChunk(ci, cj) {
   if (LEVEL.league) return renderArenaChunk(ci, cj);
   if (LEVEL.cave) return renderCaveChunk(ci, cj);
   if (LEVEL.alph) return renderAlphChunk(ci, cj);
+  if (LEVEL.safari) return renderSafariChunk(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;
   const g = cv2.getContext("2d"); g.scale(CH_SCALE, CH_SCALE);
