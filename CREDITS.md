@@ -35,6 +35,7 @@ Les sprites originaux sont de Spike Chunsoft (Pokémon Donjon Mystère). Retouch
 | 0251 | Célébi (événement, Celebi Obscur, starter secret) | CHUNSOFT + 2 contributeurs SpriteCollab |
 | 0251 forme 0000/0001 | Celebi chromatique (rose) | auteurs indiqués dans le credits.txt SpriteCollab |
 | 0043, 0044, 0204, 0205, 0083 | Mystherbe, Ortide, Pomdepik, Foretress, Canarticho (Bois aux Chênes) | auteurs indiqués dans les credits.txt SpriteCollab de chaque dossier |
+| 0048, 0049, 0084 | Mimitoss, Aéromite, Doduo (Parc Safari) | auteurs indiqués dans les credits.txt SpriteCollab de chaque dossier |
 | 0029 | Nidoran♀ | CHUNSOFT |
 | 0030 | Nidorina | CHUNSOFT |
 | 0032 | Nidoran♂ | CHUNSOFT |
@@ -108,3 +109,5 @@ Manoir Pokémon : statue de Rhinoféros, tapis bleu avec table et papiers, trou 
 Bois aux Chênes : arbres, sol d'herbe et touffes, rochers moussus, eau des mares, fleurs et branches tirés des textures de la carte 3D du Bois aux Chênes de **Pokémon HeartGold / SoulSilver** (ripée et partagée sur The Models Resource) ; sanctuaire de Celebi rendu depuis le modèle de cette carte. © Nintendo, Creatures, Game Freak. Ronces du sanctuaire rendues depuis le modèle 3D « Thorns » de **Tak: The Great Juju Challenge** (publié sur The Models Resource), © THQ / Nickelodeon. Contour des mares, aura sombre et nuit dessinés pour le jeu. Usage non commercial uniquement.
 
 Ruines d'Alpha : bâtiments rendus depuis les modèles 3D « Map Objects - Ruins of Alph Buildings » de **Pokémon HeartGold / SoulSilver** (ripés et partagés sur The Models Resource) ; rochers, rocher Éclate-Roc et stèles découpés dans une capture de la carte des Ruines d'Alpha du même jeu (© Nintendo, Creatures, Game Freak). Salles intérieures (Salle des Statues, Salle des Zarbi, Grand Couloir) : composées pour le jeu uniquement avec des morceaux de captures d'écran DS de **Pokémon HeartGold / SoulSilver** (sol retissé à partir du sol d'origine, frises, bordures, statues, piliers, échelle). Sol de sable, sentier et bassins dessinés pour le jeu. Usage non commercial uniquement.
+
+Parc Safari : cartes des sept biomes fournies par Neocrizis (style **Pokémon Rouge Feu / Vert Feuille**) ; portique d'entrée rendu depuis le modèle 3D « Safari Zone Archway » de **Pokémon HeartGold / SoulSilver** (ripé et partagé sur The Models Resource). © Nintendo, Creatures, Game Freak. Usage non commercial uniquement.

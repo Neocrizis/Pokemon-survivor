@@ -600,7 +600,7 @@ function update(dt) {
       continue;
     }
     if (f.hp > 0) {
-      if (!f.d.boss && !f.d.event && !f.d.mother && !f.d.rare && !f.stamp && Math.hypot(f.x - P.x, f.y - P.y) > 1400) { const a = Math.random()*Math.PI*2; f.x = P.x + Math.cos(a)*700; f.y = P.y + Math.sin(a)*700; if (LEVEL.alph) alphPlace(f); }
+      if (!f.d.boss && !f.d.event && !f.d.mother && !f.d.rare && !f.stamp && Math.hypot(f.x - P.x, f.y - P.y) > 1400) { const a = Math.random()*Math.PI*2; f.x = P.x + Math.cos(a)*700; f.y = P.y + Math.sin(a)*700; if (LEVEL.alph) alphPlace(f); if (LEVEL.safari) [f.x, f.y] = szFree(f.x, f.y); }
       alive.push(f); continue;
     }
     if (f.d.celebiO && !f.gone) { celebiPurify(f); alive.push(f); continue; } // Celebi Obscur ne tombe jamais K.O. : il se purifie
