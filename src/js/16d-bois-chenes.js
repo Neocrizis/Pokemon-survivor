@@ -1,6 +1,6 @@
 /* ---------- Johto : Bois aux Chênes (Pokémon Obscurs, Canarticho, Celebi Obscur à purifier et capturer) ---------- */
 // La Dark Ball a corrompu la forêt : tous les Pokémon sauvages sont Obscurs (aura sombre, leur propre entrée au Pokédex)
-const ILEX_TREE_TINTS = [[24, .8, .62], [6, .85, .55], [40, .7, .6]]; // feuillage assombri : sapin sombre, vert de nuit, bleu-vert
+const ILEX_TREE_TINTS = [[40, .7, .5], [20, .75, .44], [60, .6, .48]]; // feuillage de nuit : vert sombre, sapin noir, bleu-vert
 function ilexSpawn(f, placed) { // Pomdepik et Foretress tombent d'un arbre proche
   if (!f.d.fall || placed || Math.random() < .3) return;
   const c = spawnNear(), trees = [];
@@ -277,13 +277,33 @@ function drawIlexOver(t) {
   if (cc) { const k = cc.t / 1.6; cx.save(); cx.globalCompositeOperation = "lighter"; glow(cc.x, cc.y - (1 - k) * 90, 50, cc.shiny ? "255,150,210" : "150,255,160", k); cx.restore();
     cx.save(); cx.globalAlpha = k; drawMon(cx, cc.shiny ? "celebi_s" : "celebi", cc.x, cc.y - (1 - k) * 90, 15, false, t, 0, 0, true); cx.restore(); }
 }
-function drawIlexTop(camX, camY, vw, vh, t) { // sous-bois sombre, et la nuit de Noarfang
+const ILEX_DARK = document.createElement("canvas"); // nuit du Bois aux Chênes : un voile sombre percé de halos de lumière
+function drawIlexTop(camX, camY, vw, vh, t) { // de nuit : seuls les Pokémon joueurs, la lumière de Celebi et les lucioles éclairent la forêt
   if (!LEVEL.ilex) return;
-  const P = S.cam, r0 = Math.min(vw, vh) * (.34 - .12 * (S.night || 0)), r1 = Math.max(vw, vh) * (.66 - .1 * (S.night || 0));
-  const g = cx.createRadialGradient(P.x, P.y, r0, P.x, P.y, r1);
-  g.addColorStop(0, "rgba(4,14,10,0)"); g.addColorStop(1, `rgba(4,14,10,${.5 + .38 * (S.night || 0)})`);
-  cx.fillStyle = g; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120);
-  if (S.night > 0) { cx.fillStyle = `rgba(10,6,30,${.32 * S.night})`; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120); }
+  const k = .5, W0 = Math.ceil((vw + 120) * k), H0 = Math.ceil((vh + 120) * k), x0 = camX - 60, y0 = camY - 60, n = S.night || 0;
+  if (ILEX_DARK.width !== W0 || ILEX_DARK.height !== H0) { ILEX_DARK.width = W0; ILEX_DARK.height = H0; }
+  const g = ILEX_DARK.getContext("2d");
+  g.globalCompositeOperation = "source-over"; g.clearRect(0, 0, W0, H0);
+  g.fillStyle = `rgba(6,4,22,${.84 + .1 * n})`; g.fillRect(0, 0, W0, H0);
+  g.globalCompositeOperation = "destination-out";
+  const hole = (x, y, r, a = 1) => { const X = (x - x0) * k, Y = (y - y0) * k, R = r * k, gr = g.createRadialGradient(X, Y, R * .25, X, Y, R);
+    gr.addColorStop(0, `rgba(0,0,0,${a})`); gr.addColorStop(.6, `rgba(0,0,0,${a * .55})`); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(X - R, Y - R, R * 2, R * 2); };
+  const R0 = 250 - 70 * n; // Noarfang géant : la nuit se resserre encore
+  for (const P of S.players) if (!P.down) hole(P.x, P.y, R0 + Math.sin(t * 2 + P.idx) * 6, .95);
+  const c = S.celO; if (c && c.f.pure) hole(c.f.x, c.f.y, CEL_CAP_R * 2.2, .9);
+  if (S.farf && S.farf.st === "wild") hole(S.farf.x, S.farf.y, 70, .6); // Canarticho reste repérable dans le noir
+  for (const sh of S.shots) if (sh.type === "feu" && Math.random() < .5) hole(sh.x, sh.y, 60, .35); // les flammes éclairent un peu
+  for (let i = 0; i < 26; i++) { // lucioles
+    const fx = x0 + ((i * 197 + Math.sin(t * .3 + i) * 60) % (vw + 120) + vw + 120) % (vw + 120), fy = y0 + ((i * 131 + Math.cos(t * .25 + i * 1.7) * 50) % (vh + 120) + vh + 120) % (vh + 120);
+    hole(fx, fy, 22, .5 + .4 * Math.sin(t * 3 + i * 2));
+  }
+  cx.save(); cx.imageSmoothingEnabled = true; cx.drawImage(ILEX_DARK, x0, y0, W0 / k, H0 / k); cx.restore();
+  cx.save(); cx.globalCompositeOperation = "lighter"; // lueur des lucioles par-dessus le noir
+  for (let i = 0; i < 26; i++) { const fx = x0 + ((i * 197 + Math.sin(t * .3 + i) * 60) % (vw + 120) + vw + 120) % (vw + 120), fy = y0 + ((i * 131 + Math.cos(t * .25 + i * 1.7) * 50) % (vh + 120) + vh + 120) % (vh + 120);
+    glow(fx, fy, 9, "190,255,140", .35 + .3 * Math.sin(t * 3 + i * 2)); }
+  for (const f of S.foes) if (f.d.shadow && !f.pure && f.hp > 0 && Math.abs(f.x - S.cam.x) < vw / 2 + 60 && Math.abs(f.y - S.cam.y) < vh / 2 + 60) { // les yeux et l'aura des Pokémon Obscurs luisent dans le noir
+    const r = f.d.sprR || f.r; glow(f.x, f.y - (f.jz || 0) - r * .3, r * (f.d.boss ? 1.6 : 1.3), "140,50,200", f.d.boss ? .5 : .28); }
+  cx.restore();
 }
 // ---- Celebi jouable : capacités et talent Voyage Temporel ----
 const CMOVE = {

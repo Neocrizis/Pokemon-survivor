@@ -14,7 +14,7 @@ function jadeGround(g, x0, y0, R) { // sol case par case : herbe, sentier clair,
   const band = (w, col) => { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.lineJoin = "round"; g.beginPath(); for (let x = x0 - 40; x <= x0 + CH + 40; x += 16) x === x0 - 40 ? g.moveTo(x, pathY(x)) : g.lineTo(x, pathY(x)); g.stroke(); };
   band(134, "#108c66"); band(128, "#2a9c74"); band(122, JD.pat); // bordure d'herbe sombre, comme sur la carte
   for (let i = 0; i < (LEVEL.ilex ? 2 : 6); i++) { const fx = x0 + R() * CH, fy = y0 + R() * CH; if (tallGrassAt(fx, fy)) continue; jadeSpr(g, R() < .5 ? "flowerW" : "flowerR", fx - 28, fy - 28); }
-  if (LEVEL.ilex) { g.fillStyle = "rgba(8,34,24,.34)"; g.fillRect(x0, y0, CH, CH); } // Bois aux Chênes : sous-bois à l'ombre des grands arbres
+  if (LEVEL.ilex) { g.fillStyle = "rgba(10,18,44,.42)"; g.fillRect(x0, y0, CH, CH); } // Bois aux Chênes : sous-bois de nuit, bleuté
 }
 // teintes des arbres : vert d'origine, sapin sombre, vert tendre, puis quelques arbres d'automne (orangé, doré)
 const JD_TINTS = [[0, 1, 1], [28, .9, .82], [-14, 1.05, 1.12], [-62, 1.15, 1], [-38, 1.1, 1.08], [0, 1, 1]];

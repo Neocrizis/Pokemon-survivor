@@ -481,7 +481,7 @@ const LEVELS = [
       if (m > 5.5) o.push(["zarbi", 1.5]);
     } },
   { name:"Bois aux Chênes", num:12, label:3, region:"johto", title:"Tu as traversé le Bois aux Chênes !", cave:false, jade:true, ilex:true, track:"forest", prop:"berrytree", where:"dans le Bois aux Chênes", from:"surgit des fourrés",
-    intro:"Au sud d'Écorcia, le Bois aux Chênes est si dense que la lumière y passe à peine. Une Dark Ball y a corrompu la forêt : Chenipan, Aspicot, Paras, Mystherbe, Nosferapti, Hoothoot et Noeunoeuf sont tous devenus Obscurs, et des Pomdepik tombent des arbres. Parasect Obscur géant, puis Foretress et Noarfang Obscurs géants gardent le sentier. Rattrape le Canarticho fugueur : il coupera les arbustes pour toi. Et si un chant brisé résonne entre les arbres… c'est peut-être Celebi. Tiens dix minutes.",
+    intro:"Il fait nuit noire au Bois aux Chênes, au sud d'Écorcia : seules les lucioles et ton Pokémon éclairent le sentier. Une Dark Ball y a corrompu la forêt : Chenipan, Aspicot, Paras, Mystherbe, Nosferapti, Hoothoot et Noeunoeuf sont tous devenus Obscurs, et des Pomdepik tombent des arbres. Parasect Obscur géant, puis Foretress et Noarfang Obscurs géants gardent le sentier. Rattrape le Canarticho fugueur : il coupera les arbustes pour toi. Et si un chant brisé résonne entre les arbres… c'est peut-être Celebi. Tiens dix minutes.",
     win:"a traversé le Bois aux Chênes. La lumière revient entre les arbres, et les Pokémon Obscurs retrouvent leur calme.",
     matchup:{ plante:["Difficile", "Insectes, Poison et Vol résistent à la Plante, et presque toute la forêt en fait partie."],
               eau:["Neutre", "L'Eau frappe normalement les insectes, mais les Paras, Mystherbe et Noeunoeuf (Plante) lui résistent."],

@@ -231,7 +231,7 @@ function drawMap7Over(t) {
   }
 }
 function drawLight(t) {
-  if (LEVEL.cave) return;
+  if (LEVEL.cave || LEVEL.ilex) return; // pas de rayons de soleil la nuit au Bois aux Chênes
   cx.save(); cx.globalCompositeOperation = "lighter";
   for (let i = 0; i < 4; i++) {
     const x = (((i * .29 + t * .004) % 1.4) - .2) * W, w = 90 + i * 40;
