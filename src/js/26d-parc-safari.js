@@ -17,6 +17,7 @@ function szBiome(gx, gy) { // jamais deux fois le même biome côte à côte : c
   k = szRaw(gx, gy); for (let n = 0; n < SZ_N && (k === l || k === u); n++) k = (k + 1) % SZ_N;
   szMemo.set(key, k); return k;
 }
+function szBiomeAt(x, y) { return szBiome(Math.floor((x - szOX()) / SZ_BW), Math.floor((y - szOY()) / SZ_BH)); }
 function szAt(x, y) {
   const lx = x - szOX(), ly = y - szOY(), gx = Math.floor(lx / SZ_BW), gy = Math.floor(ly / SZ_BH);
   const cx = Math.floor((lx - gx * SZ_BW) / SZ_T), cy = Math.floor((ly - gy * SZ_BH) / SZ_T);

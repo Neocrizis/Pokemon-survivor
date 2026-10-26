@@ -96,6 +96,10 @@ const FOES = {
   insecateur: { name:"Insécateur", types:["insecte","vol"],    hp:85,  speed:100, dmg:12, r:17, xp:6, dash:true },
   noeuf:      { name:"Noeunoeuf",  sprite:"noeunoeuf", types:["plante","psy"], hp:26, speed:52, dmg:6, r:14, xp:2 },
   noadkoko:   { name:"Noadkoko",   types:["plante","psy"],     hp:110, speed:54,  dmg:13, r:20, xp:7, ranged:true, shot:"psy" },
+  mimitoss:   { name:"Mimitoss",   types:["insecte","poison"], hp:28,  speed:50,  dmg:6,  r:13, xp:2, ranged:true, shot:"psy" },
+  aeromite:   { name:"Aéromite",   types:["insecte","poison"], hp:70,  speed:92,  dmg:10, r:16, xp:5, erratic:true },
+  doduo:      { name:"Doduo",      types:["normal","vol"],     hp:32,  speed:108, dmg:7,  r:14, xp:2, dash:true },
+  kangourex:  { name:"Kangourex",  types:["normal"],           hp:130, speed:62,  dmg:14, r:20, xp:8 },
   leveinard:  { name:"Leveinard",  types:["normal"],           hp:70,  speed:58,  dmg:4,  r:16, xp:3, healer:true },
   minidraco:  { name:"Minidraco",  types:["dragon"],           hp:1,   speed:0,   dmg:0,  r:16, xp:0, rare:true, hideDex:true },
   noeunoeuf:  { name:"Noeunoeuf",  types:["plante"],           hp:1,   speed:0,   dmg:0,  r:16, xp:0, rare:true, hideDex:true },
@@ -286,14 +290,10 @@ const LEVELS = [
     rings:["nidoranf", "nidoranm", "noeuf", "psykokwak"],
     bosses:[{ at:240, kind:"bossKanga" }, { at:450, kind:"bossTauros" }],
     event:{ kind:"draco", from:60, to:330, chance:1/3 },
-    table(m, o) {
-      o.push(["nidoranf", m < 3 ? 3 : 1], ["nidoranm", m < 3 ? 3 : 1], ["noeuf", m < 4 ? 2.4 : 1]);
-      if (m > .5)  o.push(["psykokwak", m < 4 ? 2 : 1.2]);
-      if (m > 1)   o.push(["leveinard", .22]); // rares : soignent quand on les met K.O.
-      if (m > 1.5) o.push(["nidorina", 1.4], ["nidorino", 1.4]);
-      if (m > 2.5) o.push(["rhinocorne", 1.4], ["noadkoko", 1.2 + m / 6]);
-      if (m > 3.5) o.push(["tauros", 1 + m / 6]);
-      if (m > 4.5) o.push(["insecateur", 1 + m / 6]);
+    table(m, o) { // Pokémon du Parc Safari de RFVF, répartis selon le biome où l'on se trouve (hors partie : tous les biomes)
+      const bs = typeof S !== "undefined" && S && S.P ? [szBiomeAt(S.P.x, S.P.y)] : SAFARI_FOES.map((_, b) => b);
+      for (const b of bs) for (const [k, from, w] of SAFARI_FOES[b]) if (m >= from) o.push([k, from ? w + m / 8 : m < 3 ? w : w * .4]);
+      if (m > 1) o.push(["leveinard", .22]); // rares : soignent quand on les met K.O.
     } },
   { name:"Manoir Pokémon", num:6, title:"Tu as exploré le Manoir Pokémon !", cave:true, manor:true, track:"manor", prop:"urn", where:"dans le Manoir", from:"surgit des décombres",
     intro:"À Cramois'Île, le vieux Manoir Pokémon tombe en ruines. Goupix, Caninos, Ponyta, Magmar et Tadmorv rôdent dans ses couloirs, et des statues actionnent les portes de feu : touche-en une pour éteindre ou rallumer les flammes. Les pages du journal d'un chercheur sont éparpillées dans le manoir… retrouve-les toutes, si tu oses découvrir ce qu'il cache. Tiens dix minutes.",
@@ -517,6 +517,16 @@ function pickMap(k) {
   if (!(k >= 0 && k < LEVEL.maps.length)) k = Math.floor(Math.random() * LEVEL.maps.length);
   if (LEVEL.mapIdx !== k) { Object.assign(LEVEL, LEVEL.maps[k], { mapIdx:k }); chunkData.clear(); nearCache.clear(); liveChunks.clear(); motes.length = 0; }
 }
+// Parc Safari : [Pokémon, minute d'arrivée, poids] pour chaque biome (ordre des images de 26d-parc-safari.js)
+const SAFARI_FOES = [
+  [["nidoranm", 0, 3], ["nidoranf", 0, 2], ["rhinocorne", 1, 2], ["nidorino", 1.5, 1.4], ["kangourex", 3, 1], ["tauros", 3.5, 1]], // falaises et terre
+  [["nidoranf", 0, 3], ["nidoranm", 0, 3], ["noeuf", 0, 2.4], ["doduo", .5, 2], ["psykokwak", .5, 1.5], ["nidorina", 1.5, 1.2], ["nidorino", 1.5, 1.2], ["tauros", 3.5, .8]], // prairie fleurie
+  [["paras", 0, 3], ["mimitoss", 0, 3], ["noeuf", 0, 2], ["parasect", 2, 1.4], ["aeromite", 2.5, 1.4], ["insecateur", 4.5, 1.2]], // forêt
+  [["psykokwak", 0, 3], ["paras", 0, 2], ["mimitoss", 0, 2], ["ramoloss", .5, 2], ["parasect", 2, 1.2], ["aeromite", 2.5, 1]], // marais
+  [["doduo", 0, 3], ["nidoranm", 0, 2], ["nidoranf", 0, 2], ["rhinocorne", 1, 2], ["tauros", 2.5, 1.5], ["kangourex", 3, 1]], // sable et falaises
+  [["mimitoss", 0, 3], ["psykokwak", 0, 2.4], ["paras", 0, 2], ["ramoloss", .5, 1.6], ["aeromite", 2.5, 1.4], ["insecateur", 3.5, 1.2]], // forêt et lacs
+  [["doduo", 0, 3], ["nidoranm", 0, 2.5], ["rhinocorne", 1, 2], ["nidorino", 1.5, 1.2], ["tauros", 3, 1.2], ["kangourex", 3.5, 1]], // sable blanc et rochers
+];
 let LEVEL = LEVELS[0];
 const GAME_LEN = 600;
 
