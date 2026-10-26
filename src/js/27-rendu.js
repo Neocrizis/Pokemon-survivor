@@ -37,6 +37,7 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
     cx.drawImage(sp.cv, tr.x - sp.size / 2 + sw, cyc - sp.size / 2, sp.size, sp.size);
   } });
   cx.globalAlpha = 1;
+  drawIlexShrines(camX, camY, vw, vh);
 }
 const motes = [];
 function drawMotes(camX, camY, vw, vh, t, dt) {
@@ -231,7 +232,7 @@ function drawMap7Over(t) {
   }
 }
 function drawLight(t) {
-  if (LEVEL.cave) return;
+  if (LEVEL.cave || LEVEL.ilex) return; // pas de rayons de soleil la nuit au Bois aux Chênes
   cx.save(); cx.globalCompositeOperation = "lighter";
   for (let i = 0; i < 4; i++) {
     const x = (((i * .29 + t * .004) % 1.4) - .2) * W, w = 90 + i * 40;
@@ -381,6 +382,7 @@ function render(now) {
   }
   drawJohtoUnder(t);
   drawAlphUnder(t);
+  drawIlexUnder(t);
   for (const P of S.players) if (P.moves.grozyeux?.rad && !P.down) {
     const rad = P.moves.grozyeux.rad;
     circ(cx, P.x, P.y, rad, "rgba(226,81,63,.06)");
@@ -467,6 +469,7 @@ function render(now) {
     if (f.d.mewtwo) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y, f.r * 2.4, f.raged ? "255,80,160" : "200,120,255", .45 + .15 * Math.sin(t * 5)); cx.restore(); }
     if (f.d.bird) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y - 10, f.r * 2.4, f.raged ? "255,90,90" : BIRD_COL[f.d.bird], .4 + .15 * Math.sin(t * 5)); cx.restore(); }
     if (f.jz) ell(cx, f.x, f.y + f.r * .6, f.r * (1 - f.jz / 400), f.r * .4 * (1 - f.jz / 400), "rgba(0,0,0,.35)");
+    if (f.d.shadow && !f.pure) shadowAura(f, t); // Bois aux Chênes : Pokémon Obscurs
     if (f.copyK) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(f.x, f.y, f.r * 2, "200,120,255", .35 + .1 * Math.sin(t * 6 + f.ph)); cx.restore(); }
     drawMon(cx, f.copyK || f.spr || f.d.sprite || f.kind, f.x, f.y - (f.jz || 0) - (f.d.bird ? 5 * Math.sin(t * 3 + f.ph) - (f.d.sprDy || 0) : 0), f.d.sprR || f.r, f.flip, t + f.ph, f.copySt || 0, f.dir, f.dashMode !== "aim"); }
     if (!f.d.types.includes("vol")) grassOver(f.x, f.y, f.r, t + f.ph);
@@ -735,6 +738,7 @@ function render(now) {
   }
   drawJohtoOver(t, CAM, vw, vh);
   drawAlphOver(t, CAM, vw, vh);
+  drawCelebiP(t);
   for (const tl of S.tails) { // Draco-Queue (et Hydroqueue) : arc de queue qui balaie le cercle
     const P = tl.o || S.P, k = tl.life / .3, sw = (1 - k) * Math.PI * 2.2 + tl.a;
     cx.save(); cx.lineCap = "round";
@@ -819,6 +823,7 @@ function render(now) {
     cx.save(); cx.globalAlpha = a; drawMon(cx, "celebi", c.x, c.y + bob, 15, c.x < P.x, t, 0, 0, true); cx.restore();
   }
   drawOrme(t);
+  drawIlexOver(t);
   for (const f of S.foes) if (f.jump) { // zone d'atterrissage de Kangourex géant
     const k = f.jump.t / f.jump.dur; cx.save(); cx.globalAlpha = .25 + .35 * k; cx.strokeStyle = "#e2513f"; cx.lineWidth = 3; cx.fillStyle = "rgba(226,81,63,.15)";
     cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110, 80, 0, 0, Math.PI * 2); cx.fill(); cx.stroke(); cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110 * k, 80 * k, 0, 0, Math.PI * 2); cx.stroke(); cx.restore();
@@ -844,6 +849,7 @@ function render(now) {
   if (LEVEL.league) drawLeagueOver(camX, camY, vw, vh, t);
   drawCanopy(camX, camY, vw, vh, t, P);
   drawAlphRoofs(camX, camY, vw, vh);
+  drawIlexTop(camX, camY, vw, vh, t);
   drawMotes(camX, camY, vw, vh, t, Math.min(.05, t - (render.lt || t))); render.lt = t;
   if (LEVEL.cave) drawCaveLight(camX, camY, vw, vh, t, CAM);
   if (S.white > 0) { cx.fillStyle = `rgba(255,255,255,${Math.min(1, S.white / .8)})`; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120); } // écran blanc : Mewtwo s'enfuit

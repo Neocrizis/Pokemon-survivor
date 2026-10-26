@@ -28,8 +28,10 @@ const LINES = {
             blurb:"Combat au corps-à-corps. Sans Limite : +15 % de dégâts au contact, et chaque coup le soigne un peu. Mâchouille mord les ennemis les plus proches, de plus en plus vite si tu enchaînes (Frénésie)." },
   togepi:   { names:["Togepi","Togetic","Togekiss"], secret:true, own:true, type:"fee", move:"ventfeerique", hp:42, speed:160, evo:"évolue N.10 et N.22, Togetic et Togekiss volent",
             blurb:"Éclos de l'Œuf confié par l'assistant du Prof. Orme. Sérénité : les effets secondaires de ses capacités (apeurer, charmer) se produisent deux fois plus souvent. Vent Féérique souffle des étincelles qui peuvent apeurer l'ennemi. Togetic et Togekiss survolent l'eau, les murs et la boue." },
+  celebi:   { names:["Celebi","Celebi","Celebi"], secret:true, own:true, type:"plante", move:"gigasangsue", hp:46, speed:168, evo:"n'évolue pas, se renforce N.10 et N.22",
+            blurb:"Libéré de la Dark Ball au Bois aux Chênes. Voyage Temporel : une fois par partie, au lieu d'être K.O., Celebi remonte le temps et revient 5 s en arrière. Giga-Sangsue lance des feuilles qui aspirent les PV des ennemis. Celebi survole l'eau, les murs et la boue." },
 };
-const flyP = P => ((P.line === "feu" || P.line === "draco") && P.stage === 2) || (P.line === "togepi" && P.stage >= 1); // Dracaufeu, Dracolosse, Togetic et Togekiss volent
+const flyP = P => ((P.line === "feu" || P.line === "draco") && P.stage === 2) || (P.line === "togepi" && P.stage >= 1) || P.line === "celebi"; // Dracaufeu, Dracolosse, Togetic, Togekiss et Celebi volent
 const EVO_LEVELS = [10, 22];
 const BOSS_SPD = { bossPersian:1.1, bossTauros:1.2, bossArcanin:1.2 }; // les autres boss : +30 %
 const EEVEE = { // évolutions d'Évoli : type, capacité offerte, bonus

@@ -1,5 +1,5 @@
 /* ---------- Écran titre ---------- */
-const starterOrder = ["plante", "feu", "eau", "magicarpe", "miaouss", "pika", "evoli", "draco", "mew", "germignon", "heri", "kaiminus", "togepi"];
+const starterOrder = ["plante", "feu", "eau", "magicarpe", "miaouss", "pika", "evoli", "draco", "mew", "germignon", "heri", "kaiminus", "togepi", "celebi"];
 const levelBtns = [];
 $("lgBtn").addEventListener("click", nextRoom);
 const levelOpen = i => i === 0 || !!achs[LEVELS[i].jFirst ? "win9" : "win" + i]; // un niveau se débloque en terminant le précédent (Johto : après la Caverne Azurée)
@@ -35,7 +35,8 @@ const TALENTS = { plante:["Engrais", "récupère 0,4 PV par seconde."], feu:["Br
   pika:["Statik", "un ennemi qui le touche est paralysé 1 s."], evoli:["Adaptabilité", "+10 % d'expérience."], draco:["Multiécaille", "−10 % de dégâts reçus."],
   mew:["Fabuleux", "+10 % de dégâts et de bons PV."], miaouss:["Technicien", "+10 % de coups critiques."], germignon:["Feuille Garde", "une aura soigne les alliés proches et ralentit les ennemis."],
   heri:["Torche", "courir rend ses attaques Feu jusqu'à 40 % plus fortes."], kaiminus:["Sans Limite", "+15 % de dégâts au contact, chaque coup le soigne un peu."],
-  togepi:["Sérénité", "les effets secondaires (apeurer, charmer) se produisent deux fois plus souvent."] };
+  togepi:["Sérénité", "les effets secondaires (apeurer, charmer) se produisent deux fois plus souvent."],
+  celebi:["Voyage Temporel", "une fois par partie, au lieu d'être K.O., remonte le temps et revient 5 s en arrière."] };
 const lineMoves = line => { // capacités que ce starter peut apprendre (même règle que buildChoices, tous stades confondus)
   const L = LINES[line], out = [];
   for (const [id, m] of Object.entries(MOVES)) {

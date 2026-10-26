@@ -172,6 +172,19 @@ const FOES = {
   lgAlaka:    { name:"Alakazam du Champion", sprite:"alakazam",  types:["psy"],              hp:7000, speed:118, dmg:30, r:44, xp:200, boss:true, alaka:true },
   sulfura:   { name:"Sulfura",   types:["feu","vol"],      hp:7000, speed:92, dmg:42, r:46, xp:200, boss:true, bird:"fire", armor:.54, sprR:26, sprDy:14 },
 };
+// Johto : Bois aux Chênes. La Dark Ball a corrompu la forêt : ses Pokémon sont Obscurs (aura sombre, un peu plus coriaces et rapides, leur propre entrée au Pokédex)
+for (const [k, o] of Object.entries({ chenipan:{}, chrysacier:{}, papilusion:{}, aspicot:{}, coconfort:{}, dardargnan:{}, paras:{}, parasect:{}, nosferapti:{}, noeuf:{}, hoothoot:{}, noarfang:{} }))
+  FOES[k + "O"] = { ...FOES[k], ...o, name:FOES[k].name + " Obscur", sprite:FOES[k].sprite || k, hp:Math.round(FOES[k].hp * 1.3), speed:Math.round(FOES[k].speed * 1.1), johto:true, shadow:true };
+Object.assign(FOES, {
+  mystherbeO: { name:"Mystherbe Obscur", sprite:"mystherbe", types:["plante","poison"], hp:22, speed:50, dmg:5,  r:12, xp:1, johto:true, shadow:true },
+  ortideO:    { name:"Ortide Obscur",    sprite:"ortide",    types:["plante","poison"], hp:78, speed:50, dmg:10, r:16, xp:4, johto:true, shadow:true, sludge:true },
+  pomdepikO:  { name:"Pomdepik Obscur",  sprite:"pomdepik",  types:["insecte"],         hp:38, speed:54, dmg:9,  r:13, xp:2, johto:true, shadow:true, boom:true, fall:true },
+  foretressO: { name:"Foretress Obscur", sprite:"foretress", types:["insecte","acier"], hp:160, speed:44, dmg:14, r:19, xp:7, johto:true, shadow:true, boomR:120, armor:.8, heavy:true, fall:true },
+  bossParasect: { name:"Parasect Obscur géant",  sprite:"parasect",  types:["insecte","plante"], hp:1700, speed:58, dmg:18, r:42, xp:50,  boss:true, johto:true, shadow:true, spores:true },
+  bossForetress:{ name:"Foretress Obscur géant", sprite:"foretress", types:["insecte","acier"],  hp:3000, speed:46, dmg:22, r:44, xp:85,  boss:true, johto:true, shadow:true, spikes:true, armor:.75, heavy:true },
+  bossNoarfang: { name:"Noarfang Obscur géant",  sprite:"noarfang",  types:["normal","vol"],     hp:6400, speed:74, dmg:26, r:46, xp:130, boss:true, johto:true, shadow:true, night:true, dash:true, bigDash:true },
+  celebiO:    { name:"Celebi Obscur", sprite:"celebi", types:["psy","plante"], hp:3200, speed:0, dmg:20, r:28, xp:0, boss:true, johto:true, shadow:true, celebiO:true, hideDex:true },
+});
 const LEVELS = [
   { name:"Forêt de Jade", num:1, jade:true, title:"Tu as traversé la Forêt de Jade !", cave:false, where:"en forêt", from:"surgit des arbres",
     intro:"La Forêt de Jade grouille d'insectes, d'oiseaux, de Pichu et de quelques Pikachu. Choisis ton starter et traverse-la jusqu'à Argenta : tiens dix minutes.",
@@ -466,6 +479,30 @@ const LEVELS = [
       if (m > 2.5) o.push(["maraiste", 1 + m / 8]);
       if (m > 3.5) o.push(["xatu", 1 + m / 6]);
       if (m > 5.5) o.push(["zarbi", 1.5]);
+    } },
+  { name:"Bois aux Chênes", num:12, label:3, region:"johto", title:"Tu as traversé le Bois aux Chênes !", cave:false, jade:true, ilex:true, track:"forest", prop:"berrytree", where:"dans le Bois aux Chênes", from:"surgit des fourrés",
+    intro:"Il fait nuit noire au Bois aux Chênes, au sud d'Écorcia : seules les lucioles et ton Pokémon éclairent le sentier. Une Dark Ball y a corrompu la forêt : Chenipan, Aspicot, Paras, Mystherbe, Nosferapti, Hoothoot et Noeunoeuf sont tous devenus Obscurs, et des Pomdepik tombent des arbres. Parasect Obscur géant, puis Foretress et Noarfang Obscurs géants gardent le sentier. Rattrape le Canarticho fugueur : il coupera les arbustes pour toi. Et si un chant brisé résonne entre les arbres… c'est peut-être Celebi. Tiens dix minutes.",
+    win:"a traversé le Bois aux Chênes. La lumière revient entre les arbres, et les Pokémon Obscurs retrouvent leur calme.",
+    matchup:{ plante:["Difficile", "Insectes, Poison et Vol résistent à la Plante, et presque toute la forêt en fait partie."],
+              eau:["Neutre", "L'Eau frappe normalement les insectes, mais les Paras, Mystherbe et Noeunoeuf (Plante) lui résistent."],
+              feu:["Avantagé", "Le Feu brûle les insectes, les plantes et même Foretress (Acier) : le Bois aux Chênes est fait pour toi."],
+              miaouss:["Neutre", "Le Normal frappe presque tout le monde normalement, sauf Foretress (Acier)."],
+              pika:["Neutre", "L'Électrik foudroie Papilusion, Nosferapti, Hoothoot et Noarfang (Vol), mais les plantes lui résistent."],
+              evoli:["Variable", "Normal au départ, puis le type de ton évolution au N.10. Pyroli est idéal ici."],
+              draco:["Neutre", "Le Dragon n'a pas d'avantage ici, mais il résiste aux feuilles de Celebi Obscur."],
+              mew:["Variable", "Métronome peut tirer n'importe quel type : chaque partie est une surprise."],
+              kaiminus:["Neutre", "Mâchouille (Ténèbres) croque les Noeunoeuf et Celebi Obscur (Psy), mais l'Eau glisse sur les plantes."],
+              fee:["Variable", "La Fée glisse sur les Pokémon Poison et Foretress, mais Lame d'Air (Vol) tranche les insectes et les plantes."] },
+    rings:["chenipanO", "parasO", "nosferaptiO", "hoothootO"],
+    event:{ kind:"celebiO", from:330, to:420, chance:1/3 }, // Celebi Obscur, à purifier et capturer (Canarticho, lui, vient à chaque partie)
+    bosses:[{ at:170, kind:"bossParasect" }, { at:300, kind:"bossForetress" }, { at:450, kind:"bossNoarfang" }],
+    table(m, o) {
+      o.push(["chenipanO", m < 3 ? 2.6 : .6], ["aspicotO", m < 3 ? 2.6 : .6], ["parasO", m < 3 ? 2 : .8], ["mystherbeO", m < 4 ? 2 : .8]);
+      if (m > .7)  o.push(["nosferaptiO", 1.4], ["hoothootO", 1.2]);
+      if (m > 1.5) o.push(["chrysacierO", 1.1], ["coconfortO", 1.1], ["pomdepikO", 1.3]);
+      if (m > 2.5) o.push(["noeufO", 1.2], ["ortideO", 1 + m / 8]);
+      if (m > 3.5) o.push(["papilusionO", 1.2 + m / 6], ["dardargnanO", 1.2 + m / 6], ["parasectO", 1 + m / 8]);
+      if (m > 5)   o.push(["noarfangO", 1 + m / 6], ["foretressO", .6 + m / 10]);
     } },
 ];
 for (const lv of LEVELS) if (lv.maps) Object.assign(lv, lv.maps[0], { mapIdx:0 });

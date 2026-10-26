@@ -126,6 +126,17 @@ const MOVES = {
     desc: lv => ["Toutes les 4 s, un éclat de lumière frappe les ennemis autour de toi. 20 % de chances de les charmer : ils s'éloignent sans attaquer 1,5 s.", "Éclat plus large.", "Dégâts +40 %.", "Toutes les 3 s.", "Charme de 2,5 s."][lv-1] },
   metronome:   { name:"Métronome", type:"normal", line:"togepi", rare:{ minLvl:8, w:.35 }, max:5,
     desc: lv => ["Toutes les 6 s, agite les doigts et emprunte au hasard l'attaque d'un autre starter.", "Attaques empruntées plus puissantes.", "Attaques encore plus puissantes.", "Change toutes les 5 s.", "Deux attaques à la fois."][lv-1] },
+  // ---- Celebi ----
+  gigasangsue: { name:"Giga-Sangsue", type:"plante", line:"celebi", max:5,
+    desc: lv => ["Deux feuilles vont chercher leur cible et aspirent ses PV : Celebi récupère 7 % des dégâts.", "+1 feuille.", "Dégâts +35 %.", "+1 feuille, recharge plus rapide.", "Aspire 12 % des dégâts."][lv-1] },
+  chocmental:  { name:"Choc Mental", type:"psy", line:"celebi", max:5,
+    desc: lv => ["Toutes les 2,6 s, une onde psychique frappe les ennemis autour de toi. 30 % de chances de les désorienter : ils s'éloignent 1 s.", "Onde plus large.", "Dégâts +40 %.", "Toutes les 2 s.", "Désoriente une fois sur deux."][lv-1] },
+  pouvoirantique:{ name:"Pouvoir Antique", type:"roche", line:"celebi", max:5,
+    desc: lv => ["Trois rochers anciens filent vers les ennemis. 12 % de chances que toutes tes stats montent 6 s (dégâts +20 %, vitesse +10 %).", "+1 rocher.", "Dégâts +40 %.", "Recharge plus rapide.", "+1 rocher."][lv-1] },
+  prescience:  { name:"Prescience", type:"psy", line:"celebi", max:5,
+    desc: lv => ["Marque les 2 ennemis les plus coriaces : 2 s plus tard, une explosion psychique les frappe, eux et leurs voisins.", "+1 marque.", "Dégâts +40 %.", "+1 marque, recharge plus rapide.", "Explosions bien plus larges."][lv-1] },
+  dansefleur:  { name:"Danse-Fleur", type:"plante", line:"celebi", rare:{ minLvl:8, w:.35 }, max:5,
+    desc: lv => ["Celebi tourbillonne 2,6 s dans une tornade de pétales qui fauche tout autour de lui.", "Tornade plus large et plus longue.", "Dégâts +40 %.", "Une danse toutes les 6 s.", "Tornade encore plus large."][lv-1] },
 };
 const ITEMS = {
   carbone:  { name:"Protéine", max:5, desc:"Attaque +12 % pour toutes les capacités." },

@@ -105,6 +105,7 @@ function renderChunk(ci, cj) {
   for (let i = 0; i < (LEVEL.safari || jade ? 0 : 3); i++) { const mx = x0 + R() * CH, my = y0 + R() * CH; if (nearPath(mx, my, 60)) continue; ell(g, mx + 3, my + 4, 7, 3, "rgba(0,0,0,.25)"); g.fillStyle = "#efe2c4"; g.fillRect(mx - 2, my - 4, 4, 7); ell(g, mx, my - 5, 7, 4.5, "#d8483a"); circ(g, mx - 3, my - 6, 1.2, "#fff"); circ(g, mx + 2, my - 7, 1, "#fff"); }
   // étangs
   for (const p of all.ponds) {
+    if (ilexOn()) { ilexPond(g, p); continue; }
     g.save(); g.translate(p.x, p.y); g.rotate(p.rot);
     ell(g, 3, 6, p.rx + 12, p.ry + 10, "rgba(20,40,20,.35)");
     if (LEVEL.safari) { ell(g, 0, 0, p.rx + 22, p.ry + 18, "#8a6438"); ell(g, 0, 0, p.rx + 12, p.ry + 10, "#6e4c2a"); } // berge de boue piétinée
@@ -135,6 +136,7 @@ function renderChunk(ci, cj) {
   }
   // rochers
   for (const r of all.rocks) {
+    if (ilexOn()) { ilexRock(g, r); continue; }
     if (jade) { jadeRock(g, r); continue; }
     ell(g, r.x + 5, r.y + r.r * .55, r.r * 1.1, r.r * .5, "rgba(10,25,10,.35)");
     const rg = g.createRadialGradient(r.x - r.r * .35, r.y - r.r * .5, 2, r.x, r.y, r.r * 1.1);
