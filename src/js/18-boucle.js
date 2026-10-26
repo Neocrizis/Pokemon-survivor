@@ -432,6 +432,7 @@ function update(dt) {
   }
   if (updateJohtoFoes(dt)) return;
   if (updateAlph(dt)) return;
+  if (updateIlex(dt)) return;
   // Magmar géant : Lance-Flammes (gerbe de feu continue vers le joueur)
   for (const f of S.foes) if (f.d.flamer && !(f.sleepT > 0)) {
     P = S.P = nearP(f.x, f.y);
@@ -602,6 +603,7 @@ function update(dt) {
       if (!f.d.boss && !f.d.event && !f.d.mother && !f.d.rare && !f.stamp && Math.hypot(f.x - P.x, f.y - P.y) > 1400) { const a = Math.random()*Math.PI*2; f.x = P.x + Math.cos(a)*700; f.y = P.y + Math.sin(a)*700; if (LEVEL.alph) alphPlace(f); }
       alive.push(f); continue;
     }
+    if (f.d.celebiO && !f.gone) { celebiPurify(f); alive.push(f); continue; } // Celebi Obscur ne tombe jamais K.O. : il se purifie
     if (f.gone) continue; // troupeau qui s'éloigne, Pokémon rare enfui
     if (f.d.rare) { if (f.caught) rareCaught(f); continue; }
     if (f.d.mother) { motherCalm(f); continue; }

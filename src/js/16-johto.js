@@ -173,6 +173,7 @@ function jPetals(P, lv) { // Tempête Florale : tous les ennemis à l'écran
   for (const f of S.foes) if (!f.prop && !f.d.rare && f.hp > 0 && Math.abs(f.x - P.x) < 560 && Math.abs(f.y - P.y) < 380) { hitFoe(f, dmg, "plante"); if (Math.random() < .5) emit(f.x, f.y, 3, "plante", { sp:90, life:.4 }); }
 }
 function updateJohto(P, dt) { // talents et effets continus des starters de Johto (appelé pour chaque joueur)
+  if (P.line === "celebi") celebiTalent(P, dt);
   if (P.line === "heri") { // Torche : la Chaleur monte en courant et retombe à l'arrêt
     P.heat = Math.max(0, Math.min(1, (P.heat || 0) + (P.moving ? .35 : -.5) * dt));
     if (P.heat > .4 && Math.random() < dt * 20 * P.heat) emit(P.x - (P.fx || 0) * 8, P.y - 10, 1, "feu", { sp:30, life:.4, up:40, r:2 });

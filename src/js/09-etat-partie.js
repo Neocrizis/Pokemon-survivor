@@ -19,7 +19,7 @@ const pTag = (p = S.P) => S.players.length > 1 ? `J${p.idx + 1} · ` : "";
 function mkPlayer(line, idx, n) {
   const L = LINES[line];
   const P = { idx, x:(idx - (n - 1) / 2) * 44, y:START_Y, r:13, line, stage:0, hp:L.hp, maxHp:L.hp, baseSpeed:L.speed, lvl:1, xp:0, need:6, fx:1, fy:0, flip:false,
-    inv:0, dmgMul:L.dmg || 1, cdMul:L.cd || 1, magnet:70, regen:L.regen || 0, moves:{}, items:{}, dealt:0, evoFlash:0, pendingLv:0, spiky: line === "pika" && Math.random() < 1/30, shiny: line === "magicarpe" || (idx === 0 && secretShiny) || Math.random() < 1/30 }; // Magicarpe La Légende est toujours chromatique
+    inv:0, dmgMul:L.dmg || 1, cdMul:L.cd || 1, magnet:70, regen:L.regen || 0, moves:{}, items:{}, dealt:0, evoFlash:0, pendingLv:0, spiky: line === "pika" && Math.random() < 1/30, shiny: line === "magicarpe" || (line === "celebi" && !!achs.celebiS) || (idx === 0 && secretShiny) || Math.random() < 1/30 }; // Magicarpe La Légende est toujours chromatique
   P.moves[L.move] = { lv:1, t:.3 };
   P.dmgMul *= 1 + .02 * (shop.dmg || 0); P.baseSpeed *= 1 + .02 * (shop.spd || 0); P.maxHp = P.hp = Math.round(P.maxHp * (1 + .02 * (shop.hp || 0))); // achats du Marchand
   if (shop.rappel && !NUZ) P.revives = 1; // Rappel du Marchand
@@ -42,6 +42,7 @@ function newGame(line, mapK) {
   if (LEVEL.maps) banner(`Carte tirée au sort : ${LEVEL.mapName} ! ${LEVEL.tip}`);
   if (LEVEL.league) { S.lgPh = "wild"; S.roomT = 0; S.nextRing = 60; banner(`Salle 1 sur 5 : ${LEVEL.member} (${LEVEL.mtype}). ${LEVEL.tip}`); }
   if (LEVEL.tower && !LEVEL.sprout && !scopeOn()) banner("Les Spectres sont impossibles à identifier… Il te faudrait le Scope Sylphe !");
+  if (LEVEL.ilex) banner("Vous ressentez une ombre pesante sur la forêt…");
   for (const p of S.players) if (p.shiny) { S.P = p; banner(`${pTag()}Waouh ! ${pName()} chromatique !` + (p.spiky ? " Et c'est un Pichu Troizépi !" : "")); p.evoFlash = 1.2; } // 1 partie sur 30
   S.P = S.players[0];
   if (S.players.length > 1) banner(`${S.players.length} joueurs ! Restez groupés : un coéquipier K.O. se relève si on reste 3 s à côté de lui.`);
@@ -70,6 +71,7 @@ function hurtP(v) {
   P.hp -= dmg; P.inv = .5; S.bossClean = false; sfx("hurt");
   try { (P.gp || pad.gp)?.vibrationActuator?.playEffect("dual-rumble", { duration:120, strongMagnitude:.35, weakMagnitude:.25 }); } catch (e) {}
   if (P.hp > 0) return false;
+  if (P.line === "celebi" && celebiRewind(P)) return false; // Voyage Temporel (Celebi), une fois par partie
   if (P.revives > 0) {
     P.revives--; P.deaths = (P.deaths || 0) + 1; P.revived = (P.revived || 0) + 1; P.hp = Math.round(P.maxHp * .5); P.inv = 2.5; P.evoFlash = 1;
     for (const f of S.foes) { if (f.d.boss) continue; const dx = f.x - P.x, dy = f.y - P.y, d = Math.hypot(dx, dy) || 1; if (d < 320) { f.kbx = dx / d * 700; f.kby = dy / d * 700; } }
@@ -97,6 +99,7 @@ function statusHit(P, s) { // Glace : ralentit ; Cage-Éclair : paralyse
   if (s.type === "glace") { if (!(P.slowT > 0)) S.texts.push({ x:P.x, y:P.y - P.r - 34, txt:"Ralenti !", col:"#a8e4ff", life:1, label:true }); P.slowT = Math.max(P.slowT || 0, s.slow || 1.6); }
   if (s.para) paralyze(P, s.para);
   if (s.burn) burnP(P, s.burn);
+  if (s.hypno) hypnoHit(P); // Hypnose de Noarfang Obscur géant
 }
 function burnP(P, t) { // Lance-Flammes de Sulfura : brûlure (les Pokémon Feu ne brûlent pas)
   if (ptype() === "feu") return;
