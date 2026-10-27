@@ -19,7 +19,6 @@ function burnedChunk(ci, cj) {
     const hh = Math.min(...[L, Rs].map(s => s.reduce((a, n) => a + TC.R[n][3], 0))) * K, x = x0 + 40 + R() * (CH - w - 80), y = y0 + 30 + R() * Math.max(1, CH - hh - 60);
     if (far(x + w / 2, y + hh / 2, Math.max(w, hh) / 2)) { const bush = []; for (let i = 0; i < 2 + R() * 4; i++) bush.push([x + 50 + R() * (w - 100), y + 40 + R() * (hh - 70)]); holes.push({ x, y, w, h:hh, L, R:Rs, bush }); }
   }
-  for (let i = 0; i < 3 + R() * 3; i++) { const x = x0 + R() * CH, y = y0 + R() * CH; if (!inHole(x, y, 40)) beams.push({ x, y, n:["beamA", "beamB", "beamC"][R() * 3 | 0], flip:R() < .5 }); } // poutres brûlées tombées au sol
   for (let i = 0; i < 2 + R() * 4; i++) { const x = x0 + R() * CH, y = y0 + R() * CH; if (!inHole(x, y, 50)) planks.push({ x, y, n:["plankA", "plankB", "plankC"][R() * 3 | 0], a:R() < .6 ? (R() - .5) * .5 : Math.PI / 2 + (R() - .5) * .4, flip:R() < .5 }); } // planches arrachées
   if (R() < .22) { const x = x0 + 70 + R() * (CH - 140), y = y0 + 140 + R() * (CH - 160); if (far(x, y, 70) && !inHole(x, y, 90)) pillars.push({ x, y }); } // grand pilier calciné du sous-sol
   if (R() < .3) { const x = x0 + 60 + R() * (CH - 120), y = y0 + 60 + R() * (CH - 120); if (far(x, y, 40) && !inHole(x, y, 50)) { statues.push({ x, y }); if (R() < .6) statues.push({ x:x + 80 + R() * 60, y }); } } // statues de pierre, souvent par deux
@@ -50,7 +49,6 @@ function renderBurnedChunk(ci, cj) {
   for (const h of all.holes) burnedHole(g, h);
   for (const l of all.ladders) tcSpr(g, "ladder", l.x - 13 * K, l.y - 14 * K);
   if (TC.pl) for (const p of all.planks) { const q = TC.PL[p.n]; g.save(); g.translate(p.x, p.y); g.rotate(p.a); if (p.flip) g.scale(-1, 1); g.fillStyle = "rgba(20,12,6,.3)"; g.fillRect(-q[2] * K / 2 + 2, -q[3] * K / 2 + 3, q[2] * K, q[3] * K); g.drawImage(TC.pl, q[0], q[1], q[2], q[3], -q[2] * K / 2, -q[3] * K / 2, q[2] * K, q[3] * K); g.restore(); }
-  for (const b of all.beams) { const q = TC.R[b.n]; tcSpr(g, b.n, b.x - q[2] * K / 2, b.y - q[3] * K / 2, K, b.flip); }
   const tall = [...all.statues.map(q => ({ q, k:"s" })), ...all.pillars.map(q => ({ q, k:"p" }))].sort((a, b) => a.q.y - b.q.y);
   for (const { q, k } of tall) k === "s" ? tcSpr(g, "statue", q.x - 10 * K, q.y - 34 * K) : tcSpr(g, "pillar", q.x - 30 * K, q.y - 80 * K);
   c.canvas = cv2; return cv2;
