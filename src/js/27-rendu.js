@@ -316,6 +316,7 @@ function drawProp(f, t) {
     cx.fillStyle = "#6a4028"; cx.fillRect(x - 7, y - 17, 14, 4); cx.fillStyle = "#b07a4c"; ell(cx, x - 5, y - 4, 3, 6, "#b07a4c");
     cx.strokeStyle = "#d8b060"; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(x - 11, y + 1); cx.lineTo(x + 11, y + 1); cx.stroke();
   } else { // rocher fissuré (Éclate-Roc)
+    if (LEVEL.burned && TC.img) { ell(cx, x, y + 12, 17, 5, "rgba(0,0,0,.25)"); cx.imageSmoothingEnabled = false; tcSpr(cx, "rockY", x - 7.5 * 2.4, y + 14 - 15 * 2.4, 2.4); return; } // Tour Cendrée : rocher Éclate-Roc de la capture HGSS
     if (LEVEL.alph && AL.img) { ell(cx, x, y + 12, 17, 5, "rgba(0,0,0,.25)"); cx.imageSmoothingEnabled = false; alSpr(cx, "smash", x - 7 * 2.6, y + 14 - 13 * 2.6, 2.6); return; } // Ruines d'Alpha : rocher Éclate-Roc de HGSS
     if (moonOn()) { const q = MM.R.smash, K = 1.4; ell(cx, x, y + 14, 18, 5, "rgba(0,0,0,.3)"); cx.imageSmoothingEnabled = false; cx.drawImage(MM.img, q[0], q[1], q[2], q[3], x - q[2] * K / 2, y + 16 - q[3] * K, q[2] * K, q[3] * K); return; } // rocher Éclate-Roc de HGSS
     ell(cx, x, y + 13, 20, 6, "rgba(0,0,0,.3)"); drawBoulder(x, y, 18, 1.3);

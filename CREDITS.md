@@ -114,3 +114,8 @@ Bois aux Chênes : arbres, sol d'herbe et touffes, rochers moussus, eau des mare
 Ruines d'Alpha : bâtiments rendus depuis les modèles 3D « Map Objects - Ruins of Alph Buildings » de **Pokémon HeartGold / SoulSilver** (ripés et partagés sur The Models Resource) ; rochers, rocher Éclate-Roc et stèles découpés dans une capture de la carte des Ruines d'Alpha du même jeu (© Nintendo, Creatures, Game Freak). Salles intérieures (Salle des Statues, Salle des Zarbi, Grand Couloir) : composées pour le jeu uniquement avec des morceaux de captures d'écran DS de **Pokémon HeartGold / SoulSilver** (sol retissé à partir du sol d'origine, frises, bordures, statues, piliers, échelle). Sol de sable, sentier et bassins dessinés pour le jeu. Usage non commercial uniquement.
 
 Parc Safari : cartes des sept biomes fournies par Neocrizis (style **Pokémon Rouge Feu / Vert Feuille**) ; portique d'entrée rendu depuis le modèle 3D « Safari Zone Archway » de **Pokémon HeartGold / SoulSilver** (ripé et partagé sur The Models Resource). © Nintendo, Creatures, Game Freak. Usage non commercial uniquement.
+
+## Tour Cendrée (décor)
+
+- Plancher, bords de trou, sous-sol, poutres brûlées, statues, piliers et rochers : découpés dans des captures de la Tour Cendrée de Pokémon HeartGold/SoulSilver (© Nintendo / Game Freak / The Pokémon Company), fournies par Neocrizis. Usage non commercial.
+- Cendres qui brûlent : modèle « Flames & Ashes » de The Simpsons Bowling (Konami), via The Models Resource, rendu en images. Usage non commercial.

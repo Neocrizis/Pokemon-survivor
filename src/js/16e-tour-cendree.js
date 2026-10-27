@@ -217,14 +217,13 @@ function updateBurned(dt) {
 function drawBurnedUnder(t) {
   if (!LEVEL.burned) return;
   const k = emberK(), camX = S.cam.x - W / ZOOM / 2, camY = S.cam.y - H / ZOOM / 2;
-  if (k > 0) { // braises : charbons rougeoyants qui palpitent
-    const one = (e, r) => {
+  { // braises : tas de cendres qui brûlent (éteints pour de bon après la pluie)
+    const one = (e, r0) => {
+      const r = k > 0 ? r0 / k : e.r; // éteintes, les cendres restent visibles
       if (r <= 0 || e.x < camX - 80 || e.y < camY - 80 || e.x > camX + W / ZOOM + 80 || e.y > camY + H / ZOOM + 80) return;
-      const fl = .75 + .25 * Math.sin(t * 5 + e.ph) * Math.sin(t * 2.3 + e.ph * 2);
-      cx.save(); cx.globalCompositeOperation = "lighter"; glow(e.x, e.y, r * 1.6, "255,110,30", .35 * fl); cx.restore();
-      for (let i = 0; i < 7; i++) { const an = i * 2.4 + e.ph, d = r * (.15 + ((i * 37) % 10) / 14), x = e.x + Math.cos(an) * d, y = e.y + Math.sin(an) * d * .6, s = 2.4 + (i % 3);
-        circ(cx, x, y, s * 1.8, `rgba(255,90,20,${.35 * fl})`); circ(cx, x, y, s, `rgba(255,${180 + (i % 2) * 50},80,${.9 * fl})`); }
-      if (Math.random() < .04) emit(e.x + (Math.random() - .5) * r, e.y + (Math.random() - .5) * r * .5, 1, "feu", { sp:15, life:.8, up:70, r:1.8 });
+      if (k > 0) { const fl = .75 + .25 * Math.sin(t * 5 + e.ph) * Math.sin(t * 2.3 + e.ph * 2); cx.save(); cx.globalCompositeOperation = "lighter"; glow(e.x, e.y, r * 1.4, "255,110,30", .25 * fl); cx.restore(); }
+      drawEmber(e, r * (k > 1 ? 1.15 : 1), t, k > 0);
+      if (k > 0 && Math.random() < .04) emit(e.x + (Math.random() - .5) * r, e.y - r * .4, 1, "feu", { sp:15, life:.8, up:70, r:1.8 });
     };
     embersNear(S.cam.x, S.cam.y, one);
   }
