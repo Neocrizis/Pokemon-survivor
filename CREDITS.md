@@ -118,4 +118,5 @@ Parc Safari : cartes des sept biomes fournies par Neocrizis (style **Pokémon Ro
 ## Tour Cendrée (décor)
 
 - Plancher, bords de trou, sous-sol, poutres brûlées, statues, piliers et rochers : découpés dans des captures de la Tour Cendrée de Pokémon HeartGold/SoulSilver (© Nintendo / Game Freak / The Pokémon Company), fournies par Neocrizis. Usage non commercial.
+- Planches au sol : texture « Board Plank » (contenu inutilisé) d'Another Code: R – A Journey Into Lost Memories (Wii, © Nintendo / Cing), fournie par Neocrizis. Usage non commercial.
 - Cendres qui brûlent : modèle « Flames & Ashes » de The Simpsons Bowling (Konami), via The Models Resource, rendu en images. Usage non commercial.
