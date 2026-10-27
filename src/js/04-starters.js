@@ -39,6 +39,8 @@ const EEVEE = { // évolutions d'Évoli : type, capacité offerte, bonus
   aquali:   { name:"Aquali",   type:"eau",      move:"pistolet",    bonus:"PV max +30, nage dans l'eau.", apply:P => { P.maxHp += 30; P.hp += 30; } },
   phyllali: { name:"Phyllali", type:"plante",   move:"tranchherbe", bonus:"Récupère 0,3 PV par seconde.", apply:P => { P.regen += .3; } },
   voltali:  { name:"Voltali",  type:"electrik", move:"tonnerre",    bonus:"Vitesse +10 %.",             apply:P => { P.baseSpeed *= 1.1; } },
+  mentali:  { name:"Mentali",  type:"psy",      move:"rafalepsy",   bonus:"Recharge −10 %.",            apply:P => { P.cdMul *= .9; }, ach:"purif" }, // succès « Purificateur »
+  noctali:  { name:"Noctali",  type:"tenebres", move:"feinte",      bonus:"Dégâts reçus −10 %.",        apply:() => {}, ach:"purif" }, // −10 % : hurtP
 };
 const veiled = d => LEVEL.tower && !LEVEL.sprout && d.ghost && !scopeOn(); // Spectre non identifié (pas de Scope Sylphe)
 const foeName = d => veiled(d) ? "???" : d.name;

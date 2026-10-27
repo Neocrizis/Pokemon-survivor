@@ -106,9 +106,9 @@ function showChest(n, got, P) {
 function closeChest() { if (NET.role === "guest") { $("chest").hidden = true; state = "netplay"; netSend({ t:"chestok" }); return; } doneChoosing(S.chooser || S.P); }
 let choices = [];
 function reroll() { if (state !== "levelup" || !(S.rerolls > 0)) return; if (NET.role === "guest") { netSend({ t:"reroll" }); return; } S.rerolls--; S.P = S.chooser || S.P; openLevelUp(); }
-function openEvo() {
+function openEvo(given) { // given : formes proposées par l'hôte (invité en ligne)
   sfx("levelup"); state = "levelup"; $("autoPotRow").hidden = true;
-  choices = Object.keys(EEVEE).map(id => ({ kind:"evo", id }));
+  choices = given || eeveeForms().map(id => ({ kind:"evo", id }));
   $("luTitle").textContent = `${pTag()}Quoi ? Évoli évolue !`;
   $("luSub").textContent = "Choisis son évolution : elle donne son type à Évoli et débloque les capacités de ce type.";
   const box = $("luCards"); box.innerHTML = "";
@@ -120,6 +120,15 @@ function openEvo() {
     const draw = now => { if (state !== "levelup" || !c.isConnected) return; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 240, 120); drawMon(g, kind, 120, 56, 26, false, now / 1000, 1, 1, true); requestAnimationFrame(draw); };
     requestAnimationFrame(draw);
   });
+  if (!given) for (const id of Object.keys(EEVEE).filter(k => !eeveeOpen(k))) { // formes pas encore débloquées : silhouettes « ? »
+    const E = EEVEE[id], b = document.createElement("button"); b.className = "card lockedEvo"; b.type = "button"; b.disabled = true; b.style.setProperty("--c", "#6b6b78");
+    b.innerHTML = `<canvas width="240" height="120" class="evoPrev"></canvas><div class="card-body"><span class="tag">🔒 Verrouillé</span><h3>???</h3><p>Succès « Purificateur » : vaincre ${nFr(SHADOW_GOAL)} Pokémon Obscurs (${nFr(Math.min(shadowKills(), SHADOW_GOAL))} / ${nFr(SHADOW_GOAL)}).</p></div>`;
+    box.appendChild(b);
+    const c = b.querySelector("canvas"), g = c.getContext("2d");
+    const draw = now => { if (state !== "levelup" || !c.isConnected) return; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 240, 120); drawMon(g, id, 120, 56, 26, false, now / 1000, 1, 1, true);
+      g.globalCompositeOperation = "source-atop"; g.fillStyle = "#15151c"; g.fillRect(0, 0, 240, 120); g.globalCompositeOperation = "source-over"; requestAnimationFrame(draw); };
+    requestAnimationFrame(draw);
+  }
   $("levelup").hidden = false; $("rerollBtn").hidden = true;
   box.querySelector("button")?.focus({ preventScroll:true });
 }

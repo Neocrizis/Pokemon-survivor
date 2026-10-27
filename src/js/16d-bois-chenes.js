@@ -342,7 +342,7 @@ const CMOVE = {
     if (!tg.length) { m.t = .3; return; }
     m.t = (lv >= 4 ? 2.6 : 3.4) * P.cdMul;
     const dmg = (40 + 12 * lv) * (lv >= 3 ? 1.4 : 1), R0 = (lv >= 5 ? 90 : 60) * AREA();
-    for (const f of tg) (S.futures ||= []).push({ f, x:f.x, y:f.y, t:2, dmg, R:R0, o:P });
+    for (const f of tg) (S.futures ||= []).push({ f, x:f.x, y:f.y, t:2, dmg, R:R0, o:P, src:HIT_SRC });
   },
   dansefleur(P, m, lv) { // Danse-Fleur : Celebi tourbillonne, une tornade de pétales fauche tout autour
     m.t = (lv >= 4 ? 6 : 8) * P.cdMul;
@@ -359,9 +359,12 @@ function celebiTalent(P, dt) { // historique des PV et de la position (Voyage Te
       for (const f of S.foes) if (!f.prop && !f.d.rare && f.hp > 0 && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (R0 + f.r) ** 2) hitFoe(f, dmg, "plante"); }
     P.petalR = R0;
   } else P.petalR = 0;
-  if (S.futures) { // Prescience : les marques explosent
+  updateFutures(P, dt);
+}
+function updateFutures(P, dt) { // Prescience (Celebi, Mentali) : les marques explosent
+  if (S.futures) {
     for (const fu of S.futures) if (fu.o === P) { fu.t -= dt; if (fu.f.hp > 0) { fu.x = fu.f.x; fu.y = fu.f.y; }
-      if (fu.t <= 0) { HIT_SRC = "prescience"; S.fxs.push({ x:fu.x, y:fu.y, r:0, max:fu.R * 1.3, life:.35, col:"rgba(240,110,200," }); emit(fu.x, fu.y, 14, "psy", { sp:200, life:.4 });
+      if (fu.t <= 0) { HIT_SRC = fu.src || "prescience"; S.fxs.push({ x:fu.x, y:fu.y, r:0, max:fu.R * 1.3, life:.35, col:"rgba(240,110,200," }); emit(fu.x, fu.y, 14, "psy", { sp:200, life:.4 });
         for (const f of S.foes) if (!f.prop && !f.d.rare && f.hp > 0 && (f.x - fu.x) ** 2 + (f.y - fu.y) ** 2 < (fu.R + f.r) ** 2) hitFoe(f, fu.dmg, "psy"); } }
     S.futures = S.futures.filter(fu => fu.t > 0);
   }

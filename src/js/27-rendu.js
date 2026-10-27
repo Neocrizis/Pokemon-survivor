@@ -727,6 +727,11 @@ function render(now) {
   for (const bm of S.beams) {
     const k = bm.life / .4, wob = Math.sin(t * 60) * 2;
     cx.lineCap = "round";
+    if (bm.psy) { // Rafale Psy
+      cx.strokeStyle = `rgba(200,70,170,${.4 * k})`; cx.lineWidth = bm.w * 1.6 + wob; cx.beginPath(); cx.moveTo(bm.sx, bm.sy); cx.lineTo(bm.ex, bm.ey); cx.stroke();
+      cx.strokeStyle = `rgba(255,140,220,${.85 * k})`; cx.lineWidth = bm.w * .8; cx.stroke();
+      cx.strokeStyle = `rgba(255,240,250,${k})`; cx.lineWidth = bm.w * .3; cx.stroke(); continue;
+    }
     if (bm.hyper) { // Ultralaser
       cx.strokeStyle = `rgba(200,120,40,${.45 * k})`; cx.lineWidth = bm.w * 1.6 + wob; cx.beginPath(); cx.moveTo(bm.sx, bm.sy); cx.lineTo(bm.ex, bm.ey); cx.stroke();
       cx.strokeStyle = `rgba(255,214,120,${.85 * k})`; cx.lineWidth = bm.w; cx.stroke();
@@ -741,6 +746,7 @@ function render(now) {
   drawJohtoOver(t, CAM, vw, vh);
   drawAlphOver(t, CAM, vw, vh);
   drawCelebiP(t);
+  drawEvoliObscur(t);
   for (const tl of S.tails) { // Draco-Queue (et Hydroqueue) : arc de queue qui balaie le cercle
     const P = tl.o || S.P, k = tl.life / .3, sw = (1 - k) * Math.PI * 2.2 + tl.a;
     cx.save(); cx.lineCap = "round";
