@@ -43,13 +43,14 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
 const motes = [];
 function drawMotes(camX, camY, vw, vh, t, dt) {
   if (LEVEL.rocket) return;
-  while (motes.length < 46) motes.push({ x:camX + Math.random() * vw, y:camY + Math.random() * vh, leaf:!LEVEL.cave && !LEVEL.safari && !LEVEL.alph && Math.random() < .45, ph:Math.random() * 6, s:.6 + Math.random() * .8 });
+  while (motes.length < 46) motes.push({ x:camX + Math.random() * vw, y:camY + Math.random() * vh, leaf:!LEVEL.cave && !LEVEL.safari && !LEVEL.alph && !LEVEL.burned && Math.random() < .45, ph:Math.random() * 6, s:.6 + Math.random() * .8 });
   for (const m of motes) {
     if (m.leaf) { m.x += (14 + Math.sin(t + m.ph) * 22) * dt; m.y += 24 * m.s * dt; }
     else { m.x += Math.sin(t * .7 + m.ph) * 10 * dt; m.y += Math.cos(t * .5 + m.ph) * 8 * dt; }
     if (m.x < camX - 20) m.x += vw + 40; if (m.x > camX + vw + 20) m.x -= vw + 40;
     if (m.y < camY - 20) m.y += vh + 40; if (m.y > camY + vh + 20) m.y -= vh + 40;
     if (m.leaf) ell(cx, m.x, m.y, 4.5 * m.s, 2.2 * m.s, ["#e0892e", "#c8502a", "#e9b740", "#7fb04a"][Math.floor(m.ph * 10) % 4], t * 2 + m.ph);
+    else if (LEVEL.burned) burnedMote(m, t, dt); // Tour Cendrée : cendres et braises qui montent
     else if (LEVEL.manor) { const a = .4 + .4 * Math.sin(t * 3 + m.ph); m.y -= 14 * dt; circ(cx, m.x, m.y, 3 * m.s, `rgba(255,120,40,${a * .25})`); circ(cx, m.x, m.y, 1.1 * m.s, `rgba(255,200,120,${a})`); }
     else if (LEVEL.ice) { const a = .5 + .3 * Math.sin(t * 2 + m.ph); m.y += 26 * m.s * dt; circ(cx, m.x, m.y, 2.2 * m.s, `rgba(255,255,255,${a})`); } // flocons
     else if (LEVEL.lava) { const a = .4 + .4 * Math.sin(t * 3 + m.ph); m.y -= 22 * dt; circ(cx, m.x, m.y, 3 * m.s, `rgba(255,110,30,${a * .25})`); circ(cx, m.x, m.y, 1.2 * m.s, `rgba(255,200,110,${a})`); } // braises
@@ -233,7 +234,7 @@ function drawMap7Over(t) {
   }
 }
 function drawLight(t) {
-  if (LEVEL.cave || LEVEL.ilex) return; // pas de rayons de soleil la nuit au Bois aux Chênes
+  if (LEVEL.cave || LEVEL.ilex || LEVEL.burned) return; // pas de rayons de soleil la nuit au Bois aux Chênes
   cx.save(); cx.globalCompositeOperation = "lighter";
   for (let i = 0; i < 4; i++) {
     const x = (((i * .29 + t * .004) % 1.4) - .2) * W, w = 90 + i * 40;
@@ -315,6 +316,7 @@ function drawProp(f, t) {
     cx.fillStyle = "#6a4028"; cx.fillRect(x - 7, y - 17, 14, 4); cx.fillStyle = "#b07a4c"; ell(cx, x - 5, y - 4, 3, 6, "#b07a4c");
     cx.strokeStyle = "#d8b060"; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(x - 11, y + 1); cx.lineTo(x + 11, y + 1); cx.stroke();
   } else { // rocher fissuré (Éclate-Roc)
+    if (LEVEL.burned && TC.img) { ell(cx, x, y + 12, 17, 5, "rgba(0,0,0,.25)"); cx.imageSmoothingEnabled = false; tcSpr(cx, "rockY", x - 7.5 * 2.4, y + 14 - 15 * 2.4, 2.4); return; } // Tour Cendrée : rocher Éclate-Roc de la capture HGSS
     if (LEVEL.alph && AL.img) { ell(cx, x, y + 12, 17, 5, "rgba(0,0,0,.25)"); cx.imageSmoothingEnabled = false; alSpr(cx, "smash", x - 7 * 2.6, y + 14 - 13 * 2.6, 2.6); return; } // Ruines d'Alpha : rocher Éclate-Roc de HGSS
     if (moonOn()) { const q = MM.R.smash, K = 1.4; ell(cx, x, y + 14, 18, 5, "rgba(0,0,0,.3)"); cx.imageSmoothingEnabled = false; cx.drawImage(MM.img, q[0], q[1], q[2], q[3], x - q[2] * K / 2, y + 16 - q[3] * K, q[2] * K, q[3] * K); return; } // rocher Éclate-Roc de HGSS
     ell(cx, x, y + 13, 20, 6, "rgba(0,0,0,.3)"); drawBoulder(x, y, 18, 1.3);
@@ -385,6 +387,7 @@ function render(now) {
   drawJohtoUnder(t);
   drawAlphUnder(t);
   drawIlexUnder(t);
+  drawBurnedUnder(t);
   for (const P of S.players) if (P.moves.grozyeux?.rad && !P.down) {
     const rad = P.moves.grozyeux.rad;
     circ(cx, P.x, P.y, rad, "rgba(226,81,63,.06)");
@@ -832,6 +835,7 @@ function render(now) {
   }
   drawOrme(t);
   drawIlexOver(t);
+  drawBurnedOver(t);
   for (const f of S.foes) if (f.jump) { // zone d'atterrissage de Kangourex géant
     const k = f.jump.t / f.jump.dur; cx.save(); cx.globalAlpha = .25 + .35 * k; cx.strokeStyle = "#e2513f"; cx.lineWidth = 3; cx.fillStyle = "rgba(226,81,63,.15)";
     cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110, 80, 0, 0, Math.PI * 2); cx.fill(); cx.stroke(); cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110 * k, 80 * k, 0, 0, Math.PI * 2); cx.stroke(); cx.restore();
@@ -858,6 +862,7 @@ function render(now) {
   drawCanopy(camX, camY, vw, vh, t, P);
   drawAlphRoofs(camX, camY, vw, vh);
   drawIlexTop(camX, camY, vw, vh, t);
+  drawBurnedTop(camX, camY, vw, vh, t);
   drawMotes(camX, camY, vw, vh, t, Math.min(.05, t - (render.lt || t))); render.lt = t;
   if (LEVEL.cave) drawCaveLight(camX, camY, vw, vh, t, CAM);
   if (S.white > 0) { cx.fillStyle = `rgba(255,255,255,${Math.min(1, S.white / .8)})`; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120); } // écran blanc : Mewtwo s'enfuit
@@ -871,6 +876,7 @@ function render(now) {
 
   // écran
   cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  drawWeather(t); // Tour Cendrée : soleil, pluie, orage
   if (S.celebi) { // flèche vers Célébi quand il est hors de l'écran
     const c = S.celebi, sx = (c.x - camX) * ZOOM, sy = (c.y - camY) * ZOOM;
     if (sx < 0 || sy < 0 || sx > W || sy > H) {

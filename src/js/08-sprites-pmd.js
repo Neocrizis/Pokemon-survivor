@@ -8,6 +8,7 @@ const DEX = { plante:["0001","0002","0003"], feu:["0004","0005","0006"], eau:["0
   racaillou:"0074", gravalanch:"0075", grolem:"0076", sabelette:"0027", sablaireau:"0028",
   natu:"0177", xatu:"0178", axoloto:"0194", maraiste:"0195", queulorior:"0235", zarbi:"0201", // Ruines d'Alpha
   mystherbe:"0043", ortide:"0044", pomdepik:"0204", foretress:"0205", canarticho:"0083", // Bois aux Chênes
+  krabby:"0098", caratroc:"0213", entei:"0244", raikou:"0243", suicune:"0245", feurisson:"0156", crocrodil:"0159", macronium:"0153", // Tour Cendrée
   fantominus:"0092", spectrum:"0093", ectoplasma:"0094", osselait:"0104", ossatueur:"0105", rattata:"0019", rattatac:"0020", chetiflor:"0069", boustiflor:"0070", empiflor:"0071", fouinette:"0161", fouinar:"0162", hoothoot:"0163", noarfang:"0164",
   abo:"0023", arbok:"0024", tadmorv:"0088", grotadmorv:"0089", smogo:"0109", smogogo:"0110", rhinocorne:"0111", rhinoferos:"0112", rhinastoc:"0464", rmiaouss:"0052", rpersian:"0053", celebi:["0251","0251","0251"], celebi_s:["0251s","0251s","0251s"], ronflex:"0143",
   nidoranf:"0029", nidorina:"0030", nidoranm:"0032", nidorino:"0033", psykokwak:"0054", akwakwak:"0055", ramoloss:"0079", flagadoss:"0080", otaria:"0086", lamantine:"0087", magneti:"0081", magneton:"0082", voltorbe:"0100", electrode:"0101", onix:"0095", machoc:"0066", machopeur:"0067", mackogneur:"0068",

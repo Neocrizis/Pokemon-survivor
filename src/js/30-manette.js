@@ -4,7 +4,7 @@ cv.addEventListener("pointermove", e => { if (e.pointerType === "mouse") { mouse
 cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") mouse.on = false; });
 const pad = { x:0, y:0, ax:0, ay:0, prev:{}, rep:0, held:false, used:false, gp:null };
 function overlayButtons() {
-  const ov = ["levelup", "chest", "shop", "ach", "career", "dex", "end", "pause", "lgInter", "start", "home", "settings", "legal"].map($).find(el => !el.hidden);
+  const ov = ["levelup", "chest", "shop", "ach", "career", "dex", "end", "pause", "lgInter", "beastPick", "start", "home", "settings", "legal"].map($).find(el => !el.hidden);
   return ov ? [...ov.querySelectorAll("button")].filter(b => b.getClientRects().length) : [];
 }
 function padFocus(btns, i) {

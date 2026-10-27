@@ -189,6 +189,24 @@ Object.assign(FOES, {
   bossNoarfang: { name:"Noarfang Obscur géant",  sprite:"noarfang",  types:["normal","vol"],     hp:6400, speed:74, dmg:26, r:46, xp:130, boss:true, johto:true, shadow:true, night:true, dash:true, bigDash:true },
   celebiO:    { name:"Celebi Obscur", sprite:"celebi", types:["psy","plante"], hp:3200, speed:0, dmg:20, r:28, xp:0, boss:true, johto:true, shadow:true, celebiO:true, hideDex:true },
 });
+// Johto : Tour Cendrée. Les Pokémon qui hantent les décombres sont Obscurs ; Krabby et Caratroc se cachent sous les rochers (Éclate-Roc)
+for (const k of ["rattata", "rattatac", "smogo", "smogogo", "magmar"])
+  FOES[k + "O"] = { ...FOES[k], name:FOES[k].name + " Obscur", sprite:FOES[k].sprite || k, hp:Math.round(FOES[k].hp * 1.3), speed:Math.round(FOES[k].speed * 1.1), johto:true, shadow:true };
+Object.assign(FOES, {
+  krabby:      { name:"Krabby",   types:["eau"],            hp:34,  speed:74, dmg:9,  r:13, xp:2,  johto:true },
+  caratroc:    { name:"Caratroc", types:["insecte","roche"], hp:150, speed:26, dmg:7,  r:15, xp:10, johto:true, armor:.5, heavy:true, juice:true },
+  // les trois chiens légendaires : chacun change la météo, et s'enfuit une fois vaincu
+  bossEntei:   { name:"Entei",   sprite:"entei",   types:["feu"],     hp:2000, speed:96,  dmg:20, r:40, sprR:30, xp:60,  boss:true, johto:true, beast:"sun",   dash:true },
+  bossSuicune: { name:"Suicune", sprite:"suicune", types:["eau"],     hp:3600, speed:92,  dmg:22, r:40, sprR:30, xp:95,  boss:true, johto:true, beast:"rain" },
+  bossRaikou:  { name:"Raikou",  sprite:"raikou",  types:["electrik"], hp:6400, speed:104, dmg:26, r:40, sprR:30, xp:140, boss:true, johto:true, beast:"storm", dash:true, bigDash:true },
+  // l'équipe de Silver, le rival (son starter est celui qui bat le tien)
+  rvSpectrum:  { name:"Spectrum de Silver",  sprite:"spectrum",  types:["spectre","poison"], hp:420, speed:84, dmg:12, r:20, xp:20, johto:true, rival:true, ghost:true, blink:true, hideDex:true },
+  rvMagneti:   { name:"Magnéti de Silver",   sprite:"magneti",   types:["electrik","acier"], hp:300, speed:70, dmg:10, r:18, xp:16, johto:true, rival:true, erratic:true, ranged:true, shot:"electrik", hideDex:true },
+  rvNosferapti:{ name:"Nosferapti de Silver", sprite:"nosferapti", types:["poison","vol"],    hp:320, speed:96, dmg:11, r:18, xp:16, johto:true, rival:true, hideDex:true },
+  rvFeurisson: { name:"Feurisson de Silver", sprite:"feurisson", types:["feu"],   hp:640, speed:88, dmg:14, r:22, xp:30, johto:true, rival:true, ranged:true, shot:"feu", hideDex:true },
+  rvCrocrodil: { name:"Crocrodil de Silver", sprite:"crocrodil", types:["eau"],   hp:700, speed:82, dmg:15, r:22, xp:30, johto:true, rival:true, ranged:true, shot:"eau", hideDex:true },
+  rvMacronium: { name:"Macronium de Silver", sprite:"macronium", types:["plante"], hp:720, speed:78, dmg:14, r:22, xp:30, johto:true, rival:true, ranged:true, shot:"plante", hideDex:true },
+});
 const LEVELS = [
   { name:"Forêt de Jade", num:1, jade:true, title:"Tu as traversé la Forêt de Jade !", cave:false, where:"en forêt", from:"surgit des arbres",
     intro:"La Forêt de Jade grouille d'insectes, d'oiseaux, de Pichu et de quelques Pikachu. Choisis ton starter et traverse-la jusqu'à Argenta : tiens dix minutes.",
@@ -504,6 +522,29 @@ const LEVELS = [
       if (m > 2.5) o.push(["noeufO", 1.2], ["ortideO", 1 + m / 8]);
       if (m > 3.5) o.push(["papilusionO", 1.2 + m / 6], ["dardargnanO", 1.2 + m / 6], ["parasectO", 1 + m / 8]);
       if (m > 5)   o.push(["noarfangO", 1 + m / 6], ["foretressO", .6 + m / 10]);
+    } },
+  { name:"Tour Cendrée", num:13, label:4, region:"johto", title:"Tu as exploré la Tour Cendrée !", cave:false, burned:true, track:"legend", prop:"crackrock", where:"dans la Tour Cendrée", from:"surgit des décombres",
+    intro:"À Rosalia, la Tour Cendrée n'est plus qu'un plancher calciné percé de trous, où couvent encore des braises. Rattata, Smogo, Nosferapti et Magmar y sont devenus Obscurs, et des Krabby se cachent sous les rochers. Au sous-sol, les trois chiens légendaires se réveillent : Entei et son soleil de plomb, puis Suicune et sa pluie, puis Raikou et son orage. La météo change tout : les attaques Feu et Eau en sortent renforcées ou affaiblies, pour toi aussi. Et ton rival rôde peut-être… Tiens dix minutes.",
+    win:"a exploré la Tour Cendrée. Les trois chiens légendaires courent désormais à travers Johto.",
+    matchup:{ plante:["Neutre", "La Plante noie les Krabby, mais les Smogo et Nosferapti (Poison) lui résistent, et Entei la brûle."],
+              eau:["Variable", "L'Eau éteint les Magmar et Entei, surtout sous la pluie de Suicune. Mais sous le soleil d'Entei, elle perd la moitié de sa force."],
+              feu:["Variable", "Sous le soleil d'Entei, le Feu fait +50 % de dégâts. Sous la pluie de Suicune et de Raikou, il en perd la moitié."],
+              miaouss:["Neutre", "Le Normal frappe presque tout le monde normalement, et ses coups critiques font le ménage."],
+              pika:["Avantagé", "L'Électrik foudroie les Krabby, les Nosferapti et Suicune. Raikou, lui, lui résiste."],
+              evoli:["Variable", "Normal au départ, puis le type de ton évolution au N.10. Aquali profite de la pluie, Pyroli du soleil."],
+              draco:["Avantagé", "Le Dragon résiste au Feu, à l'Eau et à l'Électrik des trois chiens légendaires."],
+              mew:["Variable", "Métronome peut tirer n'importe quel type : la météo peut doubler ta chance… ou la diviser."],
+              heri:["Variable", "Le soleil d'Entei attise tes flammes, mais la pluie de Suicune et de Raikou les étouffe."],
+              kaiminus:["Variable", "La pluie de Suicune et de Raikou donne +50 % à tes attaques Eau. Sous le soleil d'Entei, méfie-toi."],
+              fee:["Neutre", "La Fée frappe presque tout le monde normalement, mais les Smogo (Poison) lui résistent."] },
+    rings:["rattataO", "smogoO", "nosferaptiO", "rattataO"],
+    event:{ kind:"rival", from:110, to:150, chance:1/3 }, // Silver, le rival, et son équipe
+    bosses:[{ at:170, kind:"bossEntei" }, { at:300, kind:"bossSuicune" }, { at:450, kind:"bossRaikou" }],
+    table(m, o) {
+      o.push(["rattataO", m < 3 ? 3.4 : 1], ["smogoO", m < 4 ? 2.4 : 1.2], ["nosferaptiO", m < 4 ? 1.2 : .8]);
+      if (m > 1.2) o.push(["rattatacO", .8 + m / 10]);
+      if (m > 2.5) o.push(["magmarO", .3 + m / 20]); // Magmar reste rare, comme au sous-sol de la vraie tour
+      if (m > 4)   o.push(["smogogoO", .5 + m / 12]);
     } },
 ];
 for (const lv of LEVELS) if (lv.maps) Object.assign(lv, lv.maps[0], { mapIdx:0 });

@@ -43,6 +43,7 @@ function newGame(line, mapK) {
   if (LEVEL.league) { S.lgPh = "wild"; S.roomT = 0; S.nextRing = 60; banner(`Salle 1 sur 5 : ${LEVEL.member} (${LEVEL.mtype}). ${LEVEL.tip}`); }
   if (LEVEL.tower && !LEVEL.sprout && !scopeOn()) banner("Les Spectres sont impossibles à identifier… Il te faudrait le Scope Sylphe !");
   if (LEVEL.ilex) banner("Vous ressentez une ombre pesante sur la forêt…");
+  if (LEVEL.burned) banner("Une odeur de cendre flotte dans l'air… Des braises couvent encore sous les planches.");
   for (const p of S.players) if (p.shiny) { S.P = p; banner(`${pTag()}Waouh ! ${pName()} chromatique !` + (p.spiky ? " Et c'est un Pichu Troizépi !" : "")); p.evoFlash = 1.2; } // 1 partie sur 30
   S.P = S.players[0];
   if (S.players.length > 1) banner(`${S.players.length} joueurs ! Restez groupés : un coéquipier K.O. se relève si on reste 3 s à côté de lui.`);
@@ -91,7 +92,7 @@ function hurtP(v, kind) { // kind : "contact" (Protection) ou "shot" (Mur Lumiè
 }
 function boomHit(x, y, R, dmg, type) { // souffle d'explosion ou impact : touche tous les joueurs dans la zone ; true si la partie est perdue (type : efficacité selon le Pokémon touché)
   const P0 = S.P;
-  for (const q of S.players) { if (q.down || q.choosing || q.inv > 0 || Math.hypot(q.x - x, q.y - y) > R + q.r * .6) continue; S.P = q; if (hurtP(dmg * (type ? eff(type, [ptype()]) : 1) * (1 + S.t / 900))) return true; }
+  for (const q of S.players) { if (q.down || q.choosing || q.inv > 0 || Math.hypot(q.x - x, q.y - y) > R + q.r * .6) continue; S.P = q; if (hurtP(dmg * (type ? eff(type, [ptype()]) * wxMul(type) : 1) * (1 + S.t / 900))) return true; }
   S.P = P0; return false;
 }
 function paralyze(P, t) { // les Pokémon Électrik ne peuvent pas être paralysés

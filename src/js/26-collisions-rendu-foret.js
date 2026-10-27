@@ -69,6 +69,7 @@ function renderChunk(ci, cj) {
   if (LEVEL.league) return renderArenaChunk(ci, cj);
   if (LEVEL.cave) return renderCaveChunk(ci, cj);
   if (LEVEL.alph) return renderAlphChunk(ci, cj);
+  if (LEVEL.burned) return renderBurnedChunk(ci, cj);
   if (LEVEL.safari) return renderSafariChunk(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;

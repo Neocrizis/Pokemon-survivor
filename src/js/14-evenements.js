@@ -33,6 +33,7 @@ function startEvent(kind) {
     for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, d = 380 + (i % 3) * 110; ormeFoe(i % 2 ? "hoothoot" : "rattata", x + Math.cos(a) * d, y + Math.sin(a) * d); }
     banner("« À l'aide ! » L'assistant du Prof. Orme transporte un Œuf, mais des Rattata et des Hoothoot l'encerclent. Protège-le pendant 1 min 30 !"); sfx("boss");
   } else if (kind === "celebiO") { startCelebiO(); // Bois aux Chênes
+  } else if (kind === "rival") { startRival(); // Tour Cendrée
   } else if (kind === "puzzle") { startPuzzle(); // Ruines d'Alpha
   } else if (kind === "mere") {
     const f = spawnFoe("mereossa", P.x + mx * 420, P.y + my * 420); S.mother = { t:300, f };

@@ -26,6 +26,7 @@ function spawnFoe(kind, x, y) {
     if (q) { f.copyK = (q.spiky ? "pichuspiky" : q.eform || q.line) + (q.shiny ? "_s" : ""); f.copySt = q.stage; f.copyT = q.etype || LINES[q.line].type; f.r = q.r; }
     if (!S.saidDitto) { S.saidDitto = true; banner("Un Métamorph a pris ton apparence ! Ne te trompe pas de cible…"); }
   }
+  if (LEVEL.burned) burnedSpawn(f, placed); // Tour Cendrée : jamais dans un trou du plancher
   if (LEVEL.ilex) ilexSpawn(f, placed); // Bois aux Chênes : Pomdepik et Foretress tombent des arbres
   if (LEVEL.alph) alphSpawn(f, placed); // Ruines d'Alpha : lettre des Zarbi, Axoloto sortis des étangs
   S.foes.push(f); return f;

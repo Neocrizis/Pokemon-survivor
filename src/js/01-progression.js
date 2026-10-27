@@ -61,6 +61,8 @@ const ACHS = [
   { id:"farf",    name:"Gardien de la forêt", desc:"Rattraper le Canarticho fugueur du Bois aux Chênes.", reward:50, secret:true },
   { id:"purif",   name:"Purificateur",       desc:"Vaincre 50 000 Pokémon Obscurs (au total). Débloque Mentali et Noctali, deux nouvelles évolutions d'Évoli.", reward:150, secret:true },
   { id:"celebi",  name:"Voix de la forêt",   desc:"Purifier Celebi Obscur dans le Bois aux Chênes, puis le capturer dans le cercle de lumière.", reward:150, unlock:"celebi", secret:true },
+  { id:"win13",   name:"Sous les cendres", desc:"Terminer la Tour Cendrée, quatrième niveau de Johto.", reward:100, secret:true },
+  { id:"trio",    name:"Le trio légendaire", desc:"Vaincre Entei, Suicune et Raikou dans la Tour Cendrée, puis choisir lequel t'accompagnera.", reward:150, secret:true },
   { id:"mewtwo",  name:"Pokémon génétique",  desc:"Repousser Mewtwo dans le Manoir Pokémon.",       reward:100 },
   { id:"legend",  name:"Légende vivante",    desc:"Vaincre Artikodin, Électhor ou Sulfura dans le niveau Oiseau Légendaire.", reward:100 },
   { id:"draco",   name:"Chasseur de dragon", desc:"Attraper le Minidraco pendant la chasse du Parc Safari.", reward:50, unlock:"draco" },

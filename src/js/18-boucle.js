@@ -435,6 +435,7 @@ function update(dt) {
   if (updateJohtoFoes(dt)) return;
   if (updateAlph(dt)) return;
   if (updateIlex(dt)) return;
+  if (updateBurned(dt)) return;
   // Magmar géant : Lance-Flammes (gerbe de feu continue vers le joueur)
   for (const f of S.foes) if (f.d.flamer && !(f.sleepT > 0)) {
     P = S.P = nearP(f.x, f.y);
@@ -537,7 +538,7 @@ function update(dt) {
       S.shake = .18;
       if (m > 1) S.texts.push({ x:P.x, y:P.y - P.r - 18, txt:"Super efficace !", col:"#ffd84a", life:1, label:true });
       statusHit(P, s);
-      if (hurtP(s.dmg * m * (1 + S.t / 900), "shot")) return;
+      if (hurtP(s.dmg * m * wxMul(s.type) * (1 + S.t / 900), "shot")) return; // Tour Cendrée : la météo renforce ou affaiblit aussi les attaques des Pokémon sauvages
     }
   }
   S.eshots = S.eshots.filter(s => s.life > 0);
@@ -594,7 +595,7 @@ function update(dt) {
     P = S.P = nearP(f.x, f.y);
     if (f.prop) {
       if (f.hp > 0) { if (Math.hypot(f.x - P.x, f.y - P.y) < 1500) alive.push(f); continue; }
-      sfx("break");
+      sfx("break"); if (LEVEL.burned) burnedRock(f); // Tour Cendrée : un Krabby (ou un Caratroc) sort parfois du rocher
       const r = Math.random(), pick = r < 1/30 ? "flute" : r < 2/30 ? "aimant" : LEVEL.cave ? "potion" : "sitrus";
       if (S.nuz && (pick === "sitrus" || pick === "potion")) S.gems.push({ x:f.x, y:f.y + 6, v:3 }); // Nuzlocke : un Bonbon Exp. à la place du soin
       else S.gems.push({ x:f.x, y:f.y + 6, pick });
@@ -610,7 +611,7 @@ function update(dt) {
     if (f.gone) continue; // troupeau qui s'éloigne, Pokémon rare enfui
     if (f.d.rare) { if (f.caught) rareCaught(f); continue; }
     if (f.d.mother) { motherCalm(f); continue; }
-    S.kills++; dexCount(f); sfx("ko"); if (f.d.zarbi) zarbiCarnet(f);
+    S.kills++; dexCount(f); sfx("ko"); if (f.d.zarbi) zarbiCarnet(f); if (LEVEL.burned) burnedKo(f);
     { const kp = S.players[f.lastBy]; if (kp) kp.kos = (kp.kos || 0) + 1; }
     if (f.d.healer && !S.nuz) { P.hp = Math.min(P.maxHp, P.hp + 20); S.texts.push({ x:P.x, y:P.y - 30, txt:"Leveinard +20 PV", col:"#7fe08a", life:1, label:true }); emit(P.x, P.y, 10, "fee", { sp:120, life:.5, r:2.6 }); }
     if (f.d.event) { // Ronflex se réveille
@@ -642,7 +643,7 @@ function update(dt) {
       S.seq = [[S.t + 1.5, `${f.d.name} pousse un dernier cri et s'envole au loin… Il laisse deux Poké Balls derrière lui !`]];
     }
     if (f.d.boss) {
-      if (!(f.d.mewtwo || f.d.bird) || S.boss === f) S.boss = null; if (!f.d.mewtwo) banner(`${f.d.name} est K.O. ! Il laisse une Poké Ball…`); teamAch("boss"); if (S.bossClean) teamAch("nohit");
+      if (!(f.d.mewtwo || f.d.bird) || S.boss === f) S.boss = null; if (f.d.beast) beastFlee(f); else if (!f.d.mewtwo) banner(`${f.d.name} est K.O. ! Il laisse une Poké Ball…`); teamAch("boss"); if (S.bossClean) teamAch("nohit");
       S.gems.push({ x:f.x, y:f.y, pick:"chest" });
       for (let i = 0; i < 12; i++) S.gems.push({ x:f.x + (Math.random()-.5)*80, y:f.y + (Math.random()-.5)*80, v:f.d.xp/12 | 0 || 1, berry:i < 2 && !S.nuz });
     } else if (S.gems.length < 450) {
