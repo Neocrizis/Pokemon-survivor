@@ -4213,20 +4213,24 @@ function startTrio() {
 function updateTrio(dt) {
   const T = S.trio; T.t += dt;
   for (const b of T.list) {
-    if (T.leave) { b.x += b.vx * dt; b.y += b.vy * dt; continue; }
+    if (b.go) { b.x += b.vx * dt; b.y += b.vy * dt; if (Math.random() < .7) (b.trail ||= []).push({ x:b.x, y:b.y, life:.6 }); continue; }
     b.x += (b.tx - b.x) * Math.min(1, dt * 3); b.y += (b.ty - b.y) * Math.min(1, dt * 3);
   }
   if (!T.asked && T.t > 1.6) { T.asked = true; openBeastPick(); }
   if (T.leave && (T.leave -= dt) <= 0) { S.trio = null; S.wx = null; banner("Le ciel s'éclaircit au-dessus de la Tour Cendrée."); }
 }
+const BLESS = {
+  entei:"Entei pousse un rugissement qui fait trembler la tour. Les flammes de son cœur brûlent désormais pour toi : il t'offre sa bénédiction et veillera sur toi.",
+  suicune:"Suicune pose sur toi un regard aussi pur que l'eau d'une source. Porté par le vent du nord, il t'offre sa bénédiction et veillera sur toi.",
+  raikou:"Un éclair déchire le ciel et Raikou se tient devant toi. Son tonnerre grondera à tes côtés : il t'offre sa bénédiction et veillera sur toi." };
 function pickBeast(k) {
   const T = S.trio; if (!T || T.picked) return;
   T.picked = k; $("beastPick").hidden = true; if (state === "beast") { state = "play"; last = performance.now(); }
   shop.beast = k; shop.beastAt = Date.now(); shopSave(); teamAch("trio"); sfx("evo");
   const b = T.list.find(x => x.k === k); S.fxs.push({ x:b.x, y:b.y, r:0, max:140, life:.6, col:`rgba(${BEASTS[k].col},` });
-  banner(`${BEASTS[k].name} pousse un long cri : il viendra t'aider le moment venu !`);
-  S.seq = [...(S.seq || []), [S.t + 2.6, "Les trois chiens légendaires bondissent hors de la tour et filent à travers Johto…"]];
-  setTimeout(() => { if (S.trio !== T) return; T.leave = 2.2; T.list.forEach((x, i) => { const a = -Math.PI / 2 + (i - 1) * 1.1; x.vx = Math.cos(a) * 560; x.vy = Math.sin(a) * 560; }); }, 2600);
+  S.msgs = [{ txt:BLESS[k], life:6 }]; // la bénédiction (idée de Raphaël)
+  setTimeout(() => { if (S.trio !== T) return; T.list.forEach((x, i) => { if (x.k === k) return; const a = -Math.PI / 2 + (i - 1) * 1.1; x.vx = Math.cos(a) * 560; x.vy = Math.sin(a) * 560; x.go = true; }); }, 2200); // les deux autres s'enfuient en laissant une traînée de lumière
+  setTimeout(() => { if (S.trio !== T) return; T.leave = 2.2; const x = T.list.find(b => b.k === k); x.vx = 0; x.vy = -600; x.go = true; }, 5600); // puis l'élu part à son tour
 }
 function openBeastPick() {
   const ov = $("beastPick"), box = $("bpCards"); box.innerHTML = "";
@@ -4323,7 +4327,9 @@ function drawBurnedOver(t) {
   if (T) for (const b of T.list) {
     const pk = T.picked === b.k;
     cx.save(); cx.globalCompositeOperation = "lighter"; glow(b.x, b.y, pk ? 90 : 60, BEASTS[b.k].col, pk ? .55 + .2 * Math.sin(t * 5) : .3); cx.restore();
-    drawMon(cx, b.k, b.x, b.y, 26, false, t, 0, T.leave ? null : 0, !!T.leave);
+    for (const p of b.trail || []) { p.life -= 1 / 60; if (p.life > 0) { cx.save(); cx.globalCompositeOperation = "lighter"; glow(p.x, p.y, 26 * p.life / .6 + 6, BEASTS[b.k].col, p.life); cx.restore(); } }
+    if (b.trail) b.trail = b.trail.filter(p => p.life > 0);
+    drawMon(cx, b.k, b.x, b.y, 26, false, t, 0, b.go ? null : 0, !!b.go);
   }
   for (const f of S.foes) if (f.d.rival && f.hp > 0) { cx.strokeStyle = "rgba(230,60,60,.8)"; cx.lineWidth = 2.5; cx.beginPath(); cx.ellipse(f.x, f.y + f.r * .8, f.r * 1.1, f.r * .4, 0, 0, Math.PI * 2); cx.stroke(); } // l'équipe de Silver
 }
