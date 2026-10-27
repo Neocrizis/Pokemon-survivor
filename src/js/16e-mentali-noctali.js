@@ -1,5 +1,5 @@
-/* ---------- Mentali et Noctali : formes d'Évoli débloquées par le succès « Purificateur » (10 000 Pokémon Obscurs) ---------- */
-const SHADOW_GOAL = 10000;
+/* ---------- Mentali et Noctali : formes d'Évoli débloquées par le succès « Purificateur » (50 000 Pokémon Obscurs) ---------- */
+const SHADOW_GOAL = 50000;
 const shadowKills = () => Object.keys(FOES).reduce((n, k) => n + (FOES[k].shadow ? dexKills[k] || 0 : 0), 0); // K.O. de Pokémon Obscurs, toutes parties
 const eeveeOpen = id => !EEVEE[id].ach || !!achs[EEVEE[id].ach];
 const eeveeForms = () => Object.keys(EEVEE).filter(eeveeOpen);
