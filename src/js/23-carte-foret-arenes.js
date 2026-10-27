@@ -184,6 +184,7 @@ function getChunk(ci, cj) {
   if (LEVEL.cave) { c = caveChunk(ci, cj); chunkData.set(key, c); return c; }
   if (LEVEL.burned) { c = burnedChunk(ci, cj); chunkData.set(key, c); return c; } // Tour Cendrée (24f-tour-cendree.js)
   if (LEVEL.alph) { c = alphChunk(ci, cj); chunkData.set(key, c); return c; } // Ruines d'Alpha (16b-ruines-alpha.js)
+  if (LEVEL.rage) { c = lakeChunk(ci, cj); chunkData.set(key, c); return c; } // Lac Colère (26f-lac-colere-decor.js)
   if (LEVEL.safari) { c = safariChunk(ci, cj); chunkData.set(key, c); return c; } // Parc Safari : damier de biomes (26d-parc-safari.js)
   const R = rng(Math.floor(hash(ci + 1000, cj - 1000) * 4294967295));
   const x0 = ci * CH, y0 = cj * CH, ponds = [], trees = [], rocks = [], logs = [], mounds = [], solids = [];

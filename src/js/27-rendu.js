@@ -31,7 +31,7 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
   forView(camX, camY, vw, vh, 120, (i, j, c) => { for (const tr of c.trees) {
     const cyc = tr.y - tr.r * .55;
     if (tr.x + tr.r * 1.3 < camX || tr.x - tr.r * 1.3 > camX + vw || cyc + tr.r * 1.3 < camY || cyc - tr.r * 1.3 > camY + vh) continue;
-    const sp = LEVEL.safari ? acaciaSprite(tr.r, tr.v) : jadeOn() ? jadeTreeSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
+    const sp = LEVEL.rage && LK.img ? lakeTreeSprite(tr) : LEVEL.safari ? acaciaSprite(tr.r, tr.v) : jadeOn() ? jadeTreeSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
     const under = S.players.some(p => Math.hypot(p.x - tr.x, p.y - cyc) < tr.r * 1.05);
     cx.globalAlpha = under ? .35 : 1;
     cx.drawImage(sp.cv, tr.x - sp.size / 2 + sw, cyc - sp.size / 2, sp.size, sp.size);

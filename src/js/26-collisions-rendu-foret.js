@@ -16,7 +16,23 @@ function collide(e, r, swim) {
     if (dx*dx + dy*dy < min*min) { const d = Math.hypot(dx, dy) || .01; e.x = o.x + dx / d * min; e.y = o.y + dy / d * min; }
   }
   if (LEVEL.safari) szCollide(e, r, swim); // Parc Safari : falaises, arbres, clôtures et eau des biomes
+  if (LEVEL.rage && !swim) gridCollide(e, r, LK_T, 0, 0, lakeAt); // Lac Colère : l'eau arrête ceux qui ne nagent pas
   collideFalls(e, r);
+}
+function gridCollide(e, r, T, ox, oy, blocked) { // repousse hors des cases bloquées d'une grille (rayon réduit comme pour les obstacles ronds)
+  const rr = r * .7;
+  for (let pass = 0; pass < 2; pass++) {
+    const i0 = Math.floor((e.x - rr - ox) / T), i1 = Math.floor((e.x + rr - ox) / T), j0 = Math.floor((e.y - rr - oy) / T), j1 = Math.floor((e.y + rr - oy) / T);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const bx = ox + i * T, by = oy + j * T;
+      if (!blocked(bx + T / 2, by + T / 2)) continue;
+      const nx = Math.max(bx, Math.min(e.x, bx + T)), ny = Math.max(by, Math.min(e.y, by + T)), dx = e.x - nx, dy = e.y - ny, d = Math.hypot(dx, dy);
+      if (d >= rr) continue;
+      if (d > .01) { e.x = nx + dx / d * rr; e.y = ny + dy / d * rr; continue; }
+      const l = e.x - bx, rt = bx + T - e.x, t = e.y - by, b = by + T - e.y, m = Math.min(l, rt, t, b); // centre dans la case : sortie la plus courte
+      if (m === l) e.x = bx - rr; else if (m === rt) e.x = bx + T + rr; else if (m === t) e.y = by - rr; else e.y = by + T + rr;
+    }
+  }
 }
 // stalactites et rochers tombés : obstacles temporaires
 function collideFalls(e, r) {
@@ -32,6 +48,7 @@ function gatePush(e, r, g) { const [d, px, py] = gateDist(e, g), min = r * .7 + 
 // le point (x, y) est-il pris par un obstacle pour un Pokémon de rayon r ? (mêmes obstacles que collide)
 function blockedAt(x, y, r, swim) {
   if (LEVEL.safari && szBlocked(x, y, swim)) return true;
+  if (LEVEL.rage && !swim && lakeAt(x, y)) return true;
   for (const o of solidsNear(x, y)) {
     if ((swim && o.pond) || o.gate) continue;
     const min = r * .7 + o.r; if ((x - o.x) ** 2 + (y - o.y) ** 2 < min * min) return true;
@@ -60,7 +77,7 @@ function steer(f, ax, ay, dt, P) {
   if (!f.stA) return [ax, ay];
   const c = Math.cos(f.stA), s = Math.sin(f.stA); return [ax * c - ay * s, ax * s + ay * c];
 }
-const inWater = (x, y) => LEVEL.safari ? szAt(x, y) === "~" : solidsNear(x, y).some(o => o.pond && (x-o.x)**2 + (y-o.y)**2 < o.r*o.r);
+const inWater = (x, y) => LEVEL.rage ? lakeAt(x, y) : LEVEL.safari ? szAt(x, y) === "~" : solidsNear(x, y).some(o => o.pond && (x-o.x)**2 + (y-o.y)**2 < o.r*o.r);
 
 function renderChunk(ci, cj) {
   if (LEVEL.tower) return renderTowerChunk(ci, cj);
@@ -70,6 +87,7 @@ function renderChunk(ci, cj) {
   if (LEVEL.cave) return renderCaveChunk(ci, cj);
   if (LEVEL.alph) return renderAlphChunk(ci, cj);
   if (LEVEL.burned) return renderBurnedChunk(ci, cj);
+  if (LEVEL.rage) return renderLakeChunk(ci, cj);
   if (LEVEL.safari) return renderSafariChunk(ci, cj);
   const c = getChunk(ci, cj), x0 = ci * CH, y0 = cj * CH;
   const cv2 = document.createElement("canvas"); cv2.width = cv2.height = CH * CH_SCALE;

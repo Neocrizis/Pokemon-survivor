@@ -177,7 +177,7 @@ const FOES = {
   sulfura:   { name:"Sulfura",   types:["feu","vol"],      hp:7000, speed:92, dmg:42, r:46, xp:200, boss:true, bird:"fire", armor:.54, sprR:26, sprDy:14 },
 };
 // Johto : Bois aux Chênes. La Dark Ball a corrompu la forêt : ses Pokémon sont Obscurs (aura sombre, un peu plus coriaces et rapides, leur propre entrée au Pokédex)
-for (const [k, o] of Object.entries({ chenipan:{}, chrysacier:{}, papilusion:{}, aspicot:{}, coconfort:{}, dardargnan:{}, paras:{}, parasect:{}, nosferapti:{}, noeuf:{}, hoothoot:{}, noarfang:{} }))
+for (const [k, o] of Object.entries({ chenipan:{}, chrysacier:{}, papilusion:{}, aspicot:{}, coconfort:{}, dardargnan:{}, paras:{}, parasect:{}, nosferapti:{}, noeuf:{}, hoothoot:{}, noarfang:{}, magicarpe:{ swim:true }, mimitoss:{} }))
   FOES[k + "O"] = { ...FOES[k], ...o, name:FOES[k].name + " Obscur", sprite:FOES[k].sprite || k, hp:Math.round(FOES[k].hp * 1.3), speed:Math.round(FOES[k].speed * 1.1), johto:true, shadow:true };
 Object.assign(FOES, {
   mystherbeO: { name:"Mystherbe Obscur", sprite:"mystherbe", types:["plante","poison"], hp:22, speed:50, dmg:5,  r:12, xp:1, johto:true, shadow:true },
@@ -545,6 +545,16 @@ const LEVELS = [
       if (m > 1.2) o.push(["rattatacO", .8 + m / 10]);
       if (m > 2.5) o.push(["magmarO", .3 + m / 20]); // Magmar reste rare, comme au sous-sol de la vraie tour
       if (m > 4)   o.push(["smogogoO", .5 + m / 12]);
+    } },
+  { name:"Lac Colère", num:14, label:5, region:"johto", title:"Tu as calmé le Lac Colère !", cave:false, rage:true, track:"forest", prop:"berrytree", where:"au Lac Colère", from:"surgit du lac",
+    intro:"(Brouillon en attente de validation) Au nord d'Acajou, une onde radio de la Team Rocket rend furieux les Pokémon du Lac Colère : Magicarpe, Hoothoot, Noeunoeuf, Pomdepik et Mimitoss sont devenus Obscurs. Au milieu du lac, un Léviator rouge s'agite… Tiens dix minutes.",
+    win:"a calmé le Lac Colère.",
+    matchup:{},
+    rings:["magicarpeO", "hoothootO", "noeufO", "pomdepikO"],
+    bosses:[],
+    table(m, o) {
+      o.push(["magicarpeO", 3], ["hoothootO", m < 3 ? 2.4 : 1.2], ["noeufO", 1.4]);
+      if (m > 1.2) o.push(["pomdepikO", 1.3], ["mimitossO", 1.2]);
     } },
 ];
 for (const lv of LEVELS) if (lv.maps) Object.assign(lv, lv.maps[0], { mapIdx:0 });
