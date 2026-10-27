@@ -249,6 +249,7 @@ function update(dt) {
     if (f.sleepT > 0 || f.stunT > 0 || f.hold > 0) sp = 0; // hold : attaque en cours (Repos, Laser Glace, Explosion)
     const flies = f.d.types.includes("vol");
     if (!flies && !f.d.boss && tallGrassAt(f.x, f.y)) sp *= .85; // les boss ignorent le décor
+    if (sp > 0 && !flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase && !f.stamp && !f.run && f.dashMode !== "go" && !f.d.rare) [ax, ay] = steer(f, ax, ay, dt, P); // contourne murs et décor
     f.x += ax * sp * dt; f.y += ay * sp * dt;
     if (f.kbx || f.kby) { f.x += f.kbx * dt; f.y += f.kby * dt; const k = Math.pow(.02, dt); f.kbx *= k; f.kby *= k; if (Math.abs(f.kbx) + Math.abs(f.kby) < 8) f.kbx = f.kby = 0; }
     if (!flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase) collide(f, f.r, !!f.d.swim);
@@ -601,6 +602,7 @@ function update(dt) {
     }
     if (f.hp > 0) {
       if (!f.d.boss && !f.d.event && !f.d.mother && !f.d.rare && !f.stamp && Math.hypot(f.x - P.x, f.y - P.y) > 1400) { const a = Math.random()*Math.PI*2; f.x = P.x + Math.cos(a)*700; f.y = P.y + Math.sin(a)*700; if (LEVEL.alph) alphPlace(f); if (LEVEL.safari) [f.x, f.y] = szFree(f.x, f.y); }
+      else if (LEVEL.safari && !f.d.types.includes("vol") && !f.d.boss && !f.d.event && !f.d.rare && !f.stamp && (f.pocketT = szStuck(f, P) ? (f.pocketT || 0) + dt : 0) > 1 && Math.hypot(f.x - P.x, f.y - P.y) > 480) { const a = Math.random()*Math.PI*2; [f.x, f.y] = szFree(P.x + Math.cos(a)*620, P.y + Math.sin(a)*620); f.pocketT = 0; } // Parc Safari : coincé dans une poche du décor, il revient par un chemin
       alive.push(f); continue;
     }
     if (f.d.celebiO && !f.gone) { celebiPurify(f); alive.push(f); continue; } // Celebi Obscur ne tombe jamais K.O. : il se purifie
