@@ -11,7 +11,7 @@ function vnoise(x, y) {
 }
 const fbm = (x, y) => vnoise(x, y) * .6 + vnoise(x*2.1 + 17, y*2.1 + 9) * .3 + vnoise(x*4.3 + 3, y*4.3 + 41) * .1;
 const forestDensity = (x, y) => fbm(x / 700, y / 700);
-const tallGrassAt = (x, y) => !LEVEL.cave && !LEVEL.alph && !LEVEL.safari && !nearPath(x, y, 70) && fbm(x / 260 + 50, y / 260 + 50) > (LEVEL.safari ? .52 : .62);
+const tallGrassAt = (x, y) => !LEVEL.cave && !LEVEL.alph && !LEVEL.burned && !LEVEL.safari && !nearPath(x, y, 70) && fbm(x / 260 + 50, y / 260 + 50) > (LEVEL.safari ? .52 : .62);
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const START_Y = pathY(0);
 
@@ -182,6 +182,7 @@ function getChunk(ci, cj) {
   if (LEVEL.rocket) { c = rocketChunk(ci, cj); chunkData.set(key, c); return c; }
   if (LEVEL.league) { c = arenaChunk(ci, cj); chunkData.set(key, c); return c; }
   if (LEVEL.cave) { c = caveChunk(ci, cj); chunkData.set(key, c); return c; }
+  if (LEVEL.burned) { c = burnedChunk(ci, cj); chunkData.set(key, c); return c; } // Tour Cendrée (24f-tour-cendree.js)
   if (LEVEL.alph) { c = alphChunk(ci, cj); chunkData.set(key, c); return c; } // Ruines d'Alpha (16b-ruines-alpha.js)
   if (LEVEL.safari) { c = safariChunk(ci, cj); chunkData.set(key, c); return c; } // Parc Safari : damier de biomes (26d-parc-safari.js)
   const R = rng(Math.floor(hash(ci + 1000, cj - 1000) * 4294967295));

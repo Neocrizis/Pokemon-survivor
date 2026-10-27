@@ -43,7 +43,7 @@ function endGame(win) {
   if (win && lv.league) hallOfFame();
   if (win && S.orme?.ok) eggHatch((S.achMsgs || []).some(m => m.includes("Togepi")));
   $("endDmg").innerHTML = teamHtml() + (S.players.length > 1 ? `<h3 class="dmgFor">Tes dégâts (${pTag(S.players[0])}${(S.P = S.players[0], pName())})</h3>` : "") + dmgTableHtml(S.players[0]);
-  $("end").hidden = false; $("boss").hidden = true; $("netWait").hidden = true; $("levelup").hidden = true; $("chest").hidden = true; $("lgInter").hidden = true;
+  $("end").hidden = false; $("boss").hidden = true; $("netWait").hidden = true; $("levelup").hidden = true; $("chest").hidden = true; $("lgInter").hidden = true; $("beastPick").hidden = true;
   if (NET.role === "host") { netDexFlush(); netAll("S" + netSnap()); netAll({ t:"end", win, title:$("endTitle").textContent, sub:$("endSub").textContent }); }
   $("againBtn").focus({ preventScroll:true });
 }

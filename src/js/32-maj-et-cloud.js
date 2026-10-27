@@ -20,6 +20,7 @@ function mergeSave(a, b) { // a, b : { dex, shop, ach }
   const dex = { ...a.dex }; for (const k in b.dex) dex[k] = Math.max(dex[k] || 0, b.dex[k] || 0);
   const ach = { ...a.ach }; for (const k in b.ach) if (b.ach[k]) ach[k] = true;
   const sh = { ...b.shop, ...a.shop }; for (const u of SHOP) sh[u.id] = Math.max(a.shop[u.id] || 0, b.shop[u.id] || 0);
+  if ((b.shop.beastAt || 0) > (a.shop.beastAt || 0)) { sh.beast = b.shop.beast; sh.beastAt = b.shop.beastAt; } // Tour Cendrée : le chien légendaire choisi en dernier l'emporte
   sh.spent = Math.max(a.shop.spent || 0, b.shop.spent || 0, shopSpentFor(sh)); // jamais de Pokédollars gagnés en double
   const career = JSON.parse(JSON.stringify(a.career || {})), bc = b.career || {};
   for (const k in bc) {
