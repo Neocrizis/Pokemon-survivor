@@ -119,7 +119,7 @@ function netHostData(g, raw) {
 function netAsk(p, kind) { // montée de niveau d'un joueur en ligne : il choisit sur son écran, la partie continue (il est intangible)
   const g = NET.conns.find(x => x.idx === p.idx);
   if (!g) { p.pendingLv = 0; p.pendingEvo = false; return; }
-  const choices = kind === "evo" ? Object.keys(EEVEE).map(id => ({ kind:"evo", id })) : buildChoices();
+  const choices = kind === "evo" ? eeveeForms().map(id => ({ kind:"evo", id })) : buildChoices(); // formes d'Évoli : celles débloquées chez l'hôte
   if (!p.choosing) p.chooseT = CHOOSE_T; // une relance ne redonne pas de temps
   p.choosing = true; NET.asks.set(g, { p, g, kind, choices });
   netTo(g, { t:"ask", kind, choices });
@@ -317,7 +317,7 @@ function netGuestData(raw) {
     if (!ok.length) return;
     if (m.kind !== "evo" && autoPotion && ok.every(c => c.kind === "heal")) { netSend({ t:"pick", i:0 }); sfx("heal"); return; } // Super Potion prise directement (réglage de l'invité)
     $("chest").hidden = true; NET.askEnd = performance.now() + CHOOSE_T * 1000;
-    if (m.kind === "evo") openEvo(); else openLevelUp(ok);
+    if (m.kind === "evo") openEvo(ok.filter(c => c.kind === "evo")); else openLevelUp(ok);
   } else if (m.t === "chest" && S && S.players && NET.started) {
     const got = (Array.isArray(m.got) ? m.got : []).filter(netValid).map(c => ({ kind:c.kind, id:c.id, lv:c.lv | 0 }));
     NET.askEnd = performance.now() + CHOOSE_T * 1000; state = "chest"; sfx("chest"); showChest([1, 3, 5].includes(m.n) ? m.n : 1, got, S.P);

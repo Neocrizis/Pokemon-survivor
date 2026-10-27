@@ -58,11 +58,14 @@ const IT = id => S.P.items[id] || 0;
 const AREA = () => 1 + .1 * IT("loupe") + .01 * (shop.loupe || 0) + .03 * IT("orbevie"), PSPD = () => 1 + .12 * IT("poudrevite") + .03 * IT("orbevie"), DUR = () => 1 + .12 * IT("lumargile") + .03 * IT("orbevie");
 const EXTRA = () => IT("depipe") + (shop.depipe || 0), CURSE = () => 1 + .1 * IT("miel");
 const MAX_ITEMS = 6, MAX_MOVES = () => 4 + (shop.slot || 0); // 4 capacités comme dans les jeux, +1 ou +2 achetées au Marchand
-function hurtP(v) {
+function hurtP(v, kind) { // kind : "contact" (Protection) ou "shot" (Mur Lumière)
   const P = S.P;
   if (P.choosing) return false; // en ligne : intangible pendant son choix
-  if (P.shieldT > 0) return false; // Protection (Germignon)
+  if (P.shieldT > 0) return false; // Abri (Germignon)
   if (P.line === "draco") v *= .9; // Multiécaille : −10 % de dégâts reçus
+  if (P.eform === "noctali") v *= .9; // Noctali : −10 % de dégâts reçus
+  if (kind === "contact" && P.reflT > 0) v *= P.reflK; // Protection (Noctali)
+  if (kind === "shot" && P.lscrT > 0) v *= P.lscrK; // Mur Lumière (Mentali)
   if (P.line === "magicarpe" && P.moves.magibulle) {
     P.moves.magibulle.untouched = 0;
   }
@@ -125,7 +128,7 @@ function laserTick(f, a0, dt) { // Laser Glace (Lamantine géant, Artikodin) : v
       if (q.down || q.choosing) continue;
       const k = Math.max(0, Math.min(900, (q.x - f.x) * ex + (q.y - f.y) * ey)), px = f.x + ex * k, py = f.y + ey * k;
       if (Math.hypot(q.x - px, q.y - py) < W + q.r) {
-        S.P = q; if (q.inv <= 0) { if (sl) statusHit(q, { type:"glace", slow:sl }); if (hurtP((z.dmg || 11) * eff(ty, [ptype()]) * scl)) return true; } else if (sl) q.slowT = Math.max(q.slowT || 0, sl);
+        S.P = q; if (q.inv <= 0) { if (sl) statusHit(q, { type:"glace", slow:sl }); if (hurtP((z.dmg || 11) * eff(ty, [ptype()]) * scl, "shot")) return true; } else if (sl) q.slowT = Math.max(q.slowT || 0, sl);
       }
     }
     if (Math.random() < dt * 30) { const k = Math.random() * 900; emit(f.x + ex * k, f.y + ey * k, 1, ty, { sp:60, life:.4, r:2.4 }); }

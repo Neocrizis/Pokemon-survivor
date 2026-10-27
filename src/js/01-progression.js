@@ -59,6 +59,7 @@ const ACHS = [
   { id:"zarbi",   name:"Carnet Zarbi",       desc:"Vaincre les 26 formes de Zarbi (de A à Z) dans les Ruines d'Alpha, en une ou plusieurs parties.", reward:100, secret:true },
   { id:"win12",   name:"Lumière sur le bois", desc:"Terminer le Bois aux Chênes, troisième niveau de Johto.", reward:100, secret:true },
   { id:"farf",    name:"Gardien de la forêt", desc:"Rattraper le Canarticho fugueur du Bois aux Chênes.", reward:50, secret:true },
+  { id:"purif",   name:"Purificateur",       desc:"Vaincre 10 000 Pokémon Obscurs (au total). Débloque Mentali et Noctali, deux nouvelles évolutions d'Évoli.", reward:150, secret:true },
   { id:"celebi",  name:"Voix de la forêt",   desc:"Purifier Celebi Obscur dans le Bois aux Chênes, puis le capturer dans le cercle de lumière.", reward:150, unlock:"celebi", secret:true },
   { id:"mewtwo",  name:"Pokémon génétique",  desc:"Repousser Mewtwo dans le Manoir Pokémon.",       reward:100 },
   { id:"legend",  name:"Légende vivante",    desc:"Vaincre Artikodin, Électhor ou Sulfura dans le niveau Oiseau Légendaire.", reward:100 },
@@ -89,6 +90,7 @@ function teamAch(id, who) { // succès d'équipe (boss, Mewtwo…) : chaque joue
 function achCheck(win) {
   if ((dexKills.pikachu || 0) >= 50) achGet("pika50");
   if (moneyEarned() >= 1000) achGet("money");
+  if (shadowKills() >= SHADOW_GOAL) achGet("purif"); // Mentali et Noctali
   if (!S || !S.players) return;
   const P = typeof NET !== "undefined" && NET.role === "guest" ? S.players[NET.idx] || S.P : typeof NET !== "undefined" && NET.role === "host" ? S.players[0] : S.P; // en ligne : son propre Pokémon
   if (!P || !P.moves) return;
