@@ -174,12 +174,13 @@ function jPetals(P, lv) { // Tempête Florale : tous les ennemis à l'écran
 }
 function updateJohto(P, dt) { // talents et effets continus des starters de Johto (appelé pour chaque joueur)
   if (P.line === "celebi") celebiTalent(P, dt);
+  updateEvoliObscur(P, dt); // Mentali et Noctali, ennemis confus (Onde Folie)
   if (P.line === "heri") { // Torche : la Chaleur monte en courant et retombe à l'arrêt
     P.heat = Math.max(0, Math.min(1, (P.heat || 0) + (P.moving ? .35 : -.5) * dt));
     if (P.heat > .4 && Math.random() < dt * 20 * P.heat) emit(P.x - (P.fx || 0) * 8, P.y - 10, 1, "feu", { sp:30, life:.4, up:40, r:2 });
   }
   if (P.nitroT > 0 && (P.nitroT -= dt) <= 0) P.nitro = 0;
-  if (P.shieldT > 0) { // Protection : renvoie les coups aux ennemis qui touchent le bouclier
+  if (P.shieldT > 0) { // Abri : renvoie les coups aux ennemis qui touchent le bouclier
     P.shieldT -= dt; HIT_SRC = "protection"; const S0 = S.P; S.P = P.shieldBy || P;
     for (const f of S.foes) if (!f.prop && !f.d.rare && f.hp > 0 && !(f.reflT > S.t) && (f.x - P.x) ** 2 + (f.y - P.y) ** 2 < (f.r + P.r + 12) ** 2) {
       f.reflT = S.t + .5; const dx = f.x - P.x, dy = f.y - P.y, d = Math.hypot(dx, dy) || 1; hitFoe(f, P.shieldRef || 20, "normal", dx / d * 4, dy / d * 4);

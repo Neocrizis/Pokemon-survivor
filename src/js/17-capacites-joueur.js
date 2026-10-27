@@ -36,6 +36,7 @@ function updateMoves(dt) {
     if (m.t > 0) continue;
     if (JMOVE[id]) { JMOVE[id](P, m, lv, dt); continue; }
     if (CMOVE[id]) { CMOVE[id](P, m, lv, dt); continue; } // Celebi (16d-bois-chenes.js)
+    if (EMOVE[id]) { EMOVE[id](P, m, lv, dt); continue; } // Mentali et Noctali (16e-mentali-noctali.js)
     if (id === "meteores") {
       const n = 2 + (lv >= 2) + (lv >= 4) + (lv >= 5) + EXTRA(), tg = nearestFoes(n);
       if (!tg.length) { m.t = .3; continue; }

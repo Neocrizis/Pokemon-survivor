@@ -150,6 +150,7 @@ function update(dt) {
     let ax = dx / l, ay = dy / l;
     if (f.orme && S.orme?.on) { const ox = S.orme.x - f.x, oy = S.orme.y - f.y, ol = Math.hypot(ox, oy) || 1; ax = ox / ol; ay = oy / ol; } // ils foncent sur l'assistant du Prof. Orme
     if (f.charmT > S.t) { ax = -ax; ay = -ay; } // charmé par Togepi : s'éloigne
+    if (f.confT > S.t) [ax, ay] = confSteer(f); // confus (Onde Folie) : fonce sur un autre Pokémon sauvage
     if (f.d.erratic) { const w = Math.sin(S.t * 4 + f.ph) * .9; const c = Math.cos(w), s = Math.sin(w); [ax, ay] = [ax*c - ay*s, ax*s + ay*c]; }
     let sp = f.d.speed * CURSE() * (1 + Math.min(S.t / 600, 1) * .25) * (f.hurt > 0 && !f.d.boss ? .4 : 1) * (f.slowT > 0 ? f.slowMul : 1) * (f.d.boss ? BOSS_SPD[f.kind] || 1.3 : 1); // boss plus rapides
     if ((f.d.dash || f.d.bird) && !(f.sleepT > 0)) {
@@ -272,11 +273,11 @@ function update(dt) {
     const k = ((f.x / CELL) | 0) + "," + ((f.y / CELL) | 0);
     if (!f.d.boss && !f.d.solid) (grid.get(k) || grid.set(k, []).get(k)).push(f);
     // contact
-    if (l < f.r + P.r - 3 && P.inv <= 0 && !(f.sleepT > 0) && !f.under && !f.jump && !(f.appear > 0) && !(f.vanish > 0) && !(f.missT > S.t) && !(f.charmT > S.t)) {
+    if (l < f.r + P.r - 3 && P.inv <= 0 && !(f.sleepT > 0) && !f.under && !f.jump && !(f.appear > 0) && !(f.vanish > 0) && !(f.missT > S.t) && !(f.charmT > S.t) && !(f.confT > S.t)) {
       if (f.blindT > S.t && Math.random() < (f.d.boss ? .5 : 1) * (f.blindMiss || .4)) { f.missT = S.t + .6; maybeMsg(f, "Raté !", "#c9c9c9"); } // Brouillard
       else {
         if (P.line === "pika" && !f.d.boss) f.stunT = Math.max(f.stunT || 0, 1); // Statik : paralyse l'ennemi qui le touche
-        S.shake = .18; if (hurtP(f.d.dmg * (1 + S.t / 900))) return;
+        S.shake = .18; if (hurtP(f.d.dmg * (1 + S.t / 900), "contact")) return;
       }
     }
   }
@@ -537,7 +538,7 @@ function update(dt) {
       S.shake = .18;
       if (m > 1) S.texts.push({ x:P.x, y:P.y - P.r - 18, txt:"Super efficace !", col:"#ffd84a", life:1, label:true });
       statusHit(P, s);
-      if (hurtP(s.dmg * m * wxMul(s.type) * (1 + S.t / 900))) return; // Tour Cendrée : la météo renforce ou affaiblit aussi les attaques des Pokémon sauvages
+      if (hurtP(s.dmg * m * wxMul(s.type) * (1 + S.t / 900), "shot")) return; // Tour Cendrée : la météo renforce ou affaiblit aussi les attaques des Pokémon sauvages
     }
   }
   S.eshots = S.eshots.filter(s => s.life > 0);

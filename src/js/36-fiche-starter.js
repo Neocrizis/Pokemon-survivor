@@ -45,7 +45,7 @@ function evoStages(line) {
 }
 // Évoli : clic sur une évolution = ses attaques dans le panneau de droite (même règle que buildChoices avec le type de l'évolution)
 const formMoves = k => { const t = EEVEE[k].type;
-  return Object.entries(MOVES).filter(([id, m]) => (!m.line || m.line === "evoli") && !m.tier && ((m.only && [].concat(m.only).includes(t)) || (m.also || []).includes("evoli") || id === EEVEE[k].move))
+  return Object.entries(MOVES).filter(([id, m]) => (!m.line || [].concat(m.line).includes("evoli")) && !m.tier && ((m.only && [].concat(m.only).includes(t)) || (m.also || []).includes("evoli") || id === EEVEE[k].move))
     .sort((a, b) => (b[0] === EEVEE[k].move) - (a[0] === EEVEE[k].move) || !!a[1].rare - !!b[1].rare); };
 function showFormMoves(k) {
   FICHE.ef = FICHE.ef === k ? null : k;
@@ -74,11 +74,12 @@ function decorateFiche() {
   const t = TALENTS[line], st = evoStages(line);
   FICHE.evo = [];
   $("sTal").innerHTML = (t ? `<div class="talB"><b>${t[0]}</b><span>${t[1]}</span></div>` : "") +
-    (line === "evoli" ? `<div class="evoEv"><div class="evoSt"><canvas width="96" height="80" data-k="evoli" data-s="0"></canvas><b>Évoli</b></div><div class="evoCh"><i class="evoAr">›</i><small>N.${EVO_LEVELS[0]}<br>au choix</small></div><div class="evoGrid${Object.keys(EEVEE).length > 4 ? " many" : ""}">${Object.keys(EEVEE).map(k => `<div class="evoCard" role="button" tabindex="0" title="${EEVEE[k].name} : ${EEVEE[k].bonus} Clic : voir ses attaques." data-k="${k}" style="--t:${TYPE_COLORS[EEVEE[k].type]}"><canvas width="64" height="56" data-k="${k}" data-s="0"></canvas><div><b>${EEVEE[k].name} ${typeIcon(EEVEE[k].type)}</b><small>${EEVEE[k].bonus.replace(/\.$/, "")}</small></div></div>`).join("")}</div></div>`
+    (line === "evoli" ? `<div class="evoEv"><div class="evoSt"><canvas width="96" height="80" data-k="evoli" data-s="0"></canvas><b>Évoli</b></div><div class="evoCh"><i class="evoAr">›</i><small>N.${EVO_LEVELS[0]}<br>au choix</small></div><div class="evoGrid${Object.keys(EEVEE).length > 4 ? " many" : ""}">${Object.keys(EEVEE).map(k => eeveeOpen(k) ? `<div class="evoCard" role="button" tabindex="0" title="${EEVEE[k].name} : ${EEVEE[k].bonus} Clic : voir ses attaques." data-k="${k}" style="--t:${TYPE_COLORS[EEVEE[k].type]}"><canvas width="64" height="56" data-k="${k}" data-s="0"></canvas><div><b>${EEVEE[k].name} ${typeIcon(EEVEE[k].type)}</b><small>${EEVEE[k].bonus.replace(/\.$/, "")}</small></div></div>`
+      : `<div class="evoCard lk" title="Succès « Purificateur » : vaincre ${nFr(SHADOW_GOAL)} Pokémon Obscurs." data-k="${k}" style="--t:#6b6b78"><canvas width="64" height="56" data-k="${k}" data-s="0" style="filter:brightness(0) opacity(.75)"></canvas><div><b>???</b><small>${nFr(Math.min(shadowKills(), SHADOW_GOAL))} / ${nFr(SHADOW_GOAL)} Obscurs</small></div></div>`).join("")}</div></div>`
     : st ? `<div class="evoRow${st.length > 3 ? " many" : ""}">${st.map(([k, s, nm, lv], i) => `${i && st.length <= 3 ? '<i class="evoAr">›</i>' : ""}<div class="evoSt"><canvas width="96" height="80" data-k="${k}" data-s="${s}"></canvas><b>${nm}</b><small>${lv}</small></div>`).join("")}</div>`
         : `<div class="evoRow"><small class="evoNo">N'évolue pas : se renforce au N.${EVO_LEVELS[0]} et au N.${EVO_LEVELS[1]}.</small></div>`);
   $("sTal").querySelectorAll(".evoSt canvas, .evoCard canvas").forEach(c => FICHE.evo.push(c));
-  $("sTal").querySelectorAll(".evoCard").forEach(c => { c.addEventListener("click", () => showFormMoves(c.dataset.k)); c.addEventListener("keydown", e => { if (e.key === "Enter") showFormMoves(c.dataset.k); }); });
+  $("sTal").querySelectorAll(".evoCard:not(.lk)").forEach(c => { c.addEventListener("click", () => showFormMoves(c.dataset.k)); c.addEventListener("keydown", e => { if (e.key === "Enter") showFormMoves(c.dataset.k); }); });
   const mv = lineMoves(line);
   $("sMoves").querySelectorAll(".mv").forEach((row, i) => { const ty = row.querySelector(".ty"); if (ty && mv[i]) ty.outerHTML = typeIcon(mv[i][1].type); });
   $("sCar").querySelectorAll(".mv .tg.a").forEach(tg => { if (!/seulement/.test(tg.textContent)) tg.textContent += " seulement"; });

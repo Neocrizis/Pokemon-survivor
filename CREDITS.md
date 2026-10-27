@@ -71,8 +71,10 @@ Les sprites originaux sont de Spike Chunsoft (Pokémon Donjon Mystère). Retouch
 | 0135 | Voltali (joueur) | CHUNSOFT + 1 contributeur SpriteCollab |
 | 0136 | Pyroli (joueur) | CHUNSOFT + 2 contributeurs SpriteCollab |
 | 0470 | Phyllali (joueur) | CHUNSOFT + 1 contributeur SpriteCollab |
+| 0196 | Mentali (joueur, succès « Purificateur ») | CHUNSOFT |
+| 0197 | Noctali (joueur, succès « Purificateur ») | CHUNSOFT + 1 contributeur SpriteCollab |
 | 0129, 0130 (chromatiques, 0000/0001) | Magicarpe et Léviator chromatiques (starter Magicarpe) | 2 contributeurs SpriteCollab chacun |
-| versions shiny (0133-0136, 0470) | Évoli et ses évolutions chromatiques | auteurs indiqués dans les credits.txt SpriteCollab de chaque dossier 0000/0001 |
+| versions shiny (0133-0136, 0196, 0197, 0470) | Évoli et ses évolutions chromatiques | auteurs indiqués dans les credits.txt SpriteCollab de chaque dossier 0000/0001 |
 | 0064, 0132 | Kadabra, Métamorph (Caverne Azurée, niveau 9) | CHUNSOFT |
 | 0151 | Mew (joueur) | CHUNSOFT ; version chromatique (0151/0000/0001) : contributeurs SpriteCollab indiqués dans son credits.txt |
 | 0152, 0153, 0154, 0155, 0158, 0159, 0160 | Germignon, Macronium, Méganium, Héricendre, Kaiminus, Crocrodil, Aligatueur (joueur, Johto) | CHUNSOFT |
