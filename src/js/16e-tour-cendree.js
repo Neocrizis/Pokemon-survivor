@@ -3,7 +3,7 @@
 const WX = { sun:{ name:"Zénith", icon:"☀", up:"feu", down:"eau" }, rain:{ name:"Pluie", icon:"🌧", up:"eau", down:"feu" }, storm:{ name:"Orage", icon:"⛈", up:"eau", down:"feu" } };
 const BEASTS = { entei:{ boss:"bossEntei", name:"Entei", col:"255,140,60", type:"feu" }, suicune:{ boss:"bossSuicune", name:"Suicune", col:"120,210,255", type:"eau" }, raikou:{ boss:"bossRaikou", name:"Raikou", col:"255,230,90", type:"electrik" } };
 function wxMul(type) { // bonus ou malus de la météo sur une attaque de ce type (pour tout le monde : joueurs et Pokémon sauvages)
-  const w = S && LEVEL.burned && WX[S.wx]; return !w ? 1 : type === w.up ? 1.5 : type === w.down ? .5 : 1;
+  const w = S && (LEVEL.burned || LEVEL.rage) && WX[S.wx]; return !w ? 1 : type === w.up ? 1.5 : type === w.down ? .5 : 1; // Tour Cendrée, et la pluie du Lac Colère
 }
 function setWx(k, f) {
   S.wx = k; S.wxT = 0;
@@ -238,13 +238,16 @@ function drawBurnedUnder(t) {
     const a = Math.min(1, f.mistT); for (let i = 0; i < 8; i++) { const an = i / 8 * Math.PI * 2 + t * .8; circ(cx, f.x + Math.cos(an) * f.r * 1.1, f.y + Math.sin(an) * f.r * .6, f.r * .55, `rgba(220,240,255,${.16 * a})`); }
   }
 }
-function drawBurnedOver(t) {
-  if (!LEVEL.burned) return;
+function drawTwisters() { // tourbillons de Tornade (Suicune) et d'Ouragan (Léviator)
   for (const w of S.tcTw || []) { // tourbillons de Tornade
     const a = Math.min(1, w.life * 2);
     for (let i = 0; i < 4; i++) { cx.save(); cx.translate(w.x, w.y - i * 12); cx.rotate(w.a + i); cx.strokeStyle = `rgba(225,245,255,${(.7 - i * .12) * a})`; cx.lineWidth = 3;
       cx.beginPath(); cx.ellipse(0, 0, 16 + i * 7, (16 + i * 7) * .4, 0, 0, Math.PI * 1.4); cx.stroke(); cx.restore(); }
   }
+}
+function drawBurnedOver(t) {
+  if (!LEVEL.burned) return;
+  drawTwisters();
   for (const z of S.tcZap || []) { // éclairs qui tombent du ciel
     const R = rng(z.seed * 1e6 | 0), a = z.life / .35; let x = z.x + (R() - .5) * 60, y = z.y - 520;
     cx.save(); cx.globalCompositeOperation = "lighter"; glow(z.x, z.y, 80, "255,240,140", a); cx.lineCap = "round";
@@ -266,7 +269,7 @@ function drawBurnedOver(t) {
   for (const f of S.foes) if (f.d.rival && f.hp > 0) { cx.strokeStyle = "rgba(230,60,60,.8)"; cx.lineWidth = 2.5; cx.beginPath(); cx.ellipse(f.x, f.y + f.r * .8, f.r * 1.1, f.r * .4, 0, 0, Math.PI * 2); cx.stroke(); } // l'équipe de Silver
 }
 function drawBurnedTop(camX, camY, vw, vh, t) { // teinte de la météo sur le monde
-  if (!LEVEL.burned) return;
+  if (!LEVEL.burned && !LEVEL.rage) return;
   const w = S.wx; S.wxK = Math.max(0, Math.min(1, (S.wxK || 0) + (w ? 1 : -1) * .02)); if (w) S.wxLast = w;
   const k = S.wxK, l = S.wxLast; if (!k || !l) return;
   if (l === "sun") { cx.fillStyle = `rgba(255,150,40,${.13 * k})`; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120); }
@@ -278,7 +281,7 @@ function drawBurnedTop(camX, camY, vw, vh, t) { // teinte de la météo sur le m
   }
 }
 function drawWeather(t) { // à l'écran : rayons du soleil, pluie, éclairs, et l'étiquette de la météo
-  if (!LEVEL.burned || !S) return;
+  if ((!LEVEL.burned && !LEVEL.rage) || !S) return;
   const k = S.wxK || 0, l = S.wxLast;
   if (k && l === "sun") {
     cx.save(); cx.globalCompositeOperation = "lighter";

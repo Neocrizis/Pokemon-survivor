@@ -65,6 +65,7 @@ function hurtP(v, kind) { // kind : "contact" (Protection) ou "shot" (Mur Lumiè
   if (P.shieldT > 0) return false; // Abri (Germignon)
   if (P.line === "draco") v *= .9; // Multiécaille : −10 % de dégâts reçus
   if (P.eform === "noctali") v *= .9; // Noctali : −10 % de dégâts reçus
+  if (P.leerT > S.t) v *= 1.3; // Groz'Yeux du Léviator rouge : défense baissée
   if (kind === "contact" && P.reflT > 0) v *= P.reflK; // Protection (Noctali)
   if (kind === "shot" && P.lscrT > 0) v *= P.lscrK; // Mur Lumière (Mentali)
   if (P.line === "magicarpe" && P.moves.magibulle) {

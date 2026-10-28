@@ -31,7 +31,7 @@ function drawCanopy(camX, camY, vw, vh, t, P) {
   forView(camX, camY, vw, vh, 120, (i, j, c) => { for (const tr of c.trees) {
     const cyc = tr.y - tr.r * .55;
     if (tr.x + tr.r * 1.3 < camX || tr.x - tr.r * 1.3 > camX + vw || cyc + tr.r * 1.3 < camY || cyc - tr.r * 1.3 > camY + vh) continue;
-    const sp = LEVEL.safari ? acaciaSprite(tr.r, tr.v) : jadeOn() ? jadeTreeSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
+    const sp = LEVEL.rage && LK.img ? lakeTreeSprite(tr) : LEVEL.safari ? acaciaSprite(tr.r, tr.v) : jadeOn() ? jadeTreeSprite(tr.r, tr.v) : canopySprite(tr.r, tr.v), sw = Math.sin(t * .9 + tr.ph) * 1.6;
     const under = S.players.some(p => Math.hypot(p.x - tr.x, p.y - cyc) < tr.r * 1.05);
     cx.globalAlpha = under ? .35 : 1;
     cx.drawImage(sp.cv, tr.x - sp.size / 2 + sw, cyc - sp.size / 2, sp.size, sp.size);
@@ -234,7 +234,7 @@ function drawMap7Over(t) {
   }
 }
 function drawLight(t) {
-  if (LEVEL.cave || LEVEL.ilex || LEVEL.burned) return; // pas de rayons de soleil la nuit au Bois aux Chênes
+  if (LEVEL.cave || LEVEL.ilex || LEVEL.burned || (LEVEL.rage && !LK_WED)) return; // pas de rayons de soleil sous la pluie du Lac Colère, ni la nuit au Bois aux Chênes
   cx.save(); cx.globalCompositeOperation = "lighter";
   for (let i = 0; i < 4; i++) {
     const x = (((i * .29 + t * .004) % 1.4) - .2) * W, w = 90 + i * 40;
@@ -388,6 +388,7 @@ function render(now) {
   drawAlphUnder(t);
   drawIlexUnder(t);
   drawBurnedUnder(t);
+  drawRageUnder(t);
   for (const P of S.players) if (P.moves.grozyeux?.rad && !P.down) {
     const rad = P.moves.grozyeux.rad;
     circ(cx, P.x, P.y, rad, "rgba(226,81,63,.06)");
@@ -836,6 +837,7 @@ function render(now) {
   drawOrme(t);
   drawIlexOver(t);
   drawBurnedOver(t);
+  drawRageOver(t);
   for (const f of S.foes) if (f.jump) { // zone d'atterrissage de Kangourex géant
     const k = f.jump.t / f.jump.dur; cx.save(); cx.globalAlpha = .25 + .35 * k; cx.strokeStyle = "#e2513f"; cx.lineWidth = 3; cx.fillStyle = "rgba(226,81,63,.15)";
     cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110, 80, 0, 0, Math.PI * 2); cx.fill(); cx.stroke(); cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110 * k, 80 * k, 0, 0, Math.PI * 2); cx.stroke(); cx.restore();

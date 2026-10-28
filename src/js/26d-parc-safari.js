@@ -24,21 +24,7 @@ function szAt(x, y) {
   return SZ.mask[szBiome(gx, gy)][cy * SZ.GW + cx];
 }
 const szBlocked = (x, y, swim) => { const c = szAt(x, y); return c === "#" || (c === "~" && !swim); };
-function szCollide(e, r, swim) { // repousse hors des cases bloquées (rayon réduit comme pour les obstacles ronds)
-  const rr = r * .7, ox = szOX(), oy = szOY();
-  for (let pass = 0; pass < 2; pass++) {
-    const i0 = Math.floor((e.x - rr - ox) / SZ_T), i1 = Math.floor((e.x + rr - ox) / SZ_T), j0 = Math.floor((e.y - rr - oy) / SZ_T), j1 = Math.floor((e.y + rr - oy) / SZ_T);
-    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
-      const bx = ox + i * SZ_T, by = oy + j * SZ_T;
-      if (!szBlocked(bx + SZ_T / 2, by + SZ_T / 2, swim)) continue;
-      const nx = Math.max(bx, Math.min(e.x, bx + SZ_T)), ny = Math.max(by, Math.min(e.y, by + SZ_T)), dx = e.x - nx, dy = e.y - ny, d = Math.hypot(dx, dy);
-      if (d >= rr) continue;
-      if (d > .01) { e.x = nx + dx / d * rr; e.y = ny + dy / d * rr; continue; }
-      const l = e.x - bx, rt = bx + SZ_T - e.x, t = e.y - by, b = by + SZ_T - e.y, m = Math.min(l, rt, t, b); // centre dans la case : sortie la plus courte
-      if (m === l) e.x = bx - rr; else if (m === rt) e.x = bx + SZ_T + rr; else if (m === t) e.y = by - rr; else e.y = by + SZ_T + rr;
-    }
-  }
-}
+function szCollide(e, r, swim) { gridCollide(e, r, SZ_T, szOX(), szOY(), (x, y) => szBlocked(x, y, swim)); }
 function szFree(x, y) { // case praticable la plus proche ET reliée au joueur (apparitions, Pokémon replacés) : jamais dans une poche du décor
   const P = S.players && S.players.length ? S.players.reduce((a, b) => Math.hypot(b.x - x, b.y - y) < Math.hypot(a.x - x, a.y - y) ? b : a) : null;
   const F = P ? szFlow(P) : null, ox = szOX(), oy = szOY();
