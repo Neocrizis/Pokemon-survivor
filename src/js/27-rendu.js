@@ -234,7 +234,7 @@ function drawMap7Over(t) {
   }
 }
 function drawLight(t) {
-  if (LEVEL.cave || LEVEL.ilex || LEVEL.burned) return; // pas de rayons de soleil la nuit au Bois aux Chênes
+  if (LEVEL.cave || LEVEL.ilex || LEVEL.burned || (LEVEL.rage && !LK_WED)) return; // pas de rayons de soleil sous la pluie du Lac Colère, ni la nuit au Bois aux Chênes
   cx.save(); cx.globalCompositeOperation = "lighter";
   for (let i = 0; i < 4; i++) {
     const x = (((i * .29 + t * .004) % 1.4) - .2) * W, w = 90 + i * 40;
@@ -388,6 +388,7 @@ function render(now) {
   drawAlphUnder(t);
   drawIlexUnder(t);
   drawBurnedUnder(t);
+  drawRageUnder(t);
   for (const P of S.players) if (P.moves.grozyeux?.rad && !P.down) {
     const rad = P.moves.grozyeux.rad;
     circ(cx, P.x, P.y, rad, "rgba(226,81,63,.06)");
@@ -836,6 +837,7 @@ function render(now) {
   drawOrme(t);
   drawIlexOver(t);
   drawBurnedOver(t);
+  drawRageOver(t);
   for (const f of S.foes) if (f.jump) { // zone d'atterrissage de Kangourex géant
     const k = f.jump.t / f.jump.dur; cx.save(); cx.globalAlpha = .25 + .35 * k; cx.strokeStyle = "#e2513f"; cx.lineWidth = 3; cx.fillStyle = "rgba(226,81,63,.15)";
     cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110, 80, 0, 0, Math.PI * 2); cx.fill(); cx.stroke(); cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110 * k, 80 * k, 0, 0, Math.PI * 2); cx.stroke(); cx.restore();

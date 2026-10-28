@@ -872,6 +872,7 @@ const ACHS = [
   { id:"purif",   name:"Purificateur",       desc:"Vaincre 50 000 Pokémon Obscurs (au total). Débloque Mentali et Noctali, deux nouvelles évolutions d'Évoli.", reward:150, secret:true },
   { id:"celebi",  name:"Voix de la forêt",   desc:"Purifier Celebi Obscur dans le Bois aux Chênes, puis le capturer dans le cercle de lumière.", reward:150, unlock:"celebi", secret:true },
   { id:"win13",   name:"Sous les cendres", desc:"Terminer la Tour Cendrée, quatrième niveau de Johto.", reward:100, secret:true },
+  { id:"win14",   name:"Colère apaisée",    desc:"Terminer le Lac Colère, cinquième niveau de Johto.", reward:100, unlock:["magicarpe"], secret:true },
   { id:"trio",    name:"Le trio légendaire", desc:"Vaincre Entei, Suicune et Raikou dans la Tour Cendrée, puis choisir lequel t'accompagnera.", reward:150, secret:true },
   { id:"mewtwo",  name:"Pokémon génétique",  desc:"Repousser Mewtwo dans le Manoir Pokémon.",       reward:100 },
   { id:"legend",  name:"Légende vivante",    desc:"Vaincre Artikodin, Électhor ou Sulfura dans le niveau Oiseau Légendaire.", reward:100 },
@@ -882,10 +883,12 @@ const ACHS = [
 ];
 let achs = {};
 try { achs = JSON.parse(localStorage.getItem("pokesurv-ach") || "{}") || {}; } catch (e) { achs = {}; }
+// Magicarpe La Légende se gagne au Lac Colère, sauf pour ceux qui avaient déjà une sauvegarde avant (choix de Raphaël)
+try { if (!localStorage.getItem("pokesurv-carpe")) { if (Object.keys(achs).length || localStorage.getItem("pokesurv-dex")) { achs.carpeOld = true; localStorage.setItem("pokesurv-ach", JSON.stringify(achs)); } localStorage.setItem("pokesurv-carpe", "1"); } } catch (e) {}
 const achMoney = () => ACHS.reduce((m, a) => m + (achs[a.id] ? a.reward : 0), 0);
 const unlocks = (a, line) => [].concat(a.unlock || []).includes(line);
 const unlockNames = a => [].concat(a.unlock).map(l => LINES[l].names[0]).join(", ").replace(/, ([^,]*)$/, " et $1");
-const isUnlocked = line => !ACHS.some(a => unlocks(a, line) && !achs[a.id]);
+const isUnlocked = line => (line === "magicarpe" && achs.carpeOld) || !ACHS.some(a => unlocks(a, line) && !achs[a.id]);
 function achGet(id) {
   if (achs[id]) return; const a = ACHS.find(x => x.id === id); if (!a) return;
   achs[id] = true; sfx("ach"); try { localStorage.setItem("pokesurv-ach", JSON.stringify(achs)); } catch (e) {} cloudSoon(); if (id === "win8" || id === "win9") { refreshLocks(); setLevel(LEVELS.indexOf(LEVEL)); }
@@ -1477,8 +1480,16 @@ const FOES = {
   sulfura:   { name:"Sulfura",   types:["feu","vol"],      hp:7000, speed:92, dmg:42, r:46, xp:200, boss:true, bird:"fire", armor:.54, sprR:26, sprDy:14 },
 };
 // Johto : Bois aux Chênes. La Dark Ball a corrompu la forêt : ses Pokémon sont Obscurs (aura sombre, un peu plus coriaces et rapides, leur propre entrée au Pokédex)
-for (const [k, o] of Object.entries({ chenipan:{}, chrysacier:{}, papilusion:{}, aspicot:{}, coconfort:{}, dardargnan:{}, paras:{}, parasect:{}, nosferapti:{}, noeuf:{}, hoothoot:{}, noarfang:{}, magicarpe:{ swim:true }, mimitoss:{} }))
+for (const [k, o] of Object.entries({ chenipan:{}, chrysacier:{}, papilusion:{}, aspicot:{}, coconfort:{}, dardargnan:{}, paras:{}, parasect:{}, nosferapti:{}, noeuf:{}, hoothoot:{}, noarfang:{}, magicarpe:{ swim:true, aqua:true }, mimitoss:{}, aeromite:{}, leviator:{ swim:true, aqua:true } })) // Lac Colère : Magicarpe et Léviator ne quittent pas le lac
   FOES[k + "O"] = { ...FOES[k], ...o, name:FOES[k].name + " Obscur", sprite:FOES[k].sprite || k, hp:Math.round(FOES[k].hp * 1.3), speed:Math.round(FOES[k].speed * 1.1), johto:true, shadow:true };
+// Johto : Lac Colère. L'onde de la Team Rocket force les Magicarpe à évoluer ; Léviator rouge et ses deux escortes (16f-lac-colere.js)
+Object.assign(FOES, {
+  bossAeromite: { name:"Aéromite Obscur géant",  sprite:"aeromite",   types:["insecte","poison"], hp:1700, speed:70, dmg:18, r:42, xp:50,  boss:true, johto:true, shadow:true, erratic:true, venom:true },
+  bossCarpe:    { name:"Magicarpe Obscur géant", sprite:"magicarpe",  types:["eau"],              hp:1500, speed:52, dmg:16, r:40, xp:60,  boss:true, johto:true, shadow:true, splash:true },
+  bossLevO:     { name:"Léviator Obscur géant",  sprite:"leviator",   types:["eau","vol"],        hp:3000, speed:66, dmg:22, r:46, sprR:21, xp:85,  boss:true, johto:true, shadow:true, dash:true, bigDash:true, gyara:true },
+  bossLevRouge: { name:"Léviator rouge géant",   sprite:"leviator_s", types:["eau","vol"],        hp:6400, speed:72, dmg:26, r:50, sprR:24, xp:130, boss:true, johto:true, dash:true, bigDash:true, gyara:true, red:true },
+  bossLevEsc:   { name:"Léviator Obscur",        sprite:"leviator",   types:["eau","vol"],        hp:1800, speed:70, dmg:18, r:32, sprR:15, xp:40,  boss:true, johto:true, shadow:true, dash:true, gyara:true, escort:true },
+});
 Object.assign(FOES, {
   mystherbeO: { name:"Mystherbe Obscur", sprite:"mystherbe", types:["plante","poison"], hp:22, speed:50, dmg:5,  r:12, xp:1, johto:true, shadow:true },
   ortideO:    { name:"Ortide Obscur",    sprite:"ortide",    types:["plante","poison"], hp:78, speed:50, dmg:10, r:16, xp:4, johto:true, shadow:true, sludge:true },
@@ -1846,15 +1857,28 @@ const LEVELS = [
       if (m > 2.5) o.push(["magmarO", .3 + m / 20]); // Magmar reste rare, comme au sous-sol de la vraie tour
       if (m > 4)   o.push(["smogogoO", .5 + m / 12]);
     } },
-  { name:"Lac Colère", num:14, label:5, region:"johto", title:"Tu as calmé le Lac Colère !", cave:false, rage:true, track:"forest", prop:"berrytree", where:"au Lac Colère", from:"surgit du lac",
-    intro:"(Brouillon en attente de validation) Au nord d'Acajou, une onde radio de la Team Rocket rend furieux les Pokémon du Lac Colère : Magicarpe, Hoothoot, Noeunoeuf, Pomdepik et Mimitoss sont devenus Obscurs. Au milieu du lac, un Léviator rouge s'agite… Tiens dix minutes.",
-    win:"a calmé le Lac Colère.",
-    matchup:{},
-    rings:["magicarpeO", "hoothootO", "noeufO", "pomdepikO"],
-    bosses:[],
-    table(m, o) {
-      o.push(["magicarpeO", 3], ["hoothootO", m < 3 ? 2.4 : 1.2], ["noeufO", 1.4]);
-      if (m > 1.2) o.push(["pomdepikO", 1.3], ["mimitossO", 1.2]);
+  { name:"Lac Colère", num:14, label:5, region:"johto", title:"Tu as apaisé le Lac Colère !", cave:false, rage:true, track:"forest", prop:"berrytree", where:"au Lac Colère", from:"surgit du lac",
+    intro:"Au nord d'Acajou, il pleut sans cesse sur le Lac Colère. Une onde radio de la Team Rocket y rend les Pokémon furieux : Magicarpe, Hoothoot, Noeunoeuf, Pomdepik et Mimitoss sont devenus Obscurs, et l'onde force les Magicarpe à évoluer en Léviator. Aéromite Obscur géant, puis un Magicarpe Obscur géant gardent la rive… et au milieu du lac, un Léviator rouge enrage. Sous la pluie, l'Eau est renforcée et le Feu affaibli. Tiens dix minutes.",
+    win:"a apaisé le Lac Colère. Le Léviator rouge s'est calmé, et l'onde de la Team Rocket mène tout droit à Acajou.",
+    matchup:{ plante:["Variable", "La Plante noie les Magicarpe, mais les Léviator (Vol) et les insectes lui résistent."],
+              eau:["Variable", "La pluie donne +50 % à tes attaques Eau, et tu nages dans le lac. Mais les Magicarpe et les Léviator y résistent."],
+              feu:["Difficile", "Sous la pluie, tes attaques Feu perdent la moitié de leur force, même si elles brûlent les insectes et les Noeunoeuf."],
+              miaouss:["Neutre", "Le Normal frappe presque tout le monde normalement, et ses coups critiques font le ménage."],
+              pika:["Avantagé", "L'Électrik foudroie les Magicarpe, les Hoothoot et surtout les Léviator (Eau et Vol) : dégâts ×4 !"],
+              evoli:["Variable", "Normal au départ, puis le type de ton évolution au N.10. Voltali est idéal ici, Aquali profite de la pluie."],
+              draco:["Neutre", "Le Dragon résiste à l'Eau des Léviator, mais Draco-Rage du Léviator rouge le frappe fort."],
+              mew:["Variable", "Métronome peut tirer n'importe quel type : la pluie peut doubler ta chance… ou la diviser."],
+              heri:["Difficile", "La pluie étouffe tes flammes : −50 % sur tes attaques Feu pendant tout le niveau."],
+              kaiminus:["Variable", "La pluie donne +50 % à tes attaques Eau, et Mâchouille croque les Noeunoeuf (Psy)."],
+              fee:["Neutre", "La Fée frappe presque tout le monde normalement, mais les Mimitoss et Aéromite (Poison) lui résistent."] },
+    rings:["magicarpeO", "hoothootO", "mimitossO", "noeufO"],
+    event:{ kind:"peter", from:448, to:452, chance:1/3 }, // Peter et son Dracolosse viennent aider contre le Léviator rouge
+    bosses:[{ at:170, kind:"bossAeromite" }, { at:300, kind:"bossCarpe" }, { at:450, kind:"bossLevRouge" }],
+    table(m, o) { // Poképédia : Magicarpe et Léviator sur l'eau, Hoothoot, Noeunoeuf, Pomdepik, Mimitoss (et Chenipan, Aspicot dans Or et Argent) dans les arbres
+      o.push(["magicarpeO", m < 4 ? 3 : 2], ["hoothootO", m < 3 ? 2.2 : 1.2], ["noeufO", 1.2], ["chenipanO", m < 3 ? .8 : .3], ["aspicotO", m < 3 ? .8 : .3]);
+      if (m > 1)   o.push(["pomdepikO", 1.3], ["mimitossO", 1.5]);
+      if (m > 2.5) o.push(["aeromiteO", .5 + m / 12], ["papilusionO", .4], ["dardargnanO", .4]);
+      if (m > 4)   o.push(["leviatorO", .3 + m / 30]); // un Léviator sur dix, comme sur le vrai lac
     } },
 ];
 for (const lv of LEVELS) if (lv.maps) Object.assign(lv, lv.maps[0], { mapIdx:0 });
@@ -2173,7 +2197,7 @@ const DEX = { plante:["0001","0002","0003"], feu:["0004","0005","0006"], eau:["0
   fantominus:"0092", spectrum:"0093", ectoplasma:"0094", osselait:"0104", ossatueur:"0105", rattata:"0019", rattatac:"0020", chetiflor:"0069", boustiflor:"0070", empiflor:"0071", fouinette:"0161", fouinar:"0162", hoothoot:"0163", noarfang:"0164",
   abo:"0023", arbok:"0024", tadmorv:"0088", grotadmorv:"0089", smogo:"0109", smogogo:"0110", rhinocorne:"0111", rhinoferos:"0112", rhinastoc:"0464", rmiaouss:"0052", rpersian:"0053", celebi:["0251","0251","0251"], celebi_s:["0251s","0251s","0251s"], ronflex:"0143",
   nidoranf:"0029", nidorina:"0030", nidoranm:"0032", nidorino:"0033", psykokwak:"0054", akwakwak:"0055", ramoloss:"0079", flagadoss:"0080", otaria:"0086", lamantine:"0087", magneti:"0081", magneton:"0082", voltorbe:"0100", electrode:"0101", onix:"0095", machoc:"0066", machopeur:"0067", mackogneur:"0068",
-  noeunoeuf:"0102", noadkoko:"0103", minidraco:"0147", goupix:"0037", feunard:"0038", caninos:"0058", arcanin:"0059", ponyta:"0077", galopa:"0078", magmar:"0126", mewtwo:"0150", kadabra:"0064", metamorph:"0132", artikodin:"0144", electhor:"0145", sulfura:"0146", lokhlass:"0131", lippoutou:"0124", crustabri:"0091", tygnon:"0107", kicklee:"0106", leviator:"0130", ptera:"0142", alakazam:"0065", kokiyas:"0090", stari:"0120", tentacool:"0072", ferosinge:"0056", colossinge:"0057", magicarpe:["0129","0130"], magicarpe_s:["0129s","0130s"], rapasdepic:"0022", wdraco:"0148", dracolosse:"0149", leveinard:"0113", kangourex:"0115", mimitoss:"0048", aeromite:"0049", doduo:"0084", insecateur:"0123", scarabrute:"0127", tauros:"0128" };
+  noeunoeuf:"0102", noadkoko:"0103", minidraco:"0147", goupix:"0037", feunard:"0038", caninos:"0058", arcanin:"0059", ponyta:"0077", galopa:"0078", magmar:"0126", mewtwo:"0150", kadabra:"0064", metamorph:"0132", artikodin:"0144", electhor:"0145", sulfura:"0146", lokhlass:"0131", lippoutou:"0124", crustabri:"0091", tygnon:"0107", kicklee:"0106", leviator:"0130", leviator_s:"0130s", ptera:"0142", alakazam:"0065", kokiyas:"0090", stari:"0120", tentacool:"0072", ferosinge:"0056", colossinge:"0057", magicarpe:["0129","0130"], magicarpe_s:["0129s","0130s"], rapasdepic:"0022", wdraco:"0148", dracolosse:"0149", leveinard:"0113", kangourex:"0115", mimitoss:"0048", aeromite:"0049", doduo:"0084", insecateur:"0123", scarabrute:"0127", tauros:"0128" };
 ZARBI_L.forEach((c, i) => { DEX["zarbi_" + c] = i ? "0201_" + String(i).padStart(2, "0") : "0201"; }); // les 28 formes de Zarbi (A à Z, ! et ?)
 const SPR = {};
 for (const [id, sh] of Object.entries(window.PMD_SHEETS || {})) { const img = new Image(); img.src = sh.src; SPR[id] = { ...sh, img, total: sh.dur.reduce((a, b) => a + b, 0) }; }
@@ -2265,6 +2289,7 @@ function hurtP(v, kind) { // kind : "contact" (Protection) ou "shot" (Mur Lumiè
   if (P.shieldT > 0) return false; // Abri (Germignon)
   if (P.line === "draco") v *= .9; // Multiécaille : −10 % de dégâts reçus
   if (P.eform === "noctali") v *= .9; // Noctali : −10 % de dégâts reçus
+  if (P.leerT > S.t) v *= 1.3; // Groz'Yeux du Léviator rouge : défense baissée
   if (kind === "contact" && P.reflT > 0) v *= P.reflK; // Protection (Noctali)
   if (kind === "shot" && P.lscrT > 0) v *= P.lscrK; // Mur Lumière (Mentali)
   if (P.line === "magicarpe" && P.moves.magibulle) {
@@ -2693,6 +2718,7 @@ function spawnFoe(kind, x, y) {
 
 /* ---------- Événements : Célébi, Ronflex, Jessie et James ---------- */
 function startEvent(kind) {
+  if (kind === "peter") { S.lk.peterWant = true; return; } // Lac Colère : Peter viendra quand le Léviator rouge sera là
   const P = S.P, mx = P.mvx || 1, my = P.mvy || 0;
   if (kind === "celebi") {
     const a = Math.random() * Math.PI * 2;
@@ -2973,7 +2999,7 @@ function hitFoe(f, base, type, kx = 0, ky = 0, forceCrit = false) {
   S.P.orbHit = true;
   const m = eff(type, f.d.types);
   const crit = forceCrit || Math.random() < .05 * IT("lentilscope") + .01 * (shop.lentil || 0) + (LINES[S.P.line].crit || 0);
-  const dmg = (veiled(f.d) ? .5 : 1) * base * S.P.dmgMul * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * m * (.9 + Math.random() * .2) * (crit ? 2 : 1) * (f.leerT > 0 ? f.leerMul : 1) * (S.P.ancT > 0 ? 1.2 : 1) * (f.shieldT > 0 ? .15 : 1) * (f.d.armor || 1) * (f.d.solidRock && m > 1 ? .75 : 1) * jBoost(type) * wxMul(type); // Rhinoféros / Rhinastoc : blindés
+  const dmg = (veiled(f.d) ? .5 : 1) * base * S.P.dmgMul * (S.P.dracoT > 0 ? S.P.dracoMul : 1) * m * (.9 + Math.random() * .2) * (crit ? 2 : 1) * (f.leerT > 0 ? f.leerMul : 1) * (S.P.ancT > 0 ? 1.2 : 1) * (f.shieldT > 0 ? .15 : 1) * (f.d.armor || 1) * (f.d.solidRock && m > 1 ? .75 : 1) * jBoost(type) * wxMul(type) * (S.P.intimT > S.t ? .75 : 1); // Rhinoféros / Rhinastoc : blindés ; Intimidation du Léviator rouge : −25 %
   if (m === 0) { maybeMsg(f, "Aucun effet…", "#c9c9c9"); return; }
   f.hp -= dmg; f.hurt = .12; S.P.dealt += dmg; sfx("hit");
   if (S.P.line === "kaiminus" && JMELEE.has(HIT_SRC) && !S.P.down) S.P.hp = Math.min(S.P.maxHp, S.P.hp + Math.min(.2, dmg * .003)); // Sans Limite : chaque coup soigne un tout petit peu
@@ -4254,7 +4280,7 @@ function drawEvoliObscur(t) {
 const WX = { sun:{ name:"Zénith", icon:"☀", up:"feu", down:"eau" }, rain:{ name:"Pluie", icon:"🌧", up:"eau", down:"feu" }, storm:{ name:"Orage", icon:"⛈", up:"eau", down:"feu" } };
 const BEASTS = { entei:{ boss:"bossEntei", name:"Entei", col:"255,140,60", type:"feu" }, suicune:{ boss:"bossSuicune", name:"Suicune", col:"120,210,255", type:"eau" }, raikou:{ boss:"bossRaikou", name:"Raikou", col:"255,230,90", type:"electrik" } };
 function wxMul(type) { // bonus ou malus de la météo sur une attaque de ce type (pour tout le monde : joueurs et Pokémon sauvages)
-  const w = S && LEVEL.burned && WX[S.wx]; return !w ? 1 : type === w.up ? 1.5 : type === w.down ? .5 : 1;
+  const w = S && (LEVEL.burned || LEVEL.rage) && WX[S.wx]; return !w ? 1 : type === w.up ? 1.5 : type === w.down ? .5 : 1; // Tour Cendrée, et la pluie du Lac Colère
 }
 function setWx(k, f) {
   S.wx = k; S.wxT = 0;
@@ -4489,13 +4515,16 @@ function drawBurnedUnder(t) {
     const a = Math.min(1, f.mistT); for (let i = 0; i < 8; i++) { const an = i / 8 * Math.PI * 2 + t * .8; circ(cx, f.x + Math.cos(an) * f.r * 1.1, f.y + Math.sin(an) * f.r * .6, f.r * .55, `rgba(220,240,255,${.16 * a})`); }
   }
 }
-function drawBurnedOver(t) {
-  if (!LEVEL.burned) return;
+function drawTwisters() { // tourbillons de Tornade (Suicune) et d'Ouragan (Léviator)
   for (const w of S.tcTw || []) { // tourbillons de Tornade
     const a = Math.min(1, w.life * 2);
     for (let i = 0; i < 4; i++) { cx.save(); cx.translate(w.x, w.y - i * 12); cx.rotate(w.a + i); cx.strokeStyle = `rgba(225,245,255,${(.7 - i * .12) * a})`; cx.lineWidth = 3;
       cx.beginPath(); cx.ellipse(0, 0, 16 + i * 7, (16 + i * 7) * .4, 0, 0, Math.PI * 1.4); cx.stroke(); cx.restore(); }
   }
+}
+function drawBurnedOver(t) {
+  if (!LEVEL.burned) return;
+  drawTwisters();
   for (const z of S.tcZap || []) { // éclairs qui tombent du ciel
     const R = rng(z.seed * 1e6 | 0), a = z.life / .35; let x = z.x + (R() - .5) * 60, y = z.y - 520;
     cx.save(); cx.globalCompositeOperation = "lighter"; glow(z.x, z.y, 80, "255,240,140", a); cx.lineCap = "round";
@@ -4517,7 +4546,7 @@ function drawBurnedOver(t) {
   for (const f of S.foes) if (f.d.rival && f.hp > 0) { cx.strokeStyle = "rgba(230,60,60,.8)"; cx.lineWidth = 2.5; cx.beginPath(); cx.ellipse(f.x, f.y + f.r * .8, f.r * 1.1, f.r * .4, 0, 0, Math.PI * 2); cx.stroke(); } // l'équipe de Silver
 }
 function drawBurnedTop(camX, camY, vw, vh, t) { // teinte de la météo sur le monde
-  if (!LEVEL.burned) return;
+  if (!LEVEL.burned && !LEVEL.rage) return;
   const w = S.wx; S.wxK = Math.max(0, Math.min(1, (S.wxK || 0) + (w ? 1 : -1) * .02)); if (w) S.wxLast = w;
   const k = S.wxK, l = S.wxLast; if (!k || !l) return;
   if (l === "sun") { cx.fillStyle = `rgba(255,150,40,${.13 * k})`; cx.fillRect(camX - 60, camY - 60, vw + 120, vh + 120); }
@@ -4529,7 +4558,7 @@ function drawBurnedTop(camX, camY, vw, vh, t) { // teinte de la météo sur le m
   }
 }
 function drawWeather(t) { // à l'écran : rayons du soleil, pluie, éclairs, et l'étiquette de la météo
-  if (!LEVEL.burned || !S) return;
+  if ((!LEVEL.burned && !LEVEL.rage) || !S) return;
   const k = S.wxK || 0, l = S.wxLast;
   if (k && l === "sun") {
     cx.save(); cx.globalCompositeOperation = "lighter";
@@ -4557,6 +4586,125 @@ function burnedMote(m, t, dt) { // cendres qui tombent, et braises qui montent t
   const ember = !S?.doused && (m.ph * 10 | 0) % 3 === 0;
   if (ember) { const a = .4 + .4 * Math.sin(t * 3 + m.ph); m.y -= 26 * dt; circ(cx, m.x, m.y, 3 * m.s, `rgba(255,110,30,${a * .25})`); circ(cx, m.x, m.y, 1.2 * m.s, `rgba(255,200,110,${a})`); }
   else { m.y += 10 * m.s * dt; m.x += Math.sin(t + m.ph) * 6 * dt; circ(cx, m.x, m.y, 1.8 * m.s, `rgba(70,64,60,${.5})`); circ(cx, m.x - .5, m.y - .5, .9 * m.s, "rgba(150,144,140,.5)"); }
+}
+/* ---------- Johto : Lac Colère (pluie, onde radio de la Team Rocket, Léviator rouge et ses deux escortes, Peter) ---------- */
+const LK_WED = new Date().getDay() === 3; // le mercredi, comme dans HeartGold / SoulSilver : pas de pluie, et le lac baisse
+function updateRage(dt) {
+  if (!LEVEL.rage) return false;
+  if (!S.lk) {
+    S.lk = { waveAt:40, waves:[] }; if (!LK_WED) S.wx = "rain";
+    banner(LK_WED ? "C'est mercredi : il ne pleut pas, et le niveau du Lac Colère a baissé." : "La pluie tombe sur le Lac Colère… Une étrange onde radio grésille au loin.");
+  }
+  const L = S.lk;
+  if (S.t >= L.waveAt) { L.waveAt += 60; rocketWave(); }
+  for (const f of S.foes) if (f.d.aqua && f.hp > 0 && !lakeAt(f.x, f.y) && !lakeMove(f, true)) { f.gone = true; f.hp = 0; } // replacé loin du lac : il y retourne, ou disparaît
+  for (const w of L.waves) { w.r += 700 * dt; w.life -= dt; } L.waves = L.waves.filter(w => w.life > 0);
+  if (updateTwisters(dt) || updateGyara(dt)) return true;
+  const red = S.foes.find(f => f.d.red && f.hp > 0);
+  if (red && !L.red) { L.red = S.t; redArrives(red); }
+  if (L.red && !red && !L.redDone) { L.redDone = true; // le Léviator rouge est vaincu
+    S.seq = [...(S.seq || []), [S.t + 1.8, "Il laisse aussi tomber une Écaillerouge… L'onde de la Team Rocket vient du sud, d'Acajou."]];
+    if (S.peter) { S.peter.leave = 3; banner("Peter : « Bien joué ! Je file à Acajou : la Team Rocket se cache là-bas. »"); } }
+  if (L.peterWant && L.red && !L.redDone && !S.peter && S.t > L.red + 5) startPeter();
+  if (S.peter && updatePeter(dt)) S.peter = null;
+  return false;
+}
+// ---- l'onde radio : toutes les minutes, les Magicarpe Obscurs proches évoluent de force ----
+function rocketWave(x, y) {
+  const P = nearP(S.cam.x, S.cam.y); x ??= P.x; y ??= P.y;
+  S.lk.waves.push({ x, y, r:0, life:1.4 });
+  let n = 0;
+  for (const f of S.foes) if (f.kind === "magicarpeO" && f.hp > 0 && n < 3 && Math.hypot(f.x - x, f.y - y) < 650) { n++; evolveFoe(f, "leviatorO"); }
+  if (!S.lk.said) { S.lk.said = true; banner("Une onde radio de la Team Rocket balaie le lac ! Les Magicarpe Obscurs évoluent de force en Léviator…"); }
+  sfx("evo");
+}
+// ---- boss ----
+function redArrives(f) { // Léviator rouge géant : deux Léviator Obscurs l'escortent, et Intimidation baisse l'attaque de tout le monde
+  for (const s of [-1, 1]) { const g = spawnFoe("bossLevEsc", f.x + s * 170, f.y + 40); g.appear = .4; }
+  for (const q of S.players) { q.intimT = S.t + 15; S.texts.push({ x:q.x, y:q.y - q.r - 30, txt:"Attaque ↓", col:"#ff9a8a", life:1.4, label:true }); }
+  S.seq = [...(S.seq || []), [S.t + 1.6, "Deux Léviator Obscurs l'escortent ! Son Intimidation fait baisser ton attaque pendant 15 secondes."]];
+  S.shake = .5;
+}
+const GYARA_SEQ = { red:["ouragan", "draco", "grozyeux", "draco", "ouragan", "draco"], obs:["ouragan", "draco", "draco"], esc:["draco"] };
+function gyaraAttack(f, P) {
+  const seq = GYARA_SEQ[f.d.red ? "red" : f.d.escort ? "esc" : "obs"], atk = seq[f.atkI++ % seq.length], a0 = Math.atan2(P.y - f.y, P.x - f.x);
+  const say = (id, txt) => { if (!(f.said ||= {})[id]) { f.said[id] = true; banner(txt); } };
+  if (atk === "ouragan") { for (const s of [-.4, 0, .4]) (S.tcTw ||= []).push({ x:f.x, y:f.y, vx:Math.cos(a0 + s) * 170, vy:Math.sin(a0 + s) * 170, life:4 });
+    say("o", `${f.d.name} utilise Ouragan ! Les tourbillons te repoussent.`); }
+  else if (atk === "draco") { const n = f.d.escort ? 3 : 5; for (let i = 0; i < n; i++) { const a = a0 + (i - (n - 1) / 2) * .2; S.eshots.push({ x:f.x, y:f.y, vx:Math.cos(a) * 250, vy:Math.sin(a) * 250, dmg:f.d.escort ? 9 : 12, life:2.4, type:"dragon", r:12 }); }
+    say("d", `${f.d.name} utilise Draco-Rage !`); }
+  else if (atk === "grozyeux") { for (const q of S.players) if (!q.down && Math.hypot(q.x - f.x, q.y - f.y) < 700) { q.leerT = S.t + 6; S.texts.push({ x:q.x, y:q.y - q.r - 30, txt:"Défense ↓", col:"#ff9a8a", life:1.4, label:true }); }
+    f.hold = .6; say("g", `${f.d.name} utilise Groz'Yeux ! Tu encaisses plus de dégâts pendant quelques secondes.`); }
+  f.atkT = (f.d.escort ? 4 : f.hp < f.maxHp * .4 ? 2.2 : 2.8) + Math.random() * .6;
+}
+function updateGyara(dt) {
+  for (const f of S.foes) {
+    if (!f.d.boss || f.hp <= 0 || f.sleepT > 0) continue;
+    const P = S.P = nearP(f.x, f.y), dx = P.x - f.x, dy = P.y - f.y, l = Math.hypot(dx, dy) || 1;
+    if (f.d.venom) { // Aéromite géant : Poudre Toxik, Rafale Psy, et des Mimitoss Obscurs
+      if ((f.vnT = (f.vnT ?? 2.5) - dt) <= 0) { f.vnT = 4.5;
+        for (let i = 0; i < 4; i++) { const a = Math.random() * Math.PI * 2, d = i ? 80 + Math.random() * 160 : 10; if (S.sludge.length < 120) S.sludge.push({ x:P.x + Math.cos(a) * d, y:P.y + Math.sin(a) * d, r:44, life:6, max:6, ph:Math.random() * 6 }); }
+        if (!f.saidV) { f.saidV = true; banner(`${f.d.name} répand de la Poudre Toxik ! Évite les flaques violettes.`); } }
+      if ((f.psT = (f.psT ?? 1.5) - dt) <= 0) { f.psT = 2.6; const a0 = Math.atan2(dy, dx); for (let i = -2; i <= 2; i++) S.eshots.push({ x:f.x, y:f.y, vx:Math.cos(a0 + i * .22) * 210, vy:Math.sin(a0 + i * .22) * 210, dmg:9, life:2.6, type:"psy", r:10 }); }
+      if ((f.smT = (f.smT ?? 10) - dt) <= 0) { f.smT = 12; for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2, g = spawnFoe("mimitossO", f.x + Math.cos(a) * 90, f.y + Math.sin(a) * 90); g.appear = .3; } }
+    }
+    if (f.d.splash) { // Magicarpe géant : Trempette… qui écrase tout à l'atterrissage
+      if (f.hop) { const h = f.hop; h.t += dt; const k = Math.min(1, h.t / h.max); f.x = h.sx + (h.tx - h.sx) * k; f.y = h.sy + (h.ty - h.sy) * k; f.jz = Math.sin(k * Math.PI) * 120; f.hold = .1;
+        if (k >= 1) { f.hop = null; f.jz = 0; f.hopT = 1.4; S.shake = Math.max(S.shake, .3); sfx("break");
+          S.fxs.push({ x:f.x, y:f.y, r:0, max:110, life:.4, col:"rgba(140,200,255," }); emit(f.x, f.y, 24, "eau", { sp:260, life:.5, r:3.4 });
+          if (!f.saidS) { f.saidS = true; banner(`${f.d.name} utilise Trempette… et ça fait mal en retombant !`); }
+          if (boomHit(f.x, f.y, 95, f.d.dmg * .9, "eau")) return true; } }
+      else if ((f.hopT = (f.hopT ?? 1.5) - dt) <= 0) { const d = Math.min(l, 320); f.hop = { t:0, max:.9, sx:f.x, sy:f.y, tx:f.x + dx / l * d, ty:f.y + dy / l * d }; }
+      if (f.hp < f.maxHp * .5) { // l'onde de la Team Rocket le fait évoluer en plein combat
+        f.hop = null; f.jz = 0; rocketWave(f.x, f.y); evolveFoe(f, "bossLevO"); f.hp = f.maxHp; f.atkT = 2.5; f.atkI = 0; S.shake = .6;
+        banner("L'onde de la Team Rocket frappe Magicarpe Obscur géant… Il évolue de force en Léviator Obscur géant !"); continue; }
+    }
+    if (f.d.gyara) { f.atkI ??= 0; if ((f.atkT = (f.atkT ?? 2.5) - dt) <= 0 && f.dashMode !== "go") gyaraAttack(f, P); }
+  }
+  return false;
+}
+// ---- Peter et son Dracolosse (une partie sur trois) ----
+function startPeter() {
+  const P = nearP(S.cam.x, S.cam.y); S.lk.peterWant = false;
+  S.peter = { x:P.x - 420, y:P.y - 320, atkT:1.5, ph:0 };
+  banner("Peter arrive avec son Dracolosse : « Ce Léviator rouge… c'est un coup de la Team Rocket ! Dracolosse, Ultralaser ! »"); sfx("boss");
+}
+function updatePeter(dt) {
+  const D = S.peter, P = nearP(D.x, D.y); D.ph += dt;
+  if (D.leave !== undefined) { D.leave -= dt; D.y -= 380 * dt; D.x += 120 * dt; return D.leave <= 0; }
+  const tx = P.x - 110, ty = P.y - 120; D.x += (tx - D.x) * Math.min(1, dt * 1.6); D.y += (ty - D.y) * Math.min(1, dt * 1.6);
+  if (D.beam && (D.beam.life -= dt) <= 0) D.beam = null;
+  if ((D.atkT -= dt) > 0) return false;
+  const near = (list, R) => list.reduce((b, f) => { const d = Math.hypot(f.x - D.x, f.y - D.y); return d < R && (!b || d < b[1]) ? [f, d] : b; }, null);
+  const t = near(S.foes.filter(f => f.d.gyara && f.hp > 0), 900) || near(S.foes.filter(f => !f.prop && !f.d.rare && f.hp > 0), 500);
+  if (!t) { D.atkT = .4; return false; }
+  const f = t[0]; D.atkT = 3; D.beam = { tg:f, x:f.x, y:f.y, life:.45 }; D.flip = f.x < D.x;
+  const S0 = S.P; S.P = P; hitFoe(f, f.d.boss ? 80 : 40, "dragon"); S.P = S0;
+  emit(f.x, f.y, 14, "feu", { sp:200, life:.4, r:3 }); S.shake = Math.max(S.shake, .12);
+  return false;
+}
+// ---- dessin ----
+function drawRageUnder(t) {
+  if (!LEVEL.rage || !S.lk) return;
+  for (const w of S.lk.waves) { // l'onde radio : des cercles rouge et violet qui grésillent
+    const a = Math.min(1, w.life);
+    for (let i = 0; i < 3; i++) { const r = w.r - i * 60; if (r <= 0) continue;
+      cx.strokeStyle = `rgba(${i & 1 ? "180,60,220" : "235,60,80"},${.55 * a})`; cx.lineWidth = 4 - i; cx.setLineDash([18, 10]); cx.lineDashOffset = -t * 60;
+      cx.beginPath(); cx.ellipse(w.x, w.y, r, r * .62, 0, 0, Math.PI * 2); cx.stroke(); }
+    cx.setLineDash([]);
+  }
+}
+function drawRageOver(t) {
+  if (!LEVEL.rage || !S.lk) return;
+  drawTwisters();
+  const D = S.peter; if (!D) return;
+  if (D.beam) { const b = D.beam, k = b.life / .45, x2 = b.tg.hp > 0 ? b.tg.x : b.x, y2 = b.tg.hp > 0 ? b.tg.y : b.y; // Ultralaser
+    cx.save(); cx.globalCompositeOperation = "lighter"; cx.lineCap = "round";
+    for (const [w, c] of [[22, `rgba(255,170,60,${.35 * k})`], [10, `rgba(255,230,140,${.8 * k})`], [4, `rgba(255,255,240,${k})`]]) { cx.strokeStyle = c; cx.lineWidth = w; cx.beginPath(); cx.moveTo(D.x, D.y - 10); cx.lineTo(x2, y2); cx.stroke(); }
+    glow(x2, y2, 70, "255,200,90", k); cx.restore(); }
+  const y = D.y + Math.sin(D.ph * 3) * 6;
+  ell(cx, D.x, D.y + 70, 26, 8, "rgba(0,0,0,.22)"); // il vole : son ombre plus bas
+  drawMon(cx, "dracolosse", D.x, y, 32, !!D.flip, t, 0, null, true);
 }
 function updateMoves(dt) {
   const P = S.P;
@@ -5294,7 +5442,7 @@ function update(dt) {
     if (sp > 0 && !flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase && !f.stamp && !f.run && f.dashMode !== "go" && !f.d.rare) [ax, ay] = steer(f, ax, ay, dt, P); // contourne murs et décor
     f.x += ax * sp * dt; f.y += ay * sp * dt;
     if (f.kbx || f.kby) { f.x += f.kbx * dt; f.y += f.kby * dt; const k = Math.pow(.02, dt); f.kbx *= k; f.kby *= k; if (Math.abs(f.kbx) + Math.abs(f.kby) < 8) f.kbx = f.kby = 0; }
-    if (!flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase) collide(f, f.r, !!f.d.swim);
+    if (!flies && !f.d.boss && !f.under && !f.d.ghost && !f.d.phase) collide(f, f.r, f.d.aqua && LEVEL.rage ? "aqua" : !!f.d.swim); // aqua : Magicarpe et Léviator du Lac Colère restent dans l'eau
     arenaClamp(f, Math.min(f.r, 30)); f.dir = dirOf(ax, ay); f.flip = (f.d.ranged && l < 190) ? ax > 0 : ax < 0;
     f.hurt -= dt; f.hold = (f.hold || 0) - dt; f.slowT = (f.slowT || 0) - dt; f.sleepT = (f.sleepT || 0) - dt; f.stunT = (f.stunT || 0) - dt; f.leerT = (f.leerT || 0) - dt;
     if (f.burnT > 0 || f.seedT > 0 || f.poisonT > 0) {
@@ -5477,6 +5625,7 @@ function update(dt) {
   if (updateAlph(dt)) return;
   if (updateIlex(dt)) return;
   if (updateBurned(dt)) return;
+  if (updateRage(dt)) return;
   // Magmar géant : Lance-Flammes (gerbe de feu continue vers le joueur)
   for (const f of S.foes) if (f.d.flamer && !(f.sleepT > 0)) {
     P = S.P = nearP(f.x, f.y);
@@ -7396,7 +7545,7 @@ function collide(e, r, swim) {
     if (dx*dx + dy*dy < min*min) { const d = Math.hypot(dx, dy) || .01; e.x = o.x + dx / d * min; e.y = o.y + dy / d * min; }
   }
   if (LEVEL.safari) szCollide(e, r, swim); // Parc Safari : falaises, arbres, clôtures et eau des biomes
-  if (LEVEL.rage && !swim) gridCollide(e, r, LK_T, 0, 0, lakeAt); // Lac Colère : l'eau arrête ceux qui ne nagent pas
+  if (LEVEL.rage) { if (swim === "aqua") gridCollide(e, r, LK_T, 0, 0, (x, y) => !lakeAt(x, y)); else if (!swim) gridCollide(e, r, LK_T, 0, 0, lakeAt); } // Lac Colère : l'eau arrête ceux qui ne nagent pas, la rive ceux qui ne vivent que dans l'eau
   collideFalls(e, r);
 }
 function gridCollide(e, r, T, ox, oy, blocked) { // repousse hors des cases bloquées d'une grille (rayon réduit comme pour les obstacles ronds)
@@ -7428,7 +7577,7 @@ function gatePush(e, r, g) { const [d, px, py] = gateDist(e, g), min = r * .7 + 
 // le point (x, y) est-il pris par un obstacle pour un Pokémon de rayon r ? (mêmes obstacles que collide)
 function blockedAt(x, y, r, swim) {
   if (LEVEL.safari && szBlocked(x, y, swim)) return true;
-  if (LEVEL.rage && !swim && lakeAt(x, y)) return true;
+  if (LEVEL.rage && (swim === "aqua" ? !lakeAt(x, y) : !swim && lakeAt(x, y))) return true;
   for (const o of solidsNear(x, y)) {
     if ((swim && o.pond) || o.gate) continue;
     const min = r * .7 + o.r; if ((x - o.x) ** 2 + (y - o.y) ** 2 < min * min) return true;
@@ -7444,7 +7593,7 @@ function steer(f, ax, ay, dt, P) {
   }
   f.stT = (f.stT || 0) - dt;
   if (f.stT <= 0) {
-    f.stT = .15 + Math.random() * .05; const look = f.r + 22, swim = !!f.d.swim;
+    f.stT = .15 + Math.random() * .05; const look = f.r + 22, swim = f.d.aqua && LEVEL.rage ? "aqua" : !!f.d.swim;
     if (!blockedAt(f.x + ax * look, f.y + ay * look, f.r, swim)) { f.stA = 0; if (!(--f.stHold > 0)) f.stSide = 0; }
     else {
       f.stA = 0; const sides = f.stSide ? [f.stSide, -f.stSide] : Math.random() < .5 ? [1, -1] : [-1, 1];
@@ -8004,7 +8153,7 @@ const lkMemo = new Map();
 function lakeWet(i, j) {
   const key = i + "," + j; let v = lkMemo.get(key); if (v !== undefined) return v;
   const x = (i + .5) * LK_T, y = (j + .5) * LK_T;
-  v = Math.hypot(x, y - START_Y) > 420 && fbm(x / 1500 + 31, y / 1500 - 17) + Math.max(0, .3 * (1 - Math.hypot(x, y - START_Y + 1500) / 1700)) > .5; // le grand lac, juste au nord du départ, puis des étangs çà et là
+  v = Math.hypot(x, y - START_Y) > 420 && fbm(x / 1500 + 31, y / 1500 - 17) + Math.max(0, .3 * (1 - Math.hypot(x, y - START_Y + 1500) / 1700)) > (LK_WED ? .56 : .5); // le grand lac, juste au nord du départ, puis des étangs çà et là ; le mercredi, l'eau baisse
   if (lkMemo.size > 80000) lkMemo.clear(); lkMemo.set(key, v); return v;
 }
 const lakeAt = (x, y) => lakeWet(Math.floor(x / LK_T), Math.floor(y / LK_T));
@@ -8080,11 +8229,15 @@ function lakeTreeSprite(t) { // arbre de la berge (un à trois, avec leur ombre)
   }
   s = { cv:cv2, size }; canopyCache.set(key, s); return s;
 }
-function lakeSpawn(f, placed) { // jamais dans l'eau, sauf les nageurs (et eux, de préférence dans le lac)
-  if (placed) return;
-  const want = !!f.d.swim; if (lakeAt(f.x, f.y) === want) return;
+function lakeSpawn(f, placed) { // jamais dans l'eau, sauf ceux qui n'en sortent pas (Magicarpe, Léviator)
+  const want = !!(f.d.aqua || f.d.gyara); if ((placed && !want) || lakeAt(f.x, f.y) === want) return; // les Léviator boss surgissent du lac
+  if (lakeMove(f, want)) return;
+  if (f.d.aqua) { const d = FOES.hoothootO, k = f.maxHp / f.d.hp; f.kind = "hoothootO"; f.d = d; f.r = d.r; f.hp = f.maxHp = d.hp * k; } // pas d'eau tout près : un Hoothoot à la place
+}
+function lakeMove(f, want) { // vers la case la plus proche, sur la rive ou en pleine eau
   for (let d = LK_T; d < 900; d += LK_T) for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, x = f.x + Math.cos(a) * d, y = f.y + Math.sin(a) * d;
-    if (lakeAt(x, y) === want && (!want || lakeAt(x + LK_T, y) && lakeAt(x - LK_T, y))) { f.x = x; f.y = y; return; } }
+    if (lakeAt(x, y) === want && (!want || lakeAt(x + LK_T, y) && lakeAt(x - LK_T, y))) { f.x = x; f.y = y; return true; } }
+  return false;
 }
 let frameNo = 0;
 const liveChunks = new Set();
@@ -8322,7 +8475,7 @@ function drawMap7Over(t) {
   }
 }
 function drawLight(t) {
-  if (LEVEL.cave || LEVEL.ilex || LEVEL.burned) return; // pas de rayons de soleil la nuit au Bois aux Chênes
+  if (LEVEL.cave || LEVEL.ilex || LEVEL.burned || (LEVEL.rage && !LK_WED)) return; // pas de rayons de soleil sous la pluie du Lac Colère, ni la nuit au Bois aux Chênes
   cx.save(); cx.globalCompositeOperation = "lighter";
   for (let i = 0; i < 4; i++) {
     const x = (((i * .29 + t * .004) % 1.4) - .2) * W, w = 90 + i * 40;
@@ -8476,6 +8629,7 @@ function render(now) {
   drawAlphUnder(t);
   drawIlexUnder(t);
   drawBurnedUnder(t);
+  drawRageUnder(t);
   for (const P of S.players) if (P.moves.grozyeux?.rad && !P.down) {
     const rad = P.moves.grozyeux.rad;
     circ(cx, P.x, P.y, rad, "rgba(226,81,63,.06)");
@@ -8924,6 +9078,7 @@ function render(now) {
   drawOrme(t);
   drawIlexOver(t);
   drawBurnedOver(t);
+  drawRageOver(t);
   for (const f of S.foes) if (f.jump) { // zone d'atterrissage de Kangourex géant
     const k = f.jump.t / f.jump.dur; cx.save(); cx.globalAlpha = .25 + .35 * k; cx.strokeStyle = "#e2513f"; cx.lineWidth = 3; cx.fillStyle = "rgba(226,81,63,.15)";
     cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110, 80, 0, 0, Math.PI * 2); cx.fill(); cx.stroke(); cx.beginPath(); cx.ellipse(f.jump.tx, f.jump.ty, 110 * k, 80 * k, 0, 0, Math.PI * 2); cx.stroke(); cx.restore();
@@ -10130,12 +10285,12 @@ renderRoute();
 // onglets de thèmes et filtres Tous / À faire / Obtenus. Les succès secrets restent des « ??? » tant qu'ils sont cachés.
 const ACH_ICON = { pika50:["pikachu"], money:["rmiaouss"], surv5:["roucool"], boss:["ronflex"], nohit:["spectrum"], evo:["feu", 2], move5:["pika", 2],
   kills1k:["mackogneur"], win1:["papilusion"], win2:["melodelfe"], win3:["evoli"], win4:["ossatueur", 0, "spirit"], win5:["kangourex"], win6:["smogogo"],
-  win7:["artikodin"], win8:["alakazam"], win9:["mew"], win10:["chetiflor"], togepi:["togepi"], win11:["xatu"], zarbi:["zarbi_A"], win12:["noarfang"], farf:["canarticho"], celebi:["celebi"], purif:["noctali", 1], win13:["entei"], trio:["suicune"], mewtwo:["mewtwo"], legend:["electhor"],
+  win7:["artikodin"], win8:["alakazam"], win9:["mew"], win10:["chetiflor"], togepi:["togepi"], win11:["xatu"], zarbi:["zarbi_A"], win12:["noarfang"], farf:["canarticho"], celebi:["celebi"], purif:["noctali", 1], win13:["entei"], win14:["leviator_s"], trio:["suicune"], mewtwo:["mewtwo"], legend:["electhor"],
   draco:["minidraco"], nuzwin:["fantominus"], shiny:["pika_s", 1], spiky:["pichuspiky"] }; // items6 : image du sac (ACH_BAG)
 const ACH_BAG = new Image(); ACH_BAG.src = "data:image/png;base64,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"; // icône « Sac plein » fournie par Raphaël (58×58)
 const ACH_CATS = [
   { id:"kanto", name:"Aventure Kanto", icon:"win8", ids:["win1", "win2", "win3", "win4", "win5", "win6", "win7", "win8"] },
-  { id:"secret", name:"Secrets & Johto", icon:"win9", ids:["win9", "win10", "togepi", "win11", "zarbi", "win12", "farf", "celebi", "purif", "win13", "trio"] },
+  { id:"secret", name:"Secrets & Johto", icon:"win9", ids:["win9", "win10", "togepi", "win11", "zarbi", "win12", "farf", "celebi", "purif", "win13", "trio", "win14"] },
   { id:"combat", name:"Combat", icon:"boss", ids:["surv5", "boss", "nohit", "kills1k", "mewtwo", "legend"] },
   { id:"collec", name:"Collection", icon:"pika50", ids:["pika50", "money", "evo", "move5", "items6", "draco", "shiny"] },
   { id:"defis", name:"Défis", icon:"nuzwin", ids:["nuzwin", "spiky"] },
@@ -10145,7 +10300,7 @@ let achRec = {}; try { achRec = JSON.parse(localStorage.getItem("pokesurv-achrec
 function achRecord(k, v) { if (v > (achRec[k] || 0)) { achRec[k] = v; try { localStorage.setItem("pokesurv-achrec", JSON.stringify(achRec)); } catch (e) {} } }
 const achProg = { pika50:() => [dexKills.pikachu || 0, 50, ""], money:() => [moneyEarned(), 1000, ""],
   kills1k:() => [achRec.ko || 0, 1000, "record : "], items6:() => [achRec.items || 0, 6, "record : "], purif:() => [shadowKills(), SHADOW_GOAL, ""] };
-const achShown = a => !a.secret || achs[a.id] || (["win10", "togepi", "win11", "zarbi", "win12", "farf", "celebi", "purif", "win13", "trio"].includes(a.id) ? achs.win9 : achs.win8); // même règle qu'avant la v184
+const achShown = a => !a.secret || achs[a.id] || (["win10", "togepi", "win11", "zarbi", "win12", "farf", "celebi", "purif", "win13", "trio", "win14"].includes(a.id) ? achs.win9 : achs.win8); // même règle qu'avant la v184
 const achRank = a => a.reward >= 100 ? "or" : a.reward >= 30 ? "argent" : "bronze";
 const ACH_IMG = {};
 function achIcon(id) {

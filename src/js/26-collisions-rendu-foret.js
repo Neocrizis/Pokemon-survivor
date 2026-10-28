@@ -16,7 +16,7 @@ function collide(e, r, swim) {
     if (dx*dx + dy*dy < min*min) { const d = Math.hypot(dx, dy) || .01; e.x = o.x + dx / d * min; e.y = o.y + dy / d * min; }
   }
   if (LEVEL.safari) szCollide(e, r, swim); // Parc Safari : falaises, arbres, clôtures et eau des biomes
-  if (LEVEL.rage && !swim) gridCollide(e, r, LK_T, 0, 0, lakeAt); // Lac Colère : l'eau arrête ceux qui ne nagent pas
+  if (LEVEL.rage) { if (swim === "aqua") gridCollide(e, r, LK_T, 0, 0, (x, y) => !lakeAt(x, y)); else if (!swim) gridCollide(e, r, LK_T, 0, 0, lakeAt); } // Lac Colère : l'eau arrête ceux qui ne nagent pas, la rive ceux qui ne vivent que dans l'eau
   collideFalls(e, r);
 }
 function gridCollide(e, r, T, ox, oy, blocked) { // repousse hors des cases bloquées d'une grille (rayon réduit comme pour les obstacles ronds)
@@ -48,7 +48,7 @@ function gatePush(e, r, g) { const [d, px, py] = gateDist(e, g), min = r * .7 + 
 // le point (x, y) est-il pris par un obstacle pour un Pokémon de rayon r ? (mêmes obstacles que collide)
 function blockedAt(x, y, r, swim) {
   if (LEVEL.safari && szBlocked(x, y, swim)) return true;
-  if (LEVEL.rage && !swim && lakeAt(x, y)) return true;
+  if (LEVEL.rage && (swim === "aqua" ? !lakeAt(x, y) : !swim && lakeAt(x, y))) return true;
   for (const o of solidsNear(x, y)) {
     if ((swim && o.pond) || o.gate) continue;
     const min = r * .7 + o.r; if ((x - o.x) ** 2 + (y - o.y) ** 2 < min * min) return true;
@@ -64,7 +64,7 @@ function steer(f, ax, ay, dt, P) {
   }
   f.stT = (f.stT || 0) - dt;
   if (f.stT <= 0) {
-    f.stT = .15 + Math.random() * .05; const look = f.r + 22, swim = !!f.d.swim;
+    f.stT = .15 + Math.random() * .05; const look = f.r + 22, swim = f.d.aqua && LEVEL.rage ? "aqua" : !!f.d.swim;
     if (!blockedAt(f.x + ax * look, f.y + ay * look, f.r, swim)) { f.stA = 0; if (!(--f.stHold > 0)) f.stSide = 0; }
     else {
       f.stA = 0; const sides = f.stSide ? [f.stSide, -f.stSide] : Math.random() < .5 ? [1, -1] : [-1, 1];

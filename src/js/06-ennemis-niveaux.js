@@ -177,8 +177,16 @@ const FOES = {
   sulfura:   { name:"Sulfura",   types:["feu","vol"],      hp:7000, speed:92, dmg:42, r:46, xp:200, boss:true, bird:"fire", armor:.54, sprR:26, sprDy:14 },
 };
 // Johto : Bois aux Chênes. La Dark Ball a corrompu la forêt : ses Pokémon sont Obscurs (aura sombre, un peu plus coriaces et rapides, leur propre entrée au Pokédex)
-for (const [k, o] of Object.entries({ chenipan:{}, chrysacier:{}, papilusion:{}, aspicot:{}, coconfort:{}, dardargnan:{}, paras:{}, parasect:{}, nosferapti:{}, noeuf:{}, hoothoot:{}, noarfang:{}, magicarpe:{ swim:true }, mimitoss:{} }))
+for (const [k, o] of Object.entries({ chenipan:{}, chrysacier:{}, papilusion:{}, aspicot:{}, coconfort:{}, dardargnan:{}, paras:{}, parasect:{}, nosferapti:{}, noeuf:{}, hoothoot:{}, noarfang:{}, magicarpe:{ swim:true, aqua:true }, mimitoss:{}, aeromite:{}, leviator:{ swim:true, aqua:true } })) // Lac Colère : Magicarpe et Léviator ne quittent pas le lac
   FOES[k + "O"] = { ...FOES[k], ...o, name:FOES[k].name + " Obscur", sprite:FOES[k].sprite || k, hp:Math.round(FOES[k].hp * 1.3), speed:Math.round(FOES[k].speed * 1.1), johto:true, shadow:true };
+// Johto : Lac Colère. L'onde de la Team Rocket force les Magicarpe à évoluer ; Léviator rouge et ses deux escortes (16f-lac-colere.js)
+Object.assign(FOES, {
+  bossAeromite: { name:"Aéromite Obscur géant",  sprite:"aeromite",   types:["insecte","poison"], hp:1700, speed:70, dmg:18, r:42, xp:50,  boss:true, johto:true, shadow:true, erratic:true, venom:true },
+  bossCarpe:    { name:"Magicarpe Obscur géant", sprite:"magicarpe",  types:["eau"],              hp:1500, speed:52, dmg:16, r:40, xp:60,  boss:true, johto:true, shadow:true, splash:true },
+  bossLevO:     { name:"Léviator Obscur géant",  sprite:"leviator",   types:["eau","vol"],        hp:3000, speed:66, dmg:22, r:46, sprR:21, xp:85,  boss:true, johto:true, shadow:true, dash:true, bigDash:true, gyara:true },
+  bossLevRouge: { name:"Léviator rouge géant",   sprite:"leviator_s", types:["eau","vol"],        hp:6400, speed:72, dmg:26, r:50, sprR:24, xp:130, boss:true, johto:true, dash:true, bigDash:true, gyara:true, red:true },
+  bossLevEsc:   { name:"Léviator Obscur",        sprite:"leviator",   types:["eau","vol"],        hp:1800, speed:70, dmg:18, r:32, sprR:15, xp:40,  boss:true, johto:true, shadow:true, dash:true, gyara:true, escort:true },
+});
 Object.assign(FOES, {
   mystherbeO: { name:"Mystherbe Obscur", sprite:"mystherbe", types:["plante","poison"], hp:22, speed:50, dmg:5,  r:12, xp:1, johto:true, shadow:true },
   ortideO:    { name:"Ortide Obscur",    sprite:"ortide",    types:["plante","poison"], hp:78, speed:50, dmg:10, r:16, xp:4, johto:true, shadow:true, sludge:true },
@@ -546,15 +554,28 @@ const LEVELS = [
       if (m > 2.5) o.push(["magmarO", .3 + m / 20]); // Magmar reste rare, comme au sous-sol de la vraie tour
       if (m > 4)   o.push(["smogogoO", .5 + m / 12]);
     } },
-  { name:"Lac Colère", num:14, label:5, region:"johto", title:"Tu as calmé le Lac Colère !", cave:false, rage:true, track:"forest", prop:"berrytree", where:"au Lac Colère", from:"surgit du lac",
-    intro:"(Brouillon en attente de validation) Au nord d'Acajou, une onde radio de la Team Rocket rend furieux les Pokémon du Lac Colère : Magicarpe, Hoothoot, Noeunoeuf, Pomdepik et Mimitoss sont devenus Obscurs. Au milieu du lac, un Léviator rouge s'agite… Tiens dix minutes.",
-    win:"a calmé le Lac Colère.",
-    matchup:{},
-    rings:["magicarpeO", "hoothootO", "noeufO", "pomdepikO"],
-    bosses:[],
-    table(m, o) {
-      o.push(["magicarpeO", 3], ["hoothootO", m < 3 ? 2.4 : 1.2], ["noeufO", 1.4]);
-      if (m > 1.2) o.push(["pomdepikO", 1.3], ["mimitossO", 1.2]);
+  { name:"Lac Colère", num:14, label:5, region:"johto", title:"Tu as apaisé le Lac Colère !", cave:false, rage:true, track:"forest", prop:"berrytree", where:"au Lac Colère", from:"surgit du lac",
+    intro:"Au nord d'Acajou, il pleut sans cesse sur le Lac Colère. Une onde radio de la Team Rocket y rend les Pokémon furieux : Magicarpe, Hoothoot, Noeunoeuf, Pomdepik et Mimitoss sont devenus Obscurs, et l'onde force les Magicarpe à évoluer en Léviator. Aéromite Obscur géant, puis un Magicarpe Obscur géant gardent la rive… et au milieu du lac, un Léviator rouge enrage. Sous la pluie, l'Eau est renforcée et le Feu affaibli. Tiens dix minutes.",
+    win:"a apaisé le Lac Colère. Le Léviator rouge s'est calmé, et l'onde de la Team Rocket mène tout droit à Acajou.",
+    matchup:{ plante:["Variable", "La Plante noie les Magicarpe, mais les Léviator (Vol) et les insectes lui résistent."],
+              eau:["Variable", "La pluie donne +50 % à tes attaques Eau, et tu nages dans le lac. Mais les Magicarpe et les Léviator y résistent."],
+              feu:["Difficile", "Sous la pluie, tes attaques Feu perdent la moitié de leur force, même si elles brûlent les insectes et les Noeunoeuf."],
+              miaouss:["Neutre", "Le Normal frappe presque tout le monde normalement, et ses coups critiques font le ménage."],
+              pika:["Avantagé", "L'Électrik foudroie les Magicarpe, les Hoothoot et surtout les Léviator (Eau et Vol) : dégâts ×4 !"],
+              evoli:["Variable", "Normal au départ, puis le type de ton évolution au N.10. Voltali est idéal ici, Aquali profite de la pluie."],
+              draco:["Neutre", "Le Dragon résiste à l'Eau des Léviator, mais Draco-Rage du Léviator rouge le frappe fort."],
+              mew:["Variable", "Métronome peut tirer n'importe quel type : la pluie peut doubler ta chance… ou la diviser."],
+              heri:["Difficile", "La pluie étouffe tes flammes : −50 % sur tes attaques Feu pendant tout le niveau."],
+              kaiminus:["Variable", "La pluie donne +50 % à tes attaques Eau, et Mâchouille croque les Noeunoeuf (Psy)."],
+              fee:["Neutre", "La Fée frappe presque tout le monde normalement, mais les Mimitoss et Aéromite (Poison) lui résistent."] },
+    rings:["magicarpeO", "hoothootO", "mimitossO", "noeufO"],
+    event:{ kind:"peter", from:448, to:452, chance:1/3 }, // Peter et son Dracolosse viennent aider contre le Léviator rouge
+    bosses:[{ at:170, kind:"bossAeromite" }, { at:300, kind:"bossCarpe" }, { at:450, kind:"bossLevRouge" }],
+    table(m, o) { // Poképédia : Magicarpe et Léviator sur l'eau, Hoothoot, Noeunoeuf, Pomdepik, Mimitoss (et Chenipan, Aspicot dans Or et Argent) dans les arbres
+      o.push(["magicarpeO", m < 4 ? 3 : 2], ["hoothootO", m < 3 ? 2.2 : 1.2], ["noeufO", 1.2], ["chenipanO", m < 3 ? .8 : .3], ["aspicotO", m < 3 ? .8 : .3]);
+      if (m > 1)   o.push(["pomdepikO", 1.3], ["mimitossO", 1.5]);
+      if (m > 2.5) o.push(["aeromiteO", .5 + m / 12], ["papilusionO", .4], ["dardargnanO", .4]);
+      if (m > 4)   o.push(["leviatorO", .3 + m / 30]); // un Léviator sur dix, comme sur le vrai lac
     } },
 ];
 for (const lv of LEVELS) if (lv.maps) Object.assign(lv, lv.maps[0], { mapIdx:0 });

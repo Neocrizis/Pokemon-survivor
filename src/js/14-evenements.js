@@ -1,5 +1,6 @@
 /* ---------- Événements : Célébi, Ronflex, Jessie et James ---------- */
 function startEvent(kind) {
+  if (kind === "peter") { S.lk.peterWant = true; return; } // Lac Colère : Peter viendra quand le Léviator rouge sera là
   const P = S.P, mx = P.mvx || 1, my = P.mvy || 0;
   if (kind === "celebi") {
     const a = Math.random() * Math.PI * 2;

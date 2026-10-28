@@ -62,6 +62,7 @@ const ACHS = [
   { id:"purif",   name:"Purificateur",       desc:"Vaincre 50 000 Pokémon Obscurs (au total). Débloque Mentali et Noctali, deux nouvelles évolutions d'Évoli.", reward:150, secret:true },
   { id:"celebi",  name:"Voix de la forêt",   desc:"Purifier Celebi Obscur dans le Bois aux Chênes, puis le capturer dans le cercle de lumière.", reward:150, unlock:"celebi", secret:true },
   { id:"win13",   name:"Sous les cendres", desc:"Terminer la Tour Cendrée, quatrième niveau de Johto.", reward:100, secret:true },
+  { id:"win14",   name:"Colère apaisée",    desc:"Terminer le Lac Colère, cinquième niveau de Johto.", reward:100, unlock:["magicarpe"], secret:true },
   { id:"trio",    name:"Le trio légendaire", desc:"Vaincre Entei, Suicune et Raikou dans la Tour Cendrée, puis choisir lequel t'accompagnera.", reward:150, secret:true },
   { id:"mewtwo",  name:"Pokémon génétique",  desc:"Repousser Mewtwo dans le Manoir Pokémon.",       reward:100 },
   { id:"legend",  name:"Légende vivante",    desc:"Vaincre Artikodin, Électhor ou Sulfura dans le niveau Oiseau Légendaire.", reward:100 },
@@ -72,10 +73,12 @@ const ACHS = [
 ];
 let achs = {};
 try { achs = JSON.parse(localStorage.getItem("pokesurv-ach") || "{}") || {}; } catch (e) { achs = {}; }
+// Magicarpe La Légende se gagne au Lac Colère, sauf pour ceux qui avaient déjà une sauvegarde avant (choix de Raphaël)
+try { if (!localStorage.getItem("pokesurv-carpe")) { if (Object.keys(achs).length || localStorage.getItem("pokesurv-dex")) { achs.carpeOld = true; localStorage.setItem("pokesurv-ach", JSON.stringify(achs)); } localStorage.setItem("pokesurv-carpe", "1"); } } catch (e) {}
 const achMoney = () => ACHS.reduce((m, a) => m + (achs[a.id] ? a.reward : 0), 0);
 const unlocks = (a, line) => [].concat(a.unlock || []).includes(line);
 const unlockNames = a => [].concat(a.unlock).map(l => LINES[l].names[0]).join(", ").replace(/, ([^,]*)$/, " et $1");
-const isUnlocked = line => !ACHS.some(a => unlocks(a, line) && !achs[a.id]);
+const isUnlocked = line => (line === "magicarpe" && achs.carpeOld) || !ACHS.some(a => unlocks(a, line) && !achs[a.id]);
 function achGet(id) {
   if (achs[id]) return; const a = ACHS.find(x => x.id === id); if (!a) return;
   achs[id] = true; sfx("ach"); try { localStorage.setItem("pokesurv-ach", JSON.stringify(achs)); } catch (e) {} cloudSoon(); if (id === "win8" || id === "win9") { refreshLocks(); setLevel(LEVELS.indexOf(LEVEL)); }

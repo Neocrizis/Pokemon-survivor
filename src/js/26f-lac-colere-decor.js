@@ -13,7 +13,7 @@ const lkMemo = new Map();
 function lakeWet(i, j) {
   const key = i + "," + j; let v = lkMemo.get(key); if (v !== undefined) return v;
   const x = (i + .5) * LK_T, y = (j + .5) * LK_T;
-  v = Math.hypot(x, y - START_Y) > 420 && fbm(x / 1500 + 31, y / 1500 - 17) + Math.max(0, .3 * (1 - Math.hypot(x, y - START_Y + 1500) / 1700)) > .5; // le grand lac, juste au nord du départ, puis des étangs çà et là
+  v = Math.hypot(x, y - START_Y) > 420 && fbm(x / 1500 + 31, y / 1500 - 17) + Math.max(0, .3 * (1 - Math.hypot(x, y - START_Y + 1500) / 1700)) > (LK_WED ? .56 : .5); // le grand lac, juste au nord du départ, puis des étangs çà et là ; le mercredi, l'eau baisse
   if (lkMemo.size > 80000) lkMemo.clear(); lkMemo.set(key, v); return v;
 }
 const lakeAt = (x, y) => lakeWet(Math.floor(x / LK_T), Math.floor(y / LK_T));
@@ -89,9 +89,13 @@ function lakeTreeSprite(t) { // arbre de la berge (un à trois, avec leur ombre)
   }
   s = { cv:cv2, size }; canopyCache.set(key, s); return s;
 }
-function lakeSpawn(f, placed) { // jamais dans l'eau, sauf les nageurs (et eux, de préférence dans le lac)
-  if (placed) return;
-  const want = !!f.d.swim; if (lakeAt(f.x, f.y) === want) return;
+function lakeSpawn(f, placed) { // jamais dans l'eau, sauf ceux qui n'en sortent pas (Magicarpe, Léviator)
+  const want = !!(f.d.aqua || f.d.gyara); if ((placed && !want) || lakeAt(f.x, f.y) === want) return; // les Léviator boss surgissent du lac
+  if (lakeMove(f, want)) return;
+  if (f.d.aqua) { const d = FOES.hoothootO, k = f.maxHp / f.d.hp; f.kind = "hoothootO"; f.d = d; f.r = d.r; f.hp = f.maxHp = d.hp * k; } // pas d'eau tout près : un Hoothoot à la place
+}
+function lakeMove(f, want) { // vers la case la plus proche, sur la rive ou en pleine eau
   for (let d = LK_T; d < 900; d += LK_T) for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, x = f.x + Math.cos(a) * d, y = f.y + Math.sin(a) * d;
-    if (lakeAt(x, y) === want && (!want || lakeAt(x + LK_T, y) && lakeAt(x - LK_T, y))) { f.x = x; f.y = y; return; } }
+    if (lakeAt(x, y) === want && (!want || lakeAt(x + LK_T, y) && lakeAt(x - LK_T, y))) { f.x = x; f.y = y; return true; } }
+  return false;
 }
