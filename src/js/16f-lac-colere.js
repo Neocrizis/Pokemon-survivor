@@ -75,15 +75,24 @@ function updateGyara(dt) {
   return false;
 }
 // ---- Peter et son Dracolosse (une partie sur trois) ----
-const PETER_IMG = new Image(); // Peter (sprite HGSS 32×32 envoyé par Raphaël), assis sur le dos de son Dracolosse
+const PETER_IMG = new Image(); // Peter (sprite HGSS 32×32 envoyé par Raphaël)
 PETER_IMG.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACd0lEQVR42tVWLZfrIBC92bNiZeVIJBKJXInsT0AiIyMrIysjI1cikU9GRkZGIvsPWJHAJtu+lmyz552HKWWGuXc+mAzwPy5DFAxR2MPWy08vllrjDomwG4Ho7S0wLWUisZCH7njMJvGa6+1lGICuS0Yvw4AD50DXwRCFUmugbYMi2j8Fg3M4cI5Sa0QAP464DAO0lIkQABBj+xJovC+c9wmAKwUtJZz3q1QAWJHLLdbXXKbRKAAcOIe+oRO9d97DEEFLCWntUxFIHiw9jtG4t7SUK9I/ToGWMoU4x+AyJTPp4p5ukWEvPqsVge/FFmXEWNof+/4hxsujHtA3Jfw4JqPMvEO1Nd4US+dvikG1NZh5X5HsmxJPFWHjPcwcyljhXKr0G/dxcakwNn++CnG2sUsrjkXodPV3nVnmHoBuIVAIc05/mHmfQntqrhTjWdQBgPlu8WwEilUYGwtpLYbOfXXKzk3vvbGr9OUUeW4KEgklCFaIVf65VLBCQAnaBJ6tFFelRDjV9V2dU1Whdn223U0E4ie2b0pwqVIa4n5RL1vtZoMH4jLEfaVEqJQIt2S/QoC4TCBM6AQW90v53iNZIC7hhw4AYLsRIA5DBEMEEJ/OAPihA3GZPREVW3LPVI3RVWCqRqnlSuHcdkk2uirbfrEFfHYRY9+CqRqqn4rOiXICFxogDgDZJLJbsT36BG6FuJYLgbFvAT9MujvVQDCLIdOawzSkQuDsP6CIoIhw9h8oIVY689f0YS0UuQRiJ2RC370w9u0S/GFXzK6BpcFIIoIt/38nvMdEtCIyP7H0JNOEdH1e/EYrvpmW3HDvRuDG/fCkzX+3PgFLjllaMrXChAAAAABJRU5ErkJggg==";
-function startPeter() {
+function startPeter() { // Peter arrive à pied à côté du joueur, lance la Poké Ball de Dracolosse, puis repart
   const P = nearP(S.cam.x, S.cam.y); S.lk.peterWant = false;
-  S.peter = { x:P.x - 420, y:P.y - 320, atkT:1.5, ph:0 };
-  banner("Peter arrive avec son Dracolosse : « Ce Léviator rouge… c'est un coup de la Team Rocket ! Dracolosse, Ultralaser ! »"); sfx("boss");
+  S.peter = { x:0, y:0, atkT:1.5, ph:0, out:0, p:{ x:P.x - 520, y:P.y + 10, st:"walk", T:0 } };
 }
 function updatePeter(dt) {
-  const D = S.peter, P = nearP(D.x, D.y); D.ph += dt;
+  const D = S.peter, P = nearP(D.x || D.p.x, D.y || D.p.y), Q = D.p; D.ph += dt;
+  if (Q && !Q.gone) { Q.T += dt;
+    if (Q.st === "walk") { const tx = P.x - 90, ty = P.y + 10, d = Math.hypot(tx - Q.x, ty - Q.y), v = 260 * dt;
+      if (d > v) { Q.x += (tx - Q.x) / d * v; Q.y += (ty - Q.y) / d * v; }
+      else { Q.st = "throw"; Q.T = 0; Q.bx = Q.x + 10; Q.by = Q.y - 40; Q.ex = Q.x + 70; Q.ey = Q.y - 70; banner("Peter arrive avec son Dracolosse : « Ce Léviator rouge… c'est un coup de la Team Rocket ! Dracolosse, Ultralaser ! »"); } }
+    else if (Q.st === "throw" && Q.T >= .7) { Q.st = "leave"; Q.T = 0; D.x = Q.ex; D.y = Q.ey; D.out = .01; sfx("boss");
+      S.fxs.push({ x:D.x, y:D.y, r:0, max:110, life:.4, col:"rgba(255,255,255," }); emit(D.x, D.y, 18, "dragon", { sp:220, life:.5, r:3 }); }
+    else if (Q.st === "leave") { Q.x -= 260 * dt; Q.y += 40 * dt; if (Q.T > 2.6) Q.gone = true; }
+  }
+  if (!D.out) return false;
+  D.out = Math.min(1, D.out + dt * 2.5);
   if (D.leave !== undefined) { D.leave -= dt; D.y -= 380 * dt; D.x += 120 * dt; return D.leave <= 0; }
   const tx = P.x - 110, ty = P.y - 120; D.x += (tx - D.x) * Math.min(1, dt * 1.6); D.y += (ty - D.y) * Math.min(1, dt * 1.6);
   if (D.beam && (D.beam.life -= dt) <= 0) D.beam = null;
@@ -115,8 +124,18 @@ function drawRageOver(t) {
     cx.save(); cx.globalCompositeOperation = "lighter"; cx.lineCap = "round";
     for (const [w, c] of [[22, `rgba(255,170,60,${.35 * k})`], [10, `rgba(255,230,140,${.8 * k})`], [4, `rgba(255,255,240,${k})`]]) { cx.strokeStyle = c; cx.lineWidth = w; cx.beginPath(); cx.moveTo(D.x, D.y - 10); cx.lineTo(x2, y2); cx.stroke(); }
     glow(x2, y2, 70, "255,200,90", k); cx.restore(); }
+  const Q = D.p;
+  if (Q && !Q.gone) { // Peter à pied (il sautille en marchant) et sa Poké Ball
+    const k = 2, hop = Q.st === "throw" ? 0 : Math.abs(Math.sin(D.ph * 9)) * 3, a = Q.st === "leave" ? Math.max(0, 1 - (Q.T - 2) / .6) : 1;
+    cx.save(); cx.globalAlpha = a; ell(cx, Q.x, Q.y + 30, 14, 5, "rgba(0,0,0,.25)");
+    if (PETER_IMG.complete && PETER_IMG.naturalWidth) { cx.imageSmoothingEnabled = false; cx.drawImage(PETER_IMG, Q.x - 16 * k, Q.y - 32 * k + 32 - hop, 32 * k, 32 * k); }
+    cx.restore();
+    if (Q.st === "throw") { const u = Math.min(1, Q.T / .7), bx = Q.bx + (Q.ex - Q.bx) * u, by = Q.by + (Q.ey - Q.by) * u - Math.sin(u * Math.PI) * 60;
+      cx.save(); cx.imageSmoothingEnabled = false; cx.translate(bx, by); cx.rotate(u * 9); cx.drawImage(ballSprite(false), -24, -24, 48, 48); cx.restore(); }
+  }
+  if (!D.out) return;
   const y = D.y + Math.sin(D.ph * 3) * 6;
-  ell(cx, D.x, D.y + 70, 26, 8, "rgba(0,0,0,.22)"); // il vole : son ombre plus bas
-  drawMon(cx, "dracolosse", D.x, y, 32, !!D.flip, t, 0, null, true);
-  if (PETER_IMG.complete && PETER_IMG.naturalWidth) { const k = 2; cx.save(); cx.imageSmoothingEnabled = false; cx.drawImage(PETER_IMG, 0, 0, 32, 22, D.x - 16 * k + (D.flip ? 6 : -6), y - 46 - 22 * k, 32 * k, 22 * k); cx.restore(); } // le haut du corps : il est à cheval
+  ell(cx, D.x, D.y + 70, 26 * D.out, 8 * D.out, "rgba(0,0,0,.22)"); // il vole : son ombre plus bas
+  if (D.out < 1) glow(D.x, y, 90 * (1 - D.out) + 20, "255,255,255", 1 - D.out); // il sort de sa Poké Ball
+  drawMon(cx, "dracolosse", D.x, y, 32 * D.out, !!D.flip, t, 0, null, true);
 }
