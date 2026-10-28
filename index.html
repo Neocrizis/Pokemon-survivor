@@ -9323,7 +9323,7 @@ function drawBallAnim(g, t, line, MX, MY, MR, now) {
       const c = BALL_TMP, dpr = g.getTransform().a;
       if (c.width !== g.canvas.width) { c.width = g.canvas.width; c.height = g.canvas.height; }
       const tg = c.getContext("2d"); tg.setTransform(dpr, 0, 0, dpr, 0, 0); tg.globalCompositeOperation = "source-over"; tg.clearRect(0, 0, 280, 210);
-      tg.save(); tg.translate(MX, MY + (hy - MY) * e); tg.scale(sc, sc); tg.translate(-MX, -MY); drawMon(tg, line, MX, MY, MR, false, now / 1000, 0, 1, e === 0); tg.restore();
+      tg.save(); tg.translate(MX, MY + (hy - MY) * e); tg.scale(sc, sc); tg.translate(-MX, -MY); drawMon(tg, line === "magicarpe" ? "magicarpe_s" : line, MX, MY, MR, false, now / 1000, 0, 1, e === 0); tg.restore();
       if (w > 0) { tg.setTransform(1, 0, 0, 1, 0, 0); tg.globalCompositeOperation = "source-atop"; tg.fillStyle = `rgba(${m ? "235,215,255" : "255,255,255"},${w})`; tg.fillRect(0, 0, c.width, c.height); }
       g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(c, 0, 0); g.restore();
     }
