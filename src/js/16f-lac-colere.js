@@ -75,6 +75,8 @@ function updateGyara(dt) {
   return false;
 }
 // ---- Peter et son Dracolosse (une partie sur trois) ----
+const PETER_IMG = new Image(); // Peter (sprite HGSS 32×32 envoyé par Raphaël), assis sur le dos de son Dracolosse
+PETER_IMG.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACd0lEQVR42tVWLZfrIBC92bNiZeVIJBKJXInsT0AiIyMrIysjI1cikU9GRkZGIvsPWJHAJtu+lmyz552HKWWGuXc+mAzwPy5DFAxR2MPWy08vllrjDomwG4Ho7S0wLWUisZCH7njMJvGa6+1lGICuS0Yvw4AD50DXwRCFUmugbYMi2j8Fg3M4cI5Sa0QAP464DAO0lIkQABBj+xJovC+c9wmAKwUtJZz3q1QAWJHLLdbXXKbRKAAcOIe+oRO9d97DEEFLCWntUxFIHiw9jtG4t7SUK9I/ToGWMoU4x+AyJTPp4p5ukWEvPqsVge/FFmXEWNof+/4hxsujHtA3Jfw4JqPMvEO1Nd4US+dvikG1NZh5X5HsmxJPFWHjPcwcyljhXKr0G/dxcakwNn++CnG2sUsrjkXodPV3nVnmHoBuIVAIc05/mHmfQntqrhTjWdQBgPlu8WwEilUYGwtpLYbOfXXKzk3vvbGr9OUUeW4KEgklCFaIVf65VLBCQAnaBJ6tFFelRDjV9V2dU1Whdn223U0E4ie2b0pwqVIa4n5RL1vtZoMH4jLEfaVEqJQIt2S/QoC4TCBM6AQW90v53iNZIC7hhw4AYLsRIA5DBEMEEJ/OAPihA3GZPREVW3LPVI3RVWCqRqnlSuHcdkk2uirbfrEFfHYRY9+CqRqqn4rOiXICFxogDgDZJLJbsT36BG6FuJYLgbFvAT9MujvVQDCLIdOawzSkQuDsP6CIoIhw9h8oIVY689f0YS0UuQRiJ2RC370w9u0S/GFXzK6BpcFIIoIt/38nvMdEtCIyP7H0JNOEdH1e/EYrvpmW3HDvRuDG/fCkzX+3PgFLjllaMrXChAAAAABJRU5ErkJggg==";
 function startPeter() {
   const P = nearP(S.cam.x, S.cam.y); S.lk.peterWant = false;
   S.peter = { x:P.x - 420, y:P.y - 320, atkT:1.5, ph:0 };
@@ -116,4 +118,5 @@ function drawRageOver(t) {
   const y = D.y + Math.sin(D.ph * 3) * 6;
   ell(cx, D.x, D.y + 70, 26, 8, "rgba(0,0,0,.22)"); // il vole : son ombre plus bas
   drawMon(cx, "dracolosse", D.x, y, 32, !!D.flip, t, 0, null, true);
+  if (PETER_IMG.complete && PETER_IMG.naturalWidth) { const k = 2; cx.save(); cx.imageSmoothingEnabled = false; cx.drawImage(PETER_IMG, 0, 0, 32, 22, D.x - 16 * k + (D.flip ? 6 : -6), y - 46 - 22 * k, 32 * k, 22 * k); cx.restore(); } // le haut du corps : il est à cheval
 }
