@@ -65,12 +65,12 @@ function drawCaveLight(camX, camY, vw, vh, t, P) {
   const dg = cx.createRadialGradient(P.x, P.y, r0, P.x, P.y, r1);
   dg.addColorStop(0, "rgba(6,4,16,0)"); dg.addColorStop(1, LEVEL.tower ? (LEVEL.sprout ? "rgba(26,14,4,.55)" : pokeTowerOn() ? "rgba(30,10,50,.38)" : "rgba(14,4,24,.82)") : LEVEL.theme ? CAVE_PAL[LEVEL.theme].dark : LEVEL.moon ? "rgba(4,6,8,.6)" : "rgba(6,4,16,.78)");
   if (LEVEL.rocket) {
-    forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const sp of c.spinners || []) {
+    if (!rocketLG()) forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const sp of c.spinners || []) {
       cx.save(); cx.translate(sp.x, sp.y); cx.rotate(Math.atan2(sp.dy, sp.dx)); cx.strokeStyle = "#7ad0ff"; cx.lineWidth = 4; cx.lineCap = "round";
       for (let k = 0; k < 2; k++) { const o = ((t * 40 + k * 22) % 44) - 22; cx.globalAlpha = 1 - Math.abs(o) / 22; cx.beginPath(); cx.moveTo(o - 7, -11); cx.lineTo(o + 5, 0); cx.lineTo(o - 7, 11); cx.stroke(); }
       cx.restore();
     } });
-    if (!rocketHG()) forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const m of c.machines || []) { // écrans qui défilent
+    if (!rocketHG() && !rocketLG()) forView(camX, camY, vw, vh, 60, (i, j, c) => { for (const m of c.machines || []) { // écrans qui défilent
       const x = m.x - m.w / 2 + 8, y = m.y - m.h / 2 + 7, w = m.w * .45, h = m.h - 14, sc = t * 14 + m.ph * 10, off = sc % 6;
       cx.save(); cx.beginPath(); cx.rect(x, y, w, h); cx.clip(); cx.fillStyle = "#1c2a24"; cx.fillRect(x, y, w, h); cx.fillStyle = "rgba(90,230,140,.75)";
       for (let k = 0; k < h / 6 + 2; k++) cx.fillRect(x + 4, y + 4 + k * 6 - off, (.25 + hash(Math.round(m.x) + k + Math.floor(sc / 6), Math.round(m.y)) * .75) * (w - 8), 2);

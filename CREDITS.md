@@ -103,7 +103,9 @@ Forêt de Jade : sol, sentier, hautes herbes, arbres et fleurs découpés dans u
 
 Mont Sélénite : sol, falaises et buissons découpés dans une capture du Mont Sélénite de **Pokémon HeartGold / SoulSilver** ; crêtes rocheuses et cratères tirés des tuiles de grotte de **Pokémon Rouge Feu / Vert Feuille** (rendues depuis le projet pret/pokefirered) ; rocher Éclate-Roc du pack **« HGSS for RMXP »** de SirMalo (Eevee Expo). © Nintendo, Creatures, Game Freak. Pierres Lune dessinées pour le jeu. Usage non commercial uniquement.
 
-Repaire Rocket : murs, consoles, ordinateurs, casiers, cartons, plantes et générateur électrique découpés dans des captures de cartes du Repaire Rocket au style **Pokémon HeartGold / SoulSilver** fournies par Neocrizis. © Nintendo, Creatures, Game Freak. Sol, cages et arcs électriques dessinés pour le jeu. Usage non commercial uniquement.
+Repaire Rocket d'Acajou (Johto) : murs, consoles, ordinateurs, casiers, cartons, plantes et générateur électrique découpés dans des captures de cartes du Repaire Rocket d'Acajou de **Pokémon HeartGold / SoulSilver** fournies par Neocrizis. © Nintendo, Creatures, Game Freak. Sol, cages et arcs électriques dessinés pour le jeu. Usage non commercial uniquement.
+
+Repaire Rocket de Céladopole (Kanto) : sol, dalles flèches, blocs X, murs, cartons, chaise, frigo et bureau de Giovanni découpés dans des captures de **Pokémon : Let's Go, Pikachu / Let's Go, Évoli** fournies par Neocrizis. © Nintendo, Creatures, Game Freak. Usage non commercial uniquement.
 
 Tour Pokémon : tombes, bouquets et spectres non identifiés tirés de captures de **Pokémon : Let's Go, Pikachu ! / Let's Go, Évoli !** fournies par Neocrizis. © Nintendo, Creatures, Game Freak. Vase des pots à casser tiré de **The Legend of Zelda: The Wind Waker** (modèle 3D publié sur The Models Resource). © Nintendo. Carrelage et brume dessinés pour le jeu. Usage non commercial uniquement.
 
