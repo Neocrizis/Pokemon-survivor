@@ -9534,7 +9534,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v210";
+const NET_VER = "v211";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -9613,13 +9613,26 @@ function netAccept(conn) {
   });
   conn.on("error", e => netDiag("erreur du joueur entrant : " + (e && (e.type || e.message) || "?")));
 }
+// liaison directe entre les deux ordinateurs, ou passage par un serveur relais (TURN, plus lent)
+function netLinkType() {
+  const pc = NET.conn && NET.conn.peerConnection; if (!pc || !pc.getStats || NET.linkBusy) return;
+  NET.linkBusy = true;
+  pc.getStats().then(st => {
+    let pair = null; st.forEach(r => { if (r.type === "transport" && r.selectedCandidatePairId) pair = st.get(r.selectedCandidatePairId); });
+    if (!pair) st.forEach(r => { if (r.type === "candidate-pair" && (r.selected || (r.nominated && r.state === "succeeded"))) pair = pair || r; });
+    if (!pair) return;
+    const lc = st.get(pair.localCandidateId), rc = st.get(pair.remoteCandidateId);
+    NET.link = (lc && lc.candidateType === "relay") || (rc && rc.candidateType === "relay") ? "relais" : "direct";
+  }).catch(() => {}).finally(() => { NET.linkBusy = false; });
+}
 // indicateur de connexion : temps d'aller-retour avec l'hôte
-const netPingHtml = ms => { const c = ms < 80 ? "good" : ms < 160 ? "mid" : "bad"; return `<span class="ping ${c}" title="Temps de réponse avec l'hôte">📶 ${ms} ms</span>`; };
+const netPingHtml = (ms, lk) => { const c = ms < 80 ? "good" : ms < 160 ? "mid" : "bad"; return `<span class="ping ${c}" title="Temps de réponse avec l'hôte${lk === "relais" ? ", en passant par un serveur relais" : lk ? ", liaison directe" : ""}">📶 ${ms} ms${lk ? ` · ${lk}` : ""}</span>`; };
 function netPingOf(Q) { // ce qu'on affiche à côté d'un joueur (rien hors ligne)
   if (!NET.started) return "";
   if (Q.idx === 0) return `<span class="ping host" title="Ce joueur héberge la partie">🏠 hôte</span>`;
   const ms = NET.role === "guest" && Q.idx === NET.idx ? Math.round(NET.rtt || 0) : Q.ping | 0;
-  return ms ? netPingHtml(ms) : `<span class="ping">📶 …</span>`;
+  const lk = NET.role === "guest" && Q.idx === NET.idx ? NET.link : Q.link;
+  return ms ? netPingHtml(ms, lk) : `<span class="ping">📶 …</span>`;
 }
 // instantanés compressés (deflate) : environ 3 fois moins de données à envoyer, donc moins de retard quand la connexion de l'hôte est juste
 const NET_Z = 0xC5, NET_CAN_Z = typeof CompressionStream === "function" && typeof DecompressionStream === "function";
@@ -9662,6 +9675,7 @@ function netHostData(g, raw) {
     g.inT = performance.now();
     if (p && p.remote) { const c = v => Math.max(-1, Math.min(1, +v || 0)); p.net = { x:c(m.x), y:c(m.y), ax:c(m.ax), ay:c(m.ay), tc:!!m.tc }; }
   } else if (m.t === "ping") { netTo(g, { t:"pong", c:m.c }); const p = S && NET.started ? S.players[g.idx] : null, r = +m.r; if (p && r > 0) p.ping = Math.round(Math.min(2000, r));
+    if (p && (m.lk === "relais" || m.lk === "direct")) p.link = m.lk;
     if (+m.vw > 0) { g.vw = Math.max(300, Math.min(1100, +m.vw)); g.vh = Math.max(200, Math.min(800, +m.vh || 560)); } } // l'invité mesure son temps de réponse
   else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
   else if (m.t === "hi") netLobby();
@@ -9840,7 +9854,7 @@ function netFrame(now, dt) {
   if (NET.role === "guest" && NET.started) {
     if (S && S.players) {
       netLerp(now); netPredict(now, dt);
-      if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netSend({ t:"ping", c:performance.now(), r:Math.round(NET.rtt || 0), vw:Math.round(W / ZOOM / 2), vh:Math.round(H / ZOOM / 2) }); }
+      if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netLinkType(); netSend({ t:"ping", c:performance.now(), r:Math.round(NET.rtt || 0), vw:Math.round(W / ZOOM / 2), vh:Math.round(H / ZOOM / 2), lk:NET.link || "" }); }
       if (state === "netplay") { hudT -= dt; if (hudT <= 0) { refreshHud(); hudT = .08; } }
       if ((NET.achT = (NET.achT || 0) - dt) <= 0) { NET.achT = 1; achCheck(); } // succès de l'invité, sur sa partie
       playTrack(S.foes.some(f => f.d.boss) ? "boss" : LEVEL.track || (LEVEL.cave ? "cave" : "forest"));
