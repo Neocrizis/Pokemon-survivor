@@ -6,7 +6,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v213";
+const NET_VER = "v214";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -217,13 +217,13 @@ const NET_SKIP = new Set(["P", "boss", "mother", "mewtwo", "bird", "lgBoss", "pa
 const FOE_KEYS = Object.keys(FOES);
 // champs optionnels d'un Pokémon sauvage utiles à l'affichage (envoyés seulement s'ils servent)
 const FOE_OPT = ["jump", "vanish", "vanMax", "under", "jz", "dashMode", "bx", "by", "shieldT", "hurt", "appear", "stunT", "slowT", "sleepT", "seedT", "raged", "prop", "poisonT", "burnT", "dx", "dy", "rare", "fuse", "lz", "mb", "mbMax", "mbR", "rest", "spr"];
-const NET_DROP = new Set(["d", "pull", "gp", "net", "tr", "hit", "home", "boomer", "tx", "remote"]);
+const NET_DROP = new Set(["d", "pull", "gp", "net", "tr", "hit", "home", "boomer", "tx", "remote", "szFlow"]); // szFlow : carte des chemins du Parc Safari (calcul de l'hôte, ~400 Ko par joueur)
 function netRep(k, v) {
   if (k === "o") return v && typeof v === "object" ? v.idx : v;
   if (NET_DROP.has(k)) return undefined;
   if (typeof v === "number") return Number.isInteger(v) ? v : Math.round(v * 100) / 100;
   if (v && typeof v === "object" && !Array.isArray(v)) {
-    if (v instanceof Set || v instanceof Map) return undefined;
+    if (v instanceof Set || v instanceof Map || ArrayBuffer.isView(v)) return undefined; // tableaux typés : données de calcul, énormes en JSON
     if (!/^\d+$/.test(k) && k !== "" && ((v.d && v.kind) || (v.moves && v.line))) return undefined; // référence à un Pokémon ou à un joueur
   }
   return v;
