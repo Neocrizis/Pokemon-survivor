@@ -339,7 +339,9 @@ function drawCandy(g, t) {
 function render(now) {
   const t = now / 1000;
   cx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  if (!S) { cx.fillStyle = "#1e3a22"; cx.fillRect(0, 0, W, H); return; }
+  if (!S) { cx.fillStyle = "#1e3a22"; cx.fillRect(0, 0, W, H);
+    if (NET.role === "guest" && NET.started) { cx.fillStyle = "rgba(255,255,255,.8)"; cx.font = "600 16px system-ui, sans-serif"; cx.textAlign = "center"; cx.fillText("En attente des images de l'hôte…", W / 2, H / 2); cx.textAlign = "left"; }
+    return; }
   const P = S.P, CAM = S.cam || P, vw = W / ZOOM, vh = H / ZOOM; // caméra : centre des joueurs
   const sh = S.shake > 0 ? (Math.random() - .5) * 8 : 0;
   const camX = CAM.x - vw / 2 + sh, camY = CAM.y - vh / 2 + sh;
@@ -926,9 +928,16 @@ function render(now) {
 let hudT = 0;
 function frame(now) {
   const dt = Math.max(0, Math.min(.05, (now - last) / 1000 || 0)); last = now; // jamais négatif (après un choix de niveau)
-  pollPad(dt);
-  if (state === "play" || (NET.role === "host" && NET.started && S && (state === "levelup" || state === "chest"))) { update(dt); hudT -= dt; if (hudT <= 0 && S) { refreshHud(); hudT = .08; } }
-  if (NET.role) netFrame(now, dt);
-  render(now);
-  requestAnimationFrame(frame);
+  requestAnimationFrame(frame); // demandé d'abord : une erreur dans une image ne doit jamais figer tout le jeu (écran vert en ligne)
+  const P0 = S && S.P;
+  try { pollPad(dt);
+    if (state === "play" || (NET.role === "host" && NET.started && S && (state === "levelup" || state === "chest"))) { update(dt); hudT -= dt; if (hudT <= 0 && S) { hudT = .08; refreshHud(); } }
+  } catch (e) { frameErr(e, P0); }
+  if (NET.role) try { netFrame(now, dt); } catch (e) { frameErr(e, P0); }
+  try { render(now); } catch (e) { frameErr(e, P0); }
+}
+let frameErrN = 0;
+function frameErr(e, P0) { // on note l'erreur (console) et on remet le joueur affiché, sans arrêter la boucle
+  if (S && P0 && S.P !== P0) S.P = P0;
+  if (frameErrN++ % 300 === 0) console.error("[Pokémon Survivor] erreur dans l'image", e);
 }
