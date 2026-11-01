@@ -6,7 +6,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v211";
+const NET_VER = "v212";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -269,7 +269,10 @@ function netLoad(str) {
   NET.tArr = now; S = sn;
 }
 function netLerp(now) { // mouvements fluides entre deux instantanés
-  const a = Math.min(1, (now - NET.tArr) / NET.gap), L = o => { if (o._bx === undefined) return; o.x = o._ax + (o._bx - o._ax) * a; o.y = o._ay + (o._by - o._ay) * a; };
+  // instantané en retard (Wi-Fi…) : au lieu de figer, on prolonge le mouvement jusqu'à 0,8 intervalle de plus (40 ms), puis on attend
+  const t = (now - NET.tArr) / NET.gap, a = Math.min(1.8, t), L = o => { if (o._bx === undefined) return;
+    const dx = o._bx - o._ax, dy = o._by - o._ay, k = a > 1 && dx * dx + dy * dy > 6400 ? 1 : a; // grand saut (téléportation) : pas de prolongation
+    o.x = o._ax + dx * k; o.y = o._ay + dy * k; };
   for (const f of S.foes) L(f); for (const p of S.players) L(p); L(S.cam);
 }
 // connexion encombrée : on saute un instantané plutôt que d'en empiler (sinon le retard grossit)
