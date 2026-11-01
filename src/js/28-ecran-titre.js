@@ -41,6 +41,7 @@ const lineMoves = line => { // capacités que ce starter peut apprendre (même r
   const L = LINES[line], out = [];
   for (const [id, m] of Object.entries(MOVES)) {
     if (m.line && ![].concat(m.line).includes(line)) continue;
+    if ((m.not || []).includes(line)) continue;
     const alt = m.alt && m.alt.line === line, also = (m.also || []).includes(line);
     if (m.only && ![].concat(m.only).includes(L.type) && !alt && !also) continue;
     if (m.only && (L.own || L.restricted) && !also && !alt) continue;

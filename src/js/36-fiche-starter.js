@@ -45,7 +45,7 @@ function evoStages(line) {
 }
 // Évoli : clic sur une évolution = ses attaques dans le panneau de droite (même règle que buildChoices avec le type de l'évolution)
 const formMoves = k => { const t = EEVEE[k].type;
-  return Object.entries(MOVES).filter(([id, m]) => (!m.line || [].concat(m.line).includes("evoli")) && !m.tier && ((m.only && [].concat(m.only).includes(t)) || (m.also || []).includes("evoli") || id === EEVEE[k].move))
+  return Object.entries(MOVES).filter(([id, m]) => (!m.line || [].concat(m.line).includes("evoli")) && !(m.not || []).includes("evoli") && !m.tier && ((m.only && [].concat(m.only).includes(t)) || (m.also || []).includes("evoli") || id === EEVEE[k].move))
     .sort((a, b) => (b[0] === EEVEE[k].move) - (a[0] === EEVEE[k].move) || !!a[1].rare - !!b[1].rare); };
 function showFormMoves(k) {
   FICHE.ef = FICHE.ef === k ? null : k;

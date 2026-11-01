@@ -62,7 +62,7 @@ const MOVES = {
       : ["Un puissant rayon d'eau traverse tous les ennemis en ligne droite.", "Rayon plus large.", "Dégâts +40 %.", "Un rayon toutes les 3,2 s.", "Double canon : deux rayons parallèles."][lv-1] },
   combogriffe: { name:"Combo-Griffe", type:"normal", only:"normal", max:5,
     desc: lv => ["Lacère l'ennemi le plus proche de 2 à 3 coups de griffes, de plus en plus forts.", "Jusqu'à 4 coups.", "Dégâts +30 %.", "Jusqu'à 5 coups, enchaînements plus rapides.", "Toujours 5 coups, griffes plus longues."][lv-1] },
-  jackpot:     { name:"Jackpot", type:"normal", only:"normal", max:5,
+  jackpot:     { name:"Jackpot", type:"normal", only:"normal", not:["evoli"], max:5, // Évoli ne l'apprend plus (Raphaël, v208)
     desc: lv => ["Lance une pièce d'or qui rebondit sur 3 ennemis. Un ennemi K.O. par une pièce lâche un Bonbon Exp. en plus.", "+1 pièce.", "Dégâts +40 %, +1 rebond.", "+1 pièce, recharge plus rapide.", "Les Bonbons des pièces valent triple."][lv-1] },
   morsure:     { name:"Morsure", type:"normal", only:"normal", max:5,
     desc: lv => ["Mord l'ennemi le plus proche, avec 30 % de chances de l'étourdir 1 s.", "Mord 2 ennemis à la fois.", "Dégâts +40 %.", "Morsures plus rapides.", "60 % de chances d'étourdir."][lv-1] },
