@@ -1,12 +1,12 @@
 /* ---------- En ligne : salons avec code (PeerJS, connexion directe entre navigateurs) ----------
    L'hôte fait tourner la partie ; chaque invité envoie ses touches et reçoit 20 fois par seconde
    ce qu'il y a autour de la caméra (Pokémon, attaques, bonbons…). */
-var NET = { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], myLine:null, lobby:null, started:false, asks:new Map(), earned:0, achMsgs:[], sendT:0, inT:0, tArr:0, gap:50, rtt:0, hist:[], me:null, lastIn:"", inRep:0, lastChest:null };
+var NET = { role:null, peer:null, conn:null, conns:[], specs:[], spec:false, code:null, idx:0, picks:[], myLine:null, lobby:null, started:false, asks:new Map(), earned:0, achMsgs:[], sendT:0, inT:0, tArr:0, gap:50, rtt:0, hist:[], me:null, lastIn:"", inRep:0, lastChest:null };
 const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v214";
+const NET_VER = "v215";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -24,19 +24,19 @@ function netErr(e) {
 function netCodeGen() { const a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let c = ""; for (let i = 0; i < 5; i++) c += a[Math.random() * a.length | 0]; return c; }
 function netSend(o) { try { if (NET.conn && NET.conn.open) NET.conn.send(typeof o === "string" ? o : JSON.stringify(o)); } catch (e) {} }
 function netTo(g, o) { try { if (g.conn.open) g.conn.send(typeof o === "string" ? o : JSON.stringify(o)); } catch (e) {} }
-function netAll(o) { const m = typeof o === "string" ? o : JSON.stringify(o); for (const g of NET.conns) netTo(g, m); }
+function netAll(o) { const m = typeof o === "string" ? o : JSON.stringify(o); for (const g of NET.conns.concat(NET.specs || [])) netTo(g, m); } // joueurs et spectateurs
 function netLink() { return location.origin + location.pathname + "#" + NET.code; }
 function netButtons() {
   const on = !!NET.role;
-  for (const id of ["netHost", "netJoin", "netCode"]) $(id).hidden = on;
+  for (const id of ["netHost", "netJoin", "netWatch", "netCode"]) $(id).hidden = on;
   $("netBox").querySelector(".netOr").hidden = on; $("netQuit").hidden = !on;
   $("netGo").hidden = NET.role !== "host";
 }
 function netClose() {
   try { NET.peer && NET.peer.destroy(); } catch (e) {}
-  Object.assign(NET, { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], lobby:null, started:false, ask:null, myLine:null, hostV:null });
+  Object.assign(NET, { role:null, peer:null, conn:null, conns:[], specs:[], spec:false, code:null, idx:0, picks:[], lobby:null, started:false, ask:null, myLine:null, hostV:null });
   $("netWait").hidden = true; netButtons();
-  netMsg("Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous.");
+  netMsg("Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. Pour seulement regarder, entre le code et clique sur « 👁 Regarder ».");
 }
 const netName = l => LINES[l] ? LINES[l].names[0] : null;
 function netLobby() {
@@ -44,11 +44,14 @@ function netLobby() {
   if (NET.role === "host") {
     const list = [{ idx:0, line:NET.picks[0] }].concat(NET.conns.slice().sort((a, b) => a.idx - b.idx).map(g => ({ idx:g.idx, line:g.line, old:g.v !== NET_VER ? g.v || "?" : "" })));
     const rows = list.map(r => `<b>J${r.idx + 1}${r.idx ? "" : " (toi)"}</b> : ${netName(r.line) || (r.idx ? "choisit…" : "choisis ton starter ↓")}${r.old ? ` <span style="color:#ff8a7a">⚠ version ${netEsc(r.old === "?" ? "ancienne" : r.old)} : il doit rafraîchir sa page</span>` : ""}`).join(" · ");
-    netMsg(`Salon <span class="netCodeBig">${NET.code}</span><br>Donne ce code à tes amis, ou ce lien : <input id="netLinkOut" readonly value="${netEsc(netLink())}"><br>${rows}<br>Niveau : <b>${netEsc(LEVEL.name)}</b> (c'est toi qui le choisis en haut)${NET.diag ? `<br><small style="opacity:.75">Réseau : ${netEsc(NET.diag)}</small>` : ""}`);
+    netMsg(`Salon <span class="netCodeBig">${NET.code}</span><br>Donne ce code à tes amis, ou ce lien : <input id="netLinkOut" readonly value="${netEsc(netLink())}"><br>${rows}<br>${NET.specs.length ? `<br>👁 ${NET.specs.length} spectateur${NET.specs.length > 1 ? "s" : ""}` : ""}<br>Niveau : <b>${netEsc(LEVEL.name)}</b> (c'est toi qui le choisis en haut)${NET.diag ? `<br><small style="opacity:.75">Réseau : ${netEsc(NET.diag)}</small>` : ""}`);
     $("netLinkOut").addEventListener("focus", e => e.target.select());
-    const ready = !!NET.picks[0] && NET.conns.length > 0 && NET.conns.every(g => g.line && g.v === NET_VER); // une autre version ne sait pas lire les envois de l'hôte (écran vert) : on attend qu'il rafraîchisse
-    $("netGo").disabled = !ready; $("netGo").textContent = !NET.conns.length ? "En attente d'un autre joueur…" : ready ? "Lancer la partie" : NET.conns.some(g => g.v !== NET_VER) ? "Un joueur doit rafraîchir sa page…" : "En attente des starters…"; $("netGo").classList.toggle("playIco", !!(NET.conns.length && ready));
+    const ready = !!NET.picks[0] && (NET.conns.length > 0 || NET.specs.some(g => g.v === NET_VER)) && NET.conns.every(g => g.line && g.v === NET_VER); // une autre version ne sait pas lire les envois de l'hôte (écran vert) : on attend qu'il rafraîchisse
+    $("netGo").disabled = !ready; $("netGo").textContent = !NET.conns.length && !ready ? "En attente d'un autre joueur…" : ready ? "Lancer la partie" : NET.conns.some(g => g.v !== NET_VER) ? "Un joueur doit rafraîchir sa page…" : "En attente des starters…"; $("netGo").classList.toggle("playIco", ready);
     netAll({ t:"lobby", level:LEVEL.name, list });
+  } else if (NET.role === "guest" && NET.spec) {
+    const L = NET.lobby, rows = (L && Array.isArray(L.list) ? L.list : []).map(r => `<b>J${(r.idx | 0) + 1}</b> : ${netName(r.line) || "choisit…"}`).join(" · ");
+    netMsg(`👁 Tu regardes le salon <span class="netCodeBig">${netEsc(NET.code)}</span> en spectateur.<br>Niveau : <b>${netEsc(L && L.level || "…")}</b><br>${rows}<br>La partie s'affichera dès que l'hôte la lance.${NET.hostV && NET.hostV !== NET_VER ? `<br><span style="color:#ff8a7a">⚠ L'hôte est en ${netEsc(NET.hostV)} et toi en ${NET_VER} : rafraîchissez vos pages.</span>` : ""}`);
   } else if (NET.role === "guest") {
     const L = NET.lobby, rows = (L && Array.isArray(L.list) ? L.list : []).map(r => `<b>J${(r.idx | 0) + 1}${(r.idx | 0) === NET.idx ? " (toi)" : ""}</b> : ${netName(r.line) || "choisit…"}`).join(" · ");
     netMsg(`Connecté au salon <span class="netCodeBig">${netEsc(NET.code)}</span> en tant que <b>J${NET.idx + 1}</b>.<br>${NET.myLine ? `Ton starter : <b>${netName(NET.myLine)}</b> (tu peux en changer)` : "Choisis ton starter ↓"}${NET.hostV && NET.hostV !== NET_VER ? `<br><span style="color:#ff8a7a">⚠ L'hôte est en ${netEsc(NET.hostV)} et toi en ${NET_VER} : rafraîchissez vos pages pour avoir la même version.</span>` : ""} · Niveau choisi par l'hôte : <b>${netEsc(L && L.level || "…")}</b><br>${rows}<br>L'hôte lance la partie quand tout le monde a choisi.`);
@@ -75,6 +78,14 @@ function netAccept(conn) {
     pc.addEventListener("iceconnectionstatechange", st); pc.addEventListener("signalingstatechange", st); st(); };
   watch();
   conn.on("open", () => {
+    if (NET.role === "host" && conn.metadata && conn.metadata.spec && NET.specs.length < 6) { // spectateur : regarde sans jouer, même une partie déjà lancée
+      const g = { conn, spec:true, idx:-1, watch:0 }; NET.specs.push(g);
+      conn.on("data", d => netHostData(g, netStr(d)));
+      conn.on("close", () => netGone(g));
+      netTo(g, { t:"welcome", spec:1, idx:0, code:NET.code, v:NET_VER });
+      if (NET.started && S) { netTo(g, { t:"start", level:LEVELS.indexOf(LEVEL), map:LEVEL.mapIdx, idx:0, spec:1 }); if (LEVEL.rooms) netTo(g, { t:"room", k:LEVEL.roomIdx | 0 }); banner("👁 Un spectateur regarde la partie"); }
+      sfx("click"); netLobby(); return;
+    }
     if (NET.role !== "host" || NET.started || NET.conns.length >= 3) { try { conn.send(JSON.stringify({ t:NET.started ? "started" : "full" })); } catch (e) {} setTimeout(() => { try { conn.close(); } catch (e) {} }, 400); return; }
     let idx = 1; while (NET.conns.some(g => g.idx === idx)) idx++;
     const g = { conn, idx, line:null }; NET.conns.push(g);
@@ -102,8 +113,8 @@ const netPingHtml = (ms, lk) => { const c = ms < 80 ? "good" : ms < 160 ? "mid" 
 function netPingOf(Q) { // ce qu'on affiche à côté d'un joueur (rien hors ligne)
   if (!NET.started) return "";
   if (Q.idx === 0) return `<span class="ping host" title="Ce joueur héberge la partie">🏠 hôte</span>`;
-  const ms = NET.role === "guest" && Q.idx === NET.idx ? Math.round(NET.rtt || 0) : Q.ping | 0;
-  const lk = NET.role === "guest" && Q.idx === NET.idx ? NET.link : Q.link;
+  const ms = NET.role === "guest" && !NET.spec && Q.idx === NET.idx ? Math.round(NET.rtt || 0) : Q.ping | 0;
+  const lk = NET.role === "guest" && !NET.spec && Q.idx === NET.idx ? NET.link : Q.link;
   return ms ? netPingHtml(ms, lk) : `<span class="ping">📶 …</span>`;
 }
 // instantanés compressés (deflate) : environ 3 fois moins de données à envoyer, donc moins de retard quand la connexion de l'hôte est juste
@@ -126,6 +137,7 @@ function netGuestRaw(d) { // tout passe dans la même file pour garder l'ordre d
 }
 const netStr = d => typeof d === "string" ? d : d instanceof ArrayBuffer ? new TextDecoder().decode(d) : String(d);
 function netGone(g) {
+  if (g.spec) { NET.specs = NET.specs.filter(x => x !== g); if (!NET.started) netLobby(); return; }
   if (!NET.conns.includes(g)) return;
   NET.conns = NET.conns.filter(x => x !== g);
   if (NET.started && S) {
@@ -150,7 +162,9 @@ function netHostData(g, raw) {
     if (p && (m.lk === "relais" || m.lk === "direct")) p.link = m.lk;
     if (+m.vw > 0) { g.vw = Math.max(300, Math.min(1100, +m.vw)); g.vh = Math.max(200, Math.min(800, +m.vh || 560)); } } // l'invité mesure son temps de réponse
   else if (m.t === "hi") { g.v = String(m.v || "").slice(0, 12); g.z = m.z === 1; netLobby(); } // version et décompression de l'invité
-  else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
+  else if (m.t === "watch" && g.spec) { // le spectateur passe au joueur suivant (ou précédent)
+    const n = S && S.players ? S.players.length : 0; if (n) g.watch = ((g.watch + (m.d < 0 ? -1 : 1)) % n + n) % n; }
+  else if (m.t === "starter") { if (!g.spec && !NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
   else if (NET.asks.has(g)) {
     const a = NET.asks.get(g), keep = S.P;
     if (m.t === "pick" && a.kind !== "chest") { const ch = a.choices[m.i | 0]; if (!ch) return; netAskDone(g); applyChoice(ch, a.p); }
@@ -174,7 +188,7 @@ function netChest(p) {
   p.choosing = true; p.chooseT = CHOOSE_T; NET.asks.set(g, { p, g, kind:"chest" });
   netTo(g, { t:"chest", n:NET.lastChest.n, got:NET.lastChest.got });
 }
-function netDexFlush() { if (NET.dexQ && Object.keys(NET.dexQ).length) { netAll({ t:"dex", k:NET.dexQ }); NET.dexQ = {}; } }
+function netDexFlush() { if (NET.dexQ && Object.keys(NET.dexQ).length) { const m = JSON.stringify({ t:"dex", k:NET.dexQ }); for (const g of NET.conns) netTo(g, m); NET.dexQ = {}; } } // pas aux spectateurs
 function netGuestDex(k) { // l'invité compte dans son Pokédex les K.O. de toute l'équipe
   if (!k || typeof k !== "object") return;
   for (const kind in k) {
@@ -204,12 +218,13 @@ function chooseTimer() { // compte à rebours affiché sur l'écran de celui qui
 }
 function netAskDone(g) { const a = NET.asks.get(g); NET.asks.delete(g); return a; }
 function netStart() {
-  if (NET.role !== "host" || !NET.picks[0] || !NET.conns.length || !NET.conns.every(g => g.line)) return;
+  if (NET.role !== "host" || !NET.picks[0] || !(NET.conns.length || NET.specs.length) || !NET.conns.every(g => g.line)) return;
   const gs = NET.conns.slice().sort((a, b) => a.idx - b.idx); gs.forEach((g, i) => { g.idx = i + 1; });
   newGame([NET.picks[0], ...gs.map(g => g.line)]); // Oiseau Légendaire : la carte tirée est envoyée aux invités
   for (const g of gs) { const p = S.players[g.idx]; p.remote = true; p.net = { x:0, y:0, ax:0, ay:0 }; }
   NET.started = true; NET.sendT = 0; NET.asks.clear();
   for (const g of gs) netTo(g, { t:"start", level:LEVELS.indexOf(LEVEL), map:LEVEL.mapIdx, idx:g.idx });
+  for (const g of NET.specs) { g.watch = 0; netTo(g, { t:"start", level:LEVELS.indexOf(LEVEL), map:LEVEL.mapIdx, idx:0, spec:1 }); }
   $("hudLevel").textContent += " · en ligne";
 }
 // instantané envoyé aux invités : tout ce qui est autour de la caméra, nombres arrondis, sans les liens internes
@@ -228,11 +243,11 @@ function netRep(k, v) {
   }
   return v;
 }
-function netSnap(c = S.cam, hx = 1050, hy = 700) { // hx, hy : demi-largeur et demi-hauteur de ce que voit l'invité (+ marge)
+function netSnap(c = S.cam, hx = 1050, hy = 700, watch) { // hx, hy : demi-largeur et demi-hauteur de ce que voit l'invité (+ marge)
   const near = o => !o || typeof o.x !== "number" || (Math.abs(o.x - c.x) < hx + 350 && Math.abs(o.y - c.y) < hy + 300);
   const out = {};
   for (const k in S) { if (NET_SKIP.has(k)) continue; const v = S[k]; out[k] = Array.isArray(v) ? v.filter(near) : v; }
-  out.cam = c; out.players = S.players; out.texts = (out.texts || []).slice(-60);
+  out.cam = c; out.players = S.players; if (watch !== undefined) out.watch = watch; // spectateur : le joueur qu'il regarde out.texts = (out.texts || []).slice(-60);
   // Pokémon : [espèce, x, y, direction + 8 si retourné, id, PV en %, extras]
   out.fz = S.foes.filter(f => f.hp > 0 && Math.abs(f.x - c.x) < hx && Math.abs(f.y - c.y) < hy).map(f => {
     const a = [FOE_KEYS.indexOf(f.kind), Math.round(f.x), Math.round(f.y), (f.dir || 0) + (f.flip ? 8 : 0), f.id || 0, Math.max(0, Math.min(100, Math.round(f.hp / f.maxHp * 100)))];
@@ -246,6 +261,7 @@ function netSnap(c = S.cam, hx = 1050, hy = 700) { // hx, hy : demi-largeur et d
 }
 function netLoad(str) {
   let sn; try { sn = JSON.parse(str); } catch (e) { return; }
+  if (sn && NET.spec && typeof sn.watch === "number" && Array.isArray(sn.players) && sn.players[sn.watch]) NET.idx = sn.watch; // spectateur : on « devient » le joueur regardé (HUD, minicarte)
   if (!sn || !Array.isArray(sn.players) || !sn.players[NET.idx] || !sn.cam) return;
   sn.foes = [];
   for (const a of Array.isArray(sn.fz) ? sn.fz : []) {
@@ -306,6 +322,11 @@ function netPredict(now, dt) {
   p.x = NET.me.x; p.y = NET.me.y;
   if (S.players.length > 1) { const c = camClamp(p.x, p.y); S.cam.x = c.x; S.cam.y = c.y; } // la caméra suit le Pokémon affiché
 }
+function netSpecInput() { // spectateur : ← → (clavier, manette) ou toucher l'écran pour changer de joueur regardé
+  const d = keys.has("left") || pad.x < -.5 ? -1 : keys.has("right") || pad.x > .5 || touch.on ? 1 : 0;
+  if (d && d !== NET.specD && S.players.length > 1) netSend({ t:"watch", d });
+  NET.specD = d;
+}
 function netStill() { // l'invité quitte la fenêtre : on prévient l'hôte tout de suite qu'il ne bouge plus
   if (NET.role !== "guest" || !NET.started) return;
   NET.lastIn = JSON.stringify({ t:"in", x:0, y:0, ax:0, ay:0, tc:TOUCH ? 1 : 0 }); netSend(NET.lastIn);
@@ -321,27 +342,28 @@ function netInput() {
 }
 function netFrame(now, dt) {
   chooseTimer();
-  if (NET.role === "host" && NET.started && S && NET.conns.length) {
+  if (NET.role === "host" && NET.started && S && (NET.conns.length || NET.specs.length)) {
     for (const g of NET.conns) { const p = S.players[g.idx]; if (p && p.remote && p.net && now - (g.inT || now) > 600) p.net = { x:0, y:0, ax:0, ay:0, tc:p.net.tc }; } // plus de nouvelles de l'invité (onglet en arrière-plan…) : il s'arrête
-    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = Math.max(0, NET.sendT + 1 / 20); for (const g of NET.conns) { if (netBusy(g) || g.zPend >= 2) continue; const p = S.players[g.idx]; netZip(g, "S" + netSnap(p ? viewFor(p) : S.cam, (g.vw || 930) + 150, (g.vh || 560) + 150)); } } // chacun reçoit ce qui entoure sa caméra, 20 fois par seconde
+    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = Math.max(0, NET.sendT + 1 / 20); for (const g of NET.conns) { if (netBusy(g) || g.zPend >= 2) continue; const p = S.players[g.idx]; netZip(g, "S" + netSnap(p ? viewFor(p) : S.cam, (g.vw || 930) + 150, (g.vh || 560) + 150)); }
+      for (const g of NET.specs) { if (netBusy(g) || g.zPend >= 2) continue; if (!S.players[g.watch]) g.watch = 0; const p = S.players[g.watch]; netZip(g, "S" + netSnap(p ? viewFor(p) : S.cam, (g.vw || 930) + 150, (g.vh || 560) + 150, g.watch)); } } // chacun reçoit ce qui entoure sa caméra, 20 fois par seconde
     if ((NET.dexT = (NET.dexT || 0) - dt) <= 0) { NET.dexT = 2; netDexFlush(); }
   }
   if (NET.role === "guest" && NET.started) {
     if (S && S.players) {
-      netLerp(now); netPredict(now, dt);
+      netLerp(now); if (NET.spec) netSpecInput(); else netPredict(now, dt);
       if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netLinkType(); netSend({ t:"ping", c:performance.now(), r:Math.round(NET.rtt || 0), vw:Math.round(W / ZOOM / 2), vh:Math.round(H / ZOOM / 2), lk:NET.link || "" }); }
       if (state === "netplay") { hudT -= dt; if (hudT <= 0) { hudT = .08; refreshHud(); } } // délai remis avant : une erreur du HUD ne bloque pas le reste
-      if ((NET.achT = (NET.achT || 0) - dt) <= 0) { NET.achT = 1; achCheck(); } // succès de l'invité, sur sa partie
+      if (!NET.spec && (NET.achT = (NET.achT || 0) - dt) <= 0) { NET.achT = 1; achCheck(); } // succès de l'invité, sur sa partie
       playTrack(S.foes.some(f => f.d.boss) ? "boss" : LEVEL.track || (LEVEL.cave ? "cave" : "forest"));
     }
-    NET.inT -= dt; if (NET.inT <= 0) { NET.inT = 1 / 30; netInput(); }
+    NET.inT -= dt; if (NET.inT <= 0 && !NET.spec) { NET.inT = 1 / 30; netInput(); }
   }
 }
-function netJoin(code) {
+function netJoin(code, spec) {
   code = String(code || "").trim().toUpperCase();
   if (!/^[A-Z0-9]{5}$/.test(code)) { netFail("Le code du salon fait 5 caractères (lettres et chiffres)."); return; }
   netClose();
-  netMsg(`Connexion au salon ${code}…`);
+  NET.spec = !!spec; netMsg(`Connexion au salon ${code}${spec ? " en spectateur" : ""}…`);
   netLib().then(() => {
     const peer = new Peer(NET_OPTS); NET.peer = peer;
     let stage = 0, ice = ""; // 0 : serveur pas joint, 1 : serveur joint, 2 : hôte trouvé
@@ -352,7 +374,7 @@ function netJoin(code) {
       try { peer.destroy(); } catch (e) {} NET.peer = null; } }, 25000);
     peer.on("open", () => {
       let conn; // sérialisation par défaut de PeerJS : découpe aussi les gros messages
-      try { conn = peer.connect(NET_PFX + code, { reliable:true }); } catch (e) { clearTimeout(timer); netFail("Erreur de connexion : " + (e && e.message || e)); return; }
+      try { conn = peer.connect(NET_PFX + code, { reliable:true, metadata:spec ? { spec:1 } : undefined }); } catch (e) { clearTimeout(timer); netFail("Erreur de connexion : " + (e && e.message || e)); return; }
       conn.on("error", e => { if (!NET.started) netFail("Erreur de connexion : " + (e && (e.type || e.message) || "inconnue")); });
       stage = 1; netMsg(`Serveur joint, recherche du salon ${code}…`);
       NET.conn = conn; NET.code = code;
@@ -371,7 +393,7 @@ function netJoin(code) {
 }
 function netPick(line) {
   if (NET.role === "host") { NET.picks[0] = line; netLobby(); }
-  else if (NET.role === "guest") { NET.myLine = line; netSend({ t:"starter", line }); netLobby(); }
+  else if (NET.role === "guest" && !NET.spec) { NET.myLine = line; netSend({ t:"starter", line }); netLobby(); }
 }
 const netValid = c => c && (c.kind === "heal" || (c.kind === "move" && MOVES[c.id]) || (c.kind === "item" && ITEMS[c.id]) || (c.kind === "evo" && EEVEE[c.id]));
 function netGuestData(raw) {
@@ -383,7 +405,7 @@ function netGuestData(raw) {
   if (m.t === "welcome") { NET.idx = m.idx | 0; NET.hostV = String(m.v || "ancienne version").slice(0, 20); netLobby(); if (NET.myLine) netSend({ t:"starter", line:NET.myLine }); }
   else if (m.t === "lobby") { NET.lobby = m; netLobby(); }
   else if (m.t === "full") netFail("Ce salon est complet (4 joueurs maximum).");
-  else if (m.t === "started") netFail("La partie de ce salon a déjà commencé. Attends la fin et rejoins-le à nouveau.");
+  else if (m.t === "started") netFail("La partie de ce salon a déjà commencé. Clique sur « 👁 Regarder » pour la suivre en spectateur, ou attends la fin et rejoins-le à nouveau.");
   else if (m.t === "start") {
     const i = m.level | 0; if (!LEVELS[i]) return;
     if (LEVEL !== LEVELS[i]) { LEVEL = LEVELS[i]; chunkData.clear(); nearCache.clear(); liveChunks.clear(); motes.length = 0; }
@@ -411,15 +433,15 @@ function netGuestData(raw) {
   else if (m.t === "end") netGuestEnd(m);
 }
 function netGuestEnd(m) {
-  achCheck(!!m.win); dexSave(); if (S && S.players) careerRecord([S.players[NET.idx]], !!m.win); // sa progression : succès, niveau suivant débloqué, Pokédex
-  if (m.win && LEVELS[LEVEL.num]) setLevel(LEVEL.num);
+  if (!NET.spec) { achCheck(!!m.win); dexSave(); if (S && S.players) careerRecord([S.players[NET.idx]], !!m.win); } // sa progression : succès, niveau suivant débloqué, Pokédex
+  if (m.win && LEVELS[LEVEL.num] && !NET.spec) setLevel(LEVEL.num);
   NET.started = false; state = "end"; playTrack(null); sfx(m.win ? "win" : "lose");
   for (const id of ["levelup", "chest"]) $(id).hidden = true;
   $("endTitle").textContent = String(m.title || "Fin de la partie"); $("endSub").textContent = String(m.sub || "");
   $("endStats").innerHTML = (S && S.players ? statsHtml() : "") + (NET.achMsgs?.length ? `<div class="achEnd">${NET.achMsgs.map(netEsc).join("<br>")}</div>` : "");
-  if (m.win && S?.orme?.ok) eggHatch((NET.achMsgs || []).some(x => String(x).includes("Togepi")));
+  if (m.win && S?.orme?.ok && !NET.spec) eggHatch((NET.achMsgs || []).some(x => String(x).includes("Togepi")));
   const me = S && S.players && S.players[NET.idx];
-  $("endDmg").innerHTML = me ? teamHtml() + `<h3 class="dmgFor">Tes dégâts (${pTag(me)}${(S.P = me, pName())})</h3>` + dmgTableHtml(me) : "";
+  $("endDmg").innerHTML = me ? teamHtml() + `<h3 class="dmgFor">${NET.spec ? `Dégâts de J${me.idx + 1}` : "Tes dégâts"} (${pTag(me)}${(S.P = me, pName())})</h3>` + dmgTableHtml(me) : "";
   $("end").hidden = false; $("boss").hidden = true; $("againBtn").focus({ preventScroll:true });
 }
 function netHostGone() {
@@ -439,6 +461,7 @@ $("netBtn").addEventListener("click", () => {
 $("netHost").addEventListener("click", netHost);
 addEventListener("beforeunload", () => { try { NET.peer && NET.peer.destroy(); } catch (e) {} });
 $("netJoin").addEventListener("click", () => netJoin($("netCode").value));
+$("netWatch").addEventListener("click", () => netJoin($("netCode").value, true));
 $("netCode").addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Enter") netJoin($("netCode").value); });
 $("netQuit").addEventListener("click", netClose);
 $("netGo").addEventListener("click", netStart);
