@@ -18,10 +18,10 @@ function pollPad(dt) {
   if (!gp) { pad.x = pad.y = pad.ax = pad.ay = 0; return; }
   const btn = i => !!gp.buttons[i]?.pressed;
   const dz = v => Math.abs(v) < .2 ? 0 : (v - Math.sign(v) * .2) / .8;
-  let x = dz(gp.axes[0] || 0), y = dz(gp.axes[1] || 0);
+  let x = dz(padAx(gp, 0)), y = dz(padAx(gp, 1));
   if (btn(14)) x = -1; if (btn(15)) x = 1; if (btn(12)) y = -1; if (btn(13)) y = 1;
   pad.x = x; pad.y = y;
-  const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
+  const rx = padAx(gp, 2), ry = padAx(gp, 3);
   if (Math.hypot(rx, ry) > .35) { pad.ax = rx; pad.ay = ry; if (!S || S.players.length === 1) mouse.on = false; } else pad.ax = pad.ay = 0;
   const now = {}; for (const i of [0, 1, 3, 4, 5, 8, 9]) now[i] = btn(i);
   const prev = pad.prev, hit = i => now[i] && !prev[i]; pad.prev = now;

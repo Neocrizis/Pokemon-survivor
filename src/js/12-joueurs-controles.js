@@ -4,11 +4,19 @@ function nearP(x, y) { // joueur debout le plus proche (cible des ennemis)
   return best || S.players.find(p => !p.down) || S.players[0];
 }
 const padList = () => [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(g => g && g.connected);
+// un axe de manette ne compte qu'une fois qu'il a vraiment bougé depuis le branchement :
+// une manette qui dérive ou un périphérique bizarre (volant, joystick…) ne fait plus avancer le Pokémon tout seul
+const PAD_REST = new Map();
+function padAx(gp, i) {
+  let r = PAD_REST.get(gp.index); if (!r || r.id !== gp.id) PAD_REST.set(gp.index, r = { id:gp.id, rest:Array.from(gp.axes, v => v || 0), live:[] });
+  const v = gp.axes[i] || 0; if (!r.live[i] && Math.abs(v - (r.rest[i] ?? 0)) > .45) r.live[i] = true;
+  return r.live[i] ? v : 0;
+}
 function padAxes(gp) {
   const btn = i => !!gp.buttons[i]?.pressed, dz = v => Math.abs(v) < .2 ? 0 : (v - Math.sign(v) * .2) / .8;
-  let x = dz(gp.axes[0] || 0), y = dz(gp.axes[1] || 0);
+  let x = dz(padAx(gp, 0)), y = dz(padAx(gp, 1));
   if (btn(14)) x = -1; if (btn(15)) x = 1; if (btn(12)) y = -1; if (btn(13)) y = 1;
-  const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0, aim = Math.hypot(rx, ry) > .35;
+  const rx = padAx(gp, 2), ry = padAx(gp, 3), aim = Math.hypot(rx, ry) > .35;
   return { x, y, ax:aim ? rx : 0, ay:aim ? ry : 0 };
 }
 // contrôles : seul, clavier + 1re manette ; à plusieurs, J1 au clavier (et à la souris) et une manette par coéquipier,

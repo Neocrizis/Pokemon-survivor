@@ -896,6 +896,14 @@ function render(now) {
   if (S.dracoJump) arrowTo(S.dracoJump.tx, S.dracoJump.ty, `rgba(130,180,255,${.7 + .3 * Math.sin(t * 6)})`);
   for (const f of S.foes) if (f.d.rare && f.hp > 0) arrowTo(f.x, f.y, `rgba(255,170,200,${.7 + .3 * Math.sin(t * 6)})`);
   if (NET.started) for (const p of S.players) if (p.idx !== (NET.role === "guest" ? NET.idx : 0)) arrowTo(p.x, p.y, PCOL[p.idx]); // en ligne : coéquipiers hors de l'écran
+  const me = NET.started && S.players[NET.role === "guest" ? NET.idx : 0];
+  if (me && me.down && !me.left && me.specIdx >= 0 && S.players[me.specIdx]) { // spectateur : on suit un coéquipier en attendant d'être relevé
+    arrowTo(me.x, me.y, `rgba(255,255,255,${.6 + .4 * Math.sin(t * 6)})`); // flèche vers son propre Pokémon K.O.
+    const q = S.players[me.specIdx], txt = `👁 K.O. : tu regardes J${q.idx + 1} en attendant qu'un coéquipier te relève`;
+    cx.font = "600 15px 'Rubik', sans-serif"; cx.textAlign = "center"; const tw = Math.min(W - 32, cx.measureText(txt).width + 28);
+    cx.fillStyle = "rgba(0,0,0,.55)"; cx.beginPath(); cx.roundRect((W - tw) / 2, 78, tw, 30, 8); cx.fill();
+    cx.fillStyle = PCOL[q.idx]; cx.fillText(txt, W / 2, 98, tw - 20);
+  }
   const vg = cx.createRadialGradient(W/2, H/2, Math.min(W, H) * .35, W/2, H/2, Math.max(W, H) * .75);
   vg.addColorStop(0, "rgba(10,20,12,0)"); vg.addColorStop(1, "rgba(6,16,8,.5)"); cx.fillStyle = vg; cx.fillRect(0, 0, W, H);
   drawLight(t);

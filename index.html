@@ -55,6 +55,9 @@ body {
 
 .pp { display: flex; flex-direction: column; gap: 4px; padding: 5px 9px; background: rgba(0,0,0,.35); border-left: 4px solid var(--c); border-radius: 8px; width: fit-content; max-width: min(420px, 44vw); }
 .pp[hidden] { display: none !important; }
+.ping { font-family: var(--body, sans-serif); font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: rgba(0,0,0,.45); color: #cfd6cf; white-space: nowrap; text-shadow: none; }
+.ping.good { color: #7be38a; } .ping.mid { color: #f6c845; } .ping.bad { color: #ff6b6b; } .ping.host { color: #e8e2c8; }
+#hudPing:empty { display: none; } #hudPing .ping { font-size: 12px; }
 .pp .who-name { font-size: 15px; } .pp .who-name .tagJ { color: var(--c); }
 .pp .bar { width: min(180px, 34vw); height: 8px; }
 .pp .xpmini { height: 3px; width: min(180px, 34vw); background: rgba(0,0,0,.55); border-radius: 3px; overflow: hidden; } .pp .xpmini > i { display: block; height: 100%; width: 0; background: var(--xp); }
@@ -574,7 +577,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <div class="pp" id="pp1" hidden></div><div class="pp" id="pp2" hidden></div><div class="pp" id="pp3" hidden></div>
   </div>
   <div class="timer"><span id="hudTime">0:00</span><small id="hudLevel">Forêt de Jade · 10:00</small></div>
-  <div class="score"><span><b id="hudKills">0</b> K.O.</span><button class="pause-btn" id="pauseBtn" type="button">Pause</button><canvas id="minimap" aria-label="Mini-carte"></canvas></div>
+  <div class="score"><span><b id="hudKills">0</b> K.O.</span><button class="pause-btn" id="pauseBtn" type="button">Pause</button><canvas id="minimap" aria-label="Mini-carte"></canvas><span id="hudPing"></span></div>
 </div>
 <div class="boss" id="boss" hidden></div><div class="netWait" id="netWait" hidden></div>
 <div class="xpbar" id="xpbar" hidden></div>
@@ -2663,11 +2666,19 @@ function nearP(x, y) { // joueur debout le plus proche (cible des ennemis)
   return best || S.players.find(p => !p.down) || S.players[0];
 }
 const padList = () => [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(g => g && g.connected);
+// un axe de manette ne compte qu'une fois qu'il a vraiment bougé depuis le branchement :
+// une manette qui dérive ou un périphérique bizarre (volant, joystick…) ne fait plus avancer le Pokémon tout seul
+const PAD_REST = new Map();
+function padAx(gp, i) {
+  let r = PAD_REST.get(gp.index); if (!r || r.id !== gp.id) PAD_REST.set(gp.index, r = { id:gp.id, rest:Array.from(gp.axes, v => v || 0), live:[] });
+  const v = gp.axes[i] || 0; if (!r.live[i] && Math.abs(v - (r.rest[i] ?? 0)) > .45) r.live[i] = true;
+  return r.live[i] ? v : 0;
+}
 function padAxes(gp) {
   const btn = i => !!gp.buttons[i]?.pressed, dz = v => Math.abs(v) < .2 ? 0 : (v - Math.sign(v) * .2) / .8;
-  let x = dz(gp.axes[0] || 0), y = dz(gp.axes[1] || 0);
+  let x = dz(padAx(gp, 0)), y = dz(padAx(gp, 1));
   if (btn(14)) x = -1; if (btn(15)) x = 1; if (btn(12)) y = -1; if (btn(13)) y = 1;
-  const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0, aim = Math.hypot(rx, ry) > .35;
+  const rx = padAx(gp, 2), ry = padAx(gp, 3), aim = Math.hypot(rx, ry) > .35;
   return { x, y, ax:aim ? rx : 0, ay:aim ? ry : 0 };
 }
 // contrôles : seul, clavier + 1re manette ; à plusieurs, J1 au clavier (et à la souris) et une manette par coéquipier,
@@ -5219,6 +5230,18 @@ function camClamp(cx0, cy0) {
   return { x:cx0, y:cy0 };
 }
 const camFor = p => camClamp(p.x, p.y);
+// en ligne : un joueur K.O. regarde un coéquipier debout (le plus proche, et il le garde) en attendant d'être relevé
+function viewFor(p) {
+  let tgt = p;
+  if (p.down && !p.left) {
+    let q = S.players[p.specIdx];
+    if (!q || q === p || q.down) { q = null; let bd = Infinity; for (const o of S.players) if (o !== p && !o.down) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < bd) { bd = d; q = o; } } }
+    if (q) { p.specIdx = q.idx; tgt = q; } else p.specIdx = -1;
+  } else p.specIdx = -1;
+  const c = camFor(tgt), now = performance.now(), v = p.view, dt = Math.min(.2, (now - (p.viewT || now)) / 1000); p.viewT = now;
+  if (!v || (tgt === p && !p.down) || Math.hypot(c.x - v.x, c.y - v.y) < 2) return p.view = c; // debout : caméra centrée sur lui
+  const k = 1 - Math.exp(-dt * 5); v.x += (c.x - v.x) * k; v.y += (c.y - v.y) * k; return v; // glisse en douceur vers le coéquipier
+}
 function spawnNear() { // autour de qui faire apparaître : la caméra commune, ou en ligne un joueur debout au hasard
   if (!SPLIT()) return S.cam || S.P;
   const up = S.players.filter(p => !p.down && !p.choosing); return up.length ? up[Math.random() * up.length | 0] : S.cam;
@@ -5302,11 +5325,12 @@ function update(dt) {
   for (const sl of S.sludge) sl.life -= dt;
   S.sludge = S.sludge.filter(sl => sl.life > 0);
   { // caméra commune : centre des joueurs debout, et personne ne sort de l'écran (en ligne : chacun a sa caméra, voir camFor)
-    const up = S.players.filter(p => !p.down), list = SPLIT() ? [S.players[0]] : up.length ? up : S.players;
+    const up = S.players.filter(p => !p.down), list = up.length ? up : S.players;
+    if (SPLIT()) S.cam = viewFor(S.players[0]); else {
     let cx0 = 0, cy0 = 0; for (const p of list) { cx0 += p.x; cy0 += p.y; } cx0 /= list.length; cy0 /= list.length;
     if (S.players.length > 1 && !SPLIT()) { const hx = W / ZOOM / 2 - 40, hy = H / ZOOM / 2 - 50; for (const p of S.players) { p.x = Math.max(cx0 - hx, Math.min(cx0 + hx, p.x)); p.y = Math.max(cy0 - hy, Math.min(cy0 + hy, p.y)); } }
     S.cam = camClamp(cx0, cy0); // Ligue : la caméra reste dans la salle
-  }
+  } }
   P = S.P = nearP(S.cam.x, S.cam.y);
 
   // apparitions
@@ -6313,6 +6337,7 @@ function refreshHud() {
   for (const el of $("hudMoves").children) { const id = el.dataset.mv, m = id && P.moves[id]; if (!m) continue; // recharge : secteur sombre qui se vide
     const t = Math.max(0, m.t || 0); if (!(t <= hudCd[id]) || t > (hudCdT[id] ?? 0) + .05) hudCd[id] = Math.max(t, .01); hudCdT[id] = t;
     el.firstChild.style.setProperty("--cd", Math.min(1, t / hudCd[id]) * 360 + "deg"); }
+  { const hp = $("hudPing"), me = S.P, h = me && S.players.length > 1 ? netPingOf(me) : ""; if (hp.innerHTML !== h) hp.innerHTML = h; }
   for (let k = 1; k <= 3; k++) { // panneaux de J2, J3 et J4, empilés sous celui de J1
     const el = $("pp" + k), Q = S.players.filter(p => p !== S.P)[k - 1] || null, me = S.P;
     el.hidden = !Q; if (!Q) continue;
@@ -6323,10 +6348,11 @@ function refreshHud() {
     const key = name + Q.lvl + mvs + !!Q.down;
     if (el.dataset.key !== key) {
       el.dataset.key = key; el.style.setProperty("--c", PCOL[Q.idx]); el.classList.toggle("down", !!Q.down);
-      el.innerHTML = `<div class="who-name"><span><span class="tagJ">J${Q.idx + 1}</span> · ${name}${Q.down ? " (K.O.)" : ""}</span><span class="lvl">N.${Q.lvl}</span></div>`
+      el.innerHTML = `<div class="who-name"><span><span class="tagJ">J${Q.idx + 1}</span> · ${name}${Q.down ? " (K.O.)" : ""}</span><span class="lvl">N.${Q.lvl}</span><span class="pingSlot"></span></div>`
         + `<div class="hp-row"><div class="bar"><i></i></div><b></b></div><div class="xpmini"><i></i></div><div class="moves">${mvs}</div>`;
     }
     const fi = el.querySelector(".bar > i"); fi.style.width = (q * 100) + "%"; fi.style.background = col;
+    const pg = el.querySelector(".who-name .pingSlot"), ph = netPingOf(Q); if (pg && pg.innerHTML !== ph) pg.innerHTML = ph;
     el.querySelector(".hp-row b").textContent = `${Math.ceil(Q.hp)}/${Q.maxHp}`;
     el.querySelector(".xpmini > i").style.width = (Q.xp / Q.need * 100) + "%";
   }
@@ -9160,6 +9186,14 @@ function render(now) {
   if (S.dracoJump) arrowTo(S.dracoJump.tx, S.dracoJump.ty, `rgba(130,180,255,${.7 + .3 * Math.sin(t * 6)})`);
   for (const f of S.foes) if (f.d.rare && f.hp > 0) arrowTo(f.x, f.y, `rgba(255,170,200,${.7 + .3 * Math.sin(t * 6)})`);
   if (NET.started) for (const p of S.players) if (p.idx !== (NET.role === "guest" ? NET.idx : 0)) arrowTo(p.x, p.y, PCOL[p.idx]); // en ligne : coéquipiers hors de l'écran
+  const me = NET.started && S.players[NET.role === "guest" ? NET.idx : 0];
+  if (me && me.down && !me.left && me.specIdx >= 0 && S.players[me.specIdx]) { // spectateur : on suit un coéquipier en attendant d'être relevé
+    arrowTo(me.x, me.y, `rgba(255,255,255,${.6 + .4 * Math.sin(t * 6)})`); // flèche vers son propre Pokémon K.O.
+    const q = S.players[me.specIdx], txt = `👁 K.O. : tu regardes J${q.idx + 1} en attendant qu'un coéquipier te relève`;
+    cx.font = "600 15px 'Rubik', sans-serif"; cx.textAlign = "center"; const tw = Math.min(W - 32, cx.measureText(txt).width + 28);
+    cx.fillStyle = "rgba(0,0,0,.55)"; cx.beginPath(); cx.roundRect((W - tw) / 2, 78, tw, 30, 8); cx.fill();
+    cx.fillStyle = PCOL[q.idx]; cx.fillText(txt, W / 2, 98, tw - 20);
+  }
   const vg = cx.createRadialGradient(W/2, H/2, Math.min(W, H) * .35, W/2, H/2, Math.max(W, H) * .75);
   vg.addColorStop(0, "rgba(10,20,12,0)"); vg.addColorStop(1, "rgba(6,16,8,.5)"); cx.fillStyle = vg; cx.fillRect(0, 0, W, H);
   drawLight(t);
@@ -9418,7 +9452,8 @@ window.addEventListener("keydown", e => {
   else if (state === "levelup" && e.code === "KeyR") reroll();
 });
 window.addEventListener("keyup", e => { if (KEYMAP[e.code]) keys.delete(KEYMAP[e.code]); });
-window.addEventListener("blur", () => { keys.clear(); if (state === "play") togglePause(); });
+window.addEventListener("blur", () => { keys.clear(); if (state === "play") togglePause(); netStill(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) { keys.clear(); netStill(); } });
 cv.addEventListener("pointerdown", e => { if (state !== "play" && state !== "netplay") return; touch.on = true; touch.id = e.pointerId; touch.ox = touch.x = e.clientX; touch.oy = touch.y = e.clientY; cv.setPointerCapture(e.pointerId); });
 cv.addEventListener("pointermove", e => { if (touch.on && e.pointerId === touch.id) { touch.x = e.clientX; touch.y = e.clientY; } });
 const endTouch = e => { if (e.pointerId === touch.id) touch.on = false; };
@@ -9459,10 +9494,10 @@ function pollPad(dt) {
   if (!gp) { pad.x = pad.y = pad.ax = pad.ay = 0; return; }
   const btn = i => !!gp.buttons[i]?.pressed;
   const dz = v => Math.abs(v) < .2 ? 0 : (v - Math.sign(v) * .2) / .8;
-  let x = dz(gp.axes[0] || 0), y = dz(gp.axes[1] || 0);
+  let x = dz(padAx(gp, 0)), y = dz(padAx(gp, 1));
   if (btn(14)) x = -1; if (btn(15)) x = 1; if (btn(12)) y = -1; if (btn(13)) y = 1;
   pad.x = x; pad.y = y;
-  const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
+  const rx = padAx(gp, 2), ry = padAx(gp, 3);
   if (Math.hypot(rx, ry) > .35) { pad.ax = rx; pad.ay = ry; if (!S || S.players.length === 1) mouse.on = false; } else pad.ax = pad.ay = 0;
   const now = {}; for (const i of [0, 1, 3, 4, 5, 8, 9]) now[i] = btn(i);
   const prev = pad.prev, hit = i => now[i] && !prev[i]; pad.prev = now;
@@ -9494,12 +9529,12 @@ window.addEventListener("gamepadconnected", () => { pad.used = true; });
 /* ---------- En ligne : salons avec code (PeerJS, connexion directe entre navigateurs) ----------
    L'hôte fait tourner la partie ; chaque invité envoie ses touches et reçoit 20 fois par seconde
    ce qu'il y a autour de la caméra (Pokémon, attaques, bonbons…). */
-var NET = { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], myLine:null, lobby:null, started:false, asks:new Map(), earned:0, achMsgs:[], sendT:0, inT:0, tArr:0, gap:50, lastIn:"", inRep:0, lastChest:null };
+var NET = { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], myLine:null, lobby:null, started:false, asks:new Map(), earned:0, achMsgs:[], sendT:0, inT:0, tArr:0, gap:50, rtt:0, hist:[], me:null, lastIn:"", inRep:0, lastChest:null };
 const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v208";
+const NET_VER = "v209";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -9578,6 +9613,14 @@ function netAccept(conn) {
   });
   conn.on("error", e => netDiag("erreur du joueur entrant : " + (e && (e.type || e.message) || "?")));
 }
+// indicateur de connexion : temps d'aller-retour avec l'hôte
+const netPingHtml = ms => { const c = ms < 80 ? "good" : ms < 160 ? "mid" : "bad"; return `<span class="ping ${c}" title="Temps de réponse avec l'hôte">📶 ${ms} ms</span>`; };
+function netPingOf(Q) { // ce qu'on affiche à côté d'un joueur (rien hors ligne)
+  if (!NET.started) return "";
+  if (Q.idx === 0) return `<span class="ping host" title="Ce joueur héberge la partie">🏠 hôte</span>`;
+  const ms = NET.role === "guest" && Q.idx === NET.idx ? Math.round(NET.rtt || 0) : Q.ping | 0;
+  return ms ? netPingHtml(ms) : `<span class="ping">📶 …</span>`;
+}
 const netStr = d => typeof d === "string" ? d : d instanceof ArrayBuffer ? new TextDecoder().decode(d) : String(d);
 function netGone(g) {
   if (!NET.conns.includes(g)) return;
@@ -9598,8 +9641,10 @@ function netHostData(g, raw) {
   if (!m || typeof m !== "object") return;
   if (m.t === "in") {
     const p = S && NET.started ? S.players[g.idx] : null;
+    g.inT = performance.now();
     if (p && p.remote) { const c = v => Math.max(-1, Math.min(1, +v || 0)); p.net = { x:c(m.x), y:c(m.y), ax:c(m.ax), ay:c(m.ay), tc:!!m.tc }; }
-  } else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
+  } else if (m.t === "ping") { netTo(g, { t:"pong", c:m.c }); const p = S && NET.started ? S.players[g.idx] : null, r = +m.r; if (p && r > 0) p.ping = Math.round(Math.min(2000, r)); } // l'invité mesure son temps de réponse
+  else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
   else if (m.t === "hi") netLobby();
   else if (NET.asks.has(g)) {
     const a = NET.asks.get(g), keep = S.P;
@@ -9722,27 +9767,61 @@ function netLerp(now) { // mouvements fluides entre deux instantanés
   const a = Math.min(1, (now - NET.tArr) / NET.gap), L = o => { if (o._bx === undefined) return; o.x = o._ax + (o._bx - o._ax) * a; o.y = o._ay + (o._by - o._ay) * a; };
   for (const f of S.foes) L(f); for (const p of S.players) L(p); L(S.cam);
 }
-function netInput() {
-  const P = S && S.P;
+// connexion encombrée : on saute un instantané plutôt que d'en empiler (sinon le retard grossit)
+const netBusy = g => { const c = g.conn, dc = c && c.dataChannel; return (c && c.bufferSize > 0) || (dc && dc.bufferedAmount > 64e3); };
+function netMove() { // déplacement voulu par l'invité (clavier, tactile, manette)
   let mx = 0, my = 0;
   if (keys.has("left")) mx -= 1; if (keys.has("right")) mx += 1; if (keys.has("up")) my -= 1; if (keys.has("down")) my += 1;
   if (touch.on) { const dx = touch.x - touch.ox, dy = touch.y - touch.oy, l = Math.hypot(dx, dy); if (l > 8) { mx = dx / Math.max(l, 50); my = dy / Math.max(l, 50); } }
   mx += pad.x; my += pad.y;
+  if (state !== "netplay") mx = my = 0;
+  return [Math.max(-1, Math.min(1, mx)), Math.max(-1, Math.min(1, my))];
+}
+// prédiction : l'invité déplace son Pokémon tout de suite, sans attendre l'aller-retour avec l'hôte.
+// Position affichée = dernière position reçue de l'hôte + ses propres pas que l'hôte n'avait pas encore reçus.
+function netPredict(now, dt) {
+  const p = S.players[NET.idx], H = NET.hist; if (!p || p._bx === undefined) return;
+  const off = state !== "netplay" || p.down || p.choosing || p.dashT > 0 || p.parT > 0 || p.kbx || p.kby || LEVEL.ice;
+  if (off) { H.length = 0; NET.me = null; return; } // cas rares : on suit simplement l'hôte
+  let [mx, my] = netMove(); const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
+  let v = 0; const keep = S.P;
+  try { S.P = p; v = speed() * (tallGrassAt(p._bx, p._by) ? .85 : 1) * (p.inSludge ? .75 : 1) * (p.inMud ? .6 : 1); } catch (e) { v = 0; }
+  const step = { t:now, dx:mx * v * dt, dy:my * v * dt }; H.push(step);
+  const from = NET.tArr - (NET.rtt || 120) - 17; // pas déjà pris en compte dans le dernier instantané
+  while (H.length && H[0].t < from - 500) H.shift();
+  const o = { x:p._bx, y:p._by }; for (const h of H) if (h.t > from) { o.x += h.dx; o.y += h.dy; }
+  try { if (!flyP(p)) collide(o, p.r || 12, ptype() === "eau"); arenaClamp(o, p.r || 12); } catch (e) {}
+  S.P = keep;
+  const me = NET.me;
+  if (!me || Math.hypot(o.x - me.x, o.y - me.y) > 140) NET.me = o; // trop d'écart (téléportation…) : on recale d'un coup
+  else { me.x += step.dx; me.y += step.dy; const k = 1 - Math.exp(-dt * 10); me.x += (o.x - me.x) * k; me.y += (o.y - me.y) * k; } // petit écart : on corrige en douceur
+  p.x = NET.me.x; p.y = NET.me.y;
+  if (S.players.length > 1) { const c = camClamp(p.x, p.y); S.cam.x = c.x; S.cam.y = c.y; } // la caméra suit le Pokémon affiché
+}
+function netStill() { // l'invité quitte la fenêtre : on prévient l'hôte tout de suite qu'il ne bouge plus
+  if (NET.role !== "guest" || !NET.started) return;
+  NET.lastIn = JSON.stringify({ t:"in", x:0, y:0, ax:0, ay:0, tc:TOUCH ? 1 : 0 }); netSend(NET.lastIn);
+}
+function netInput() {
+  const P = S && S.P;
+  let [mx, my] = netMove();
   let ax = pad.ax, ay = pad.ay;
   if (!ax && !ay && mouse.on && P && S.cam) { ax = mouse.x - W / 2 - (P.x - S.cam.x) * ZOOM; ay = mouse.y - H / 2 - (P.y - S.cam.y) * ZOOM; const l = Math.hypot(ax, ay); if (l < 6) ax = ay = 0; else { ax /= l; ay /= l; } }
-  if (state !== "netplay") mx = my = ax = ay = 0;
+  if (state !== "netplay") ax = ay = 0;
   const msg = JSON.stringify({ t:"in", x:+mx.toFixed(2), y:+my.toFixed(2), ax:+ax.toFixed(2), ay:+ay.toFixed(2), tc:TOUCH ? 1 : 0 });
   if (msg !== NET.lastIn || ++NET.inRep % 10 === 0) { NET.lastIn = msg; netSend(msg); }
 }
 function netFrame(now, dt) {
   chooseTimer();
   if (NET.role === "host" && NET.started && S && NET.conns.length) {
-    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = 1 / 15; for (const g of NET.conns) { const p = S.players[g.idx]; netTo(g, "S" + netSnap(p ? camFor(p) : S.cam)); } } // chacun reçoit ce qui entoure sa caméra // 15 fois par seconde
+    for (const g of NET.conns) { const p = S.players[g.idx]; if (p && p.remote && p.net && now - (g.inT || now) > 600) p.net = { x:0, y:0, ax:0, ay:0, tc:p.net.tc }; } // plus de nouvelles de l'invité (onglet en arrière-plan…) : il s'arrête
+    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = 1 / 15; for (const g of NET.conns) { if (netBusy(g)) continue; const p = S.players[g.idx]; netTo(g, "S" + netSnap(p ? viewFor(p) : S.cam)); } } // chacun reçoit ce qui entoure sa caméra // 15 fois par seconde
     if ((NET.dexT = (NET.dexT || 0) - dt) <= 0) { NET.dexT = 2; netDexFlush(); }
   }
   if (NET.role === "guest" && NET.started) {
     if (S && S.players) {
-      netLerp(now);
+      netLerp(now); netPredict(now, dt);
+      if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netSend({ t:"ping", c:performance.now(), r:Math.round(NET.rtt || 0) }); }
       if (state === "netplay") { hudT -= dt; if (hudT <= 0) { refreshHud(); hudT = .08; } }
       if ((NET.achT = (NET.achT || 0) - dt) <= 0) { NET.achT = 1; achCheck(); } // succès de l'invité, sur sa partie
       playTrack(S.foes.some(f => f.d.boss) ? "boss" : LEVEL.track || (LEVEL.cave ? "cave" : "forest"));
@@ -9792,6 +9871,7 @@ function netGuestData(raw) {
   if (raw[0] === "S") { if (NET.started) netLoad(raw.slice(1)); return; }
   let m; try { m = JSON.parse(raw); } catch (e) { return; }
   if (!m || typeof m !== "object") return;
+  if (m.t === "pong") { const r = Math.max(10, Math.min(1000, performance.now() - (+m.c || 0))); NET.rtt = NET.rtt ? NET.rtt * .7 + r * .3 : r; return; }
   if (m.t === "welcome") { NET.idx = m.idx | 0; netLobby(); if (NET.myLine) netSend({ t:"starter", line:NET.myLine }); }
   else if (m.t === "lobby") { NET.lobby = m; netLobby(); }
   else if (m.t === "full") netFail("Ce salon est complet (4 joueurs maximum).");

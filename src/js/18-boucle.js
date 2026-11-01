@@ -8,6 +8,18 @@ function camClamp(cx0, cy0) {
   return { x:cx0, y:cy0 };
 }
 const camFor = p => camClamp(p.x, p.y);
+// en ligne : un joueur K.O. regarde un coéquipier debout (le plus proche, et il le garde) en attendant d'être relevé
+function viewFor(p) {
+  let tgt = p;
+  if (p.down && !p.left) {
+    let q = S.players[p.specIdx];
+    if (!q || q === p || q.down) { q = null; let bd = Infinity; for (const o of S.players) if (o !== p && !o.down) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < bd) { bd = d; q = o; } } }
+    if (q) { p.specIdx = q.idx; tgt = q; } else p.specIdx = -1;
+  } else p.specIdx = -1;
+  const c = camFor(tgt), now = performance.now(), v = p.view, dt = Math.min(.2, (now - (p.viewT || now)) / 1000); p.viewT = now;
+  if (!v || (tgt === p && !p.down) || Math.hypot(c.x - v.x, c.y - v.y) < 2) return p.view = c; // debout : caméra centrée sur lui
+  const k = 1 - Math.exp(-dt * 5); v.x += (c.x - v.x) * k; v.y += (c.y - v.y) * k; return v; // glisse en douceur vers le coéquipier
+}
 function spawnNear() { // autour de qui faire apparaître : la caméra commune, ou en ligne un joueur debout au hasard
   if (!SPLIT()) return S.cam || S.P;
   const up = S.players.filter(p => !p.down && !p.choosing); return up.length ? up[Math.random() * up.length | 0] : S.cam;
@@ -91,11 +103,12 @@ function update(dt) {
   for (const sl of S.sludge) sl.life -= dt;
   S.sludge = S.sludge.filter(sl => sl.life > 0);
   { // caméra commune : centre des joueurs debout, et personne ne sort de l'écran (en ligne : chacun a sa caméra, voir camFor)
-    const up = S.players.filter(p => !p.down), list = SPLIT() ? [S.players[0]] : up.length ? up : S.players;
+    const up = S.players.filter(p => !p.down), list = up.length ? up : S.players;
+    if (SPLIT()) S.cam = viewFor(S.players[0]); else {
     let cx0 = 0, cy0 = 0; for (const p of list) { cx0 += p.x; cy0 += p.y; } cx0 /= list.length; cy0 /= list.length;
     if (S.players.length > 1 && !SPLIT()) { const hx = W / ZOOM / 2 - 40, hy = H / ZOOM / 2 - 50; for (const p of S.players) { p.x = Math.max(cx0 - hx, Math.min(cx0 + hx, p.x)); p.y = Math.max(cy0 - hy, Math.min(cy0 + hy, p.y)); } }
     S.cam = camClamp(cx0, cy0); // Ligue : la caméra reste dans la salle
-  }
+  } }
   P = S.P = nearP(S.cam.x, S.cam.y);
 
   // apparitions

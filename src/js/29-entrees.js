@@ -13,7 +13,8 @@ window.addEventListener("keydown", e => {
   else if (state === "levelup" && e.code === "KeyR") reroll();
 });
 window.addEventListener("keyup", e => { if (KEYMAP[e.code]) keys.delete(KEYMAP[e.code]); });
-window.addEventListener("blur", () => { keys.clear(); if (state === "play") togglePause(); });
+window.addEventListener("blur", () => { keys.clear(); if (state === "play") togglePause(); netStill(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) { keys.clear(); netStill(); } });
 cv.addEventListener("pointerdown", e => { if (state !== "play" && state !== "netplay") return; touch.on = true; touch.id = e.pointerId; touch.ox = touch.x = e.clientX; touch.oy = touch.y = e.clientY; cv.setPointerCapture(e.pointerId); });
 cv.addEventListener("pointermove", e => { if (touch.on && e.pointerId === touch.id) { touch.x = e.clientX; touch.y = e.clientY; } });
 const endTouch = e => { if (e.pointerId === touch.id) touch.on = false; };
