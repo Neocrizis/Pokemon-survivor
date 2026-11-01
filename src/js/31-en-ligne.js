@@ -6,7 +6,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v215";
+const NET_VER = "v216";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -36,7 +36,7 @@ function netClose() {
   try { NET.peer && NET.peer.destroy(); } catch (e) {}
   Object.assign(NET, { role:null, peer:null, conn:null, conns:[], specs:[], spec:false, code:null, idx:0, picks:[], lobby:null, started:false, ask:null, myLine:null, hostV:null });
   $("netWait").hidden = true; netButtons();
-  netMsg("Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. Pour seulement regarder, entre le code et clique sur « 👁 Regarder ».");
+  netMsg("Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous. Pour seulement regarder, entre le code et clique sur « 👁 Spectateur ».");
 }
 const netName = l => LINES[l] ? LINES[l].names[0] : null;
 function netLobby() {
@@ -405,7 +405,7 @@ function netGuestData(raw) {
   if (m.t === "welcome") { NET.idx = m.idx | 0; NET.hostV = String(m.v || "ancienne version").slice(0, 20); netLobby(); if (NET.myLine) netSend({ t:"starter", line:NET.myLine }); }
   else if (m.t === "lobby") { NET.lobby = m; netLobby(); }
   else if (m.t === "full") netFail("Ce salon est complet (4 joueurs maximum).");
-  else if (m.t === "started") netFail("La partie de ce salon a déjà commencé. Clique sur « 👁 Regarder » pour la suivre en spectateur, ou attends la fin et rejoins-le à nouveau.");
+  else if (m.t === "started") netFail("La partie de ce salon a déjà commencé. Clique sur « 👁 Spectateur » pour la suivre en spectateur, ou attends la fin et rejoins-le à nouveau.");
   else if (m.t === "start") {
     const i = m.level | 0; if (!LEVELS[i]) return;
     if (LEVEL !== LEVELS[i]) { LEVEL = LEVELS[i]; chunkData.clear(); nearCache.clear(); liveChunks.clear(); motes.length = 0; }
