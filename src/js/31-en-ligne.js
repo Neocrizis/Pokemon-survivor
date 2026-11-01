@@ -113,6 +113,7 @@ function netHostData(g, raw) {
   if (!m || typeof m !== "object") return;
   if (m.t === "in") {
     const p = S && NET.started ? S.players[g.idx] : null;
+    g.inT = performance.now();
     if (p && p.remote) { const c = v => Math.max(-1, Math.min(1, +v || 0)); p.net = { x:c(m.x), y:c(m.y), ax:c(m.ax), ay:c(m.ay), tc:!!m.tc }; }
   } else if (m.t === "ping") { netTo(g, { t:"pong", c:m.c }); const p = S && NET.started ? S.players[g.idx] : null, r = +m.r; if (p && r > 0) p.ping = Math.round(Math.min(2000, r)); } // l'invité mesure son temps de réponse
   else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
@@ -269,6 +270,10 @@ function netPredict(now, dt) {
   p.x = NET.me.x; p.y = NET.me.y;
   if (S.players.length > 1) { const c = camClamp(p.x, p.y); S.cam.x = c.x; S.cam.y = c.y; } // la caméra suit le Pokémon affiché
 }
+function netStill() { // l'invité quitte la fenêtre : on prévient l'hôte tout de suite qu'il ne bouge plus
+  if (NET.role !== "guest" || !NET.started) return;
+  NET.lastIn = JSON.stringify({ t:"in", x:0, y:0, ax:0, ay:0, tc:TOUCH ? 1 : 0 }); netSend(NET.lastIn);
+}
 function netInput() {
   const P = S && S.P;
   let [mx, my] = netMove();
@@ -281,6 +286,7 @@ function netInput() {
 function netFrame(now, dt) {
   chooseTimer();
   if (NET.role === "host" && NET.started && S && NET.conns.length) {
+    for (const g of NET.conns) { const p = S.players[g.idx]; if (p && p.remote && p.net && now - (g.inT || now) > 600) p.net = { x:0, y:0, ax:0, ay:0, tc:p.net.tc }; } // plus de nouvelles de l'invité (onglet en arrière-plan…) : il s'arrête
     NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = 1 / 15; for (const g of NET.conns) { if (netBusy(g)) continue; const p = S.players[g.idx]; netTo(g, "S" + netSnap(p ? viewFor(p) : S.cam)); } } // chacun reçoit ce qui entoure sa caméra // 15 fois par seconde
     if ((NET.dexT = (NET.dexT || 0) - dt) <= 0) { NET.dexT = 2; netDexFlush(); }
   }
