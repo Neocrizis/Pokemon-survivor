@@ -55,6 +55,9 @@ body {
 
 .pp { display: flex; flex-direction: column; gap: 4px; padding: 5px 9px; background: rgba(0,0,0,.35); border-left: 4px solid var(--c); border-radius: 8px; width: fit-content; max-width: min(420px, 44vw); }
 .pp[hidden] { display: none !important; }
+.ping { font-family: var(--body, sans-serif); font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: rgba(0,0,0,.45); color: #cfd6cf; white-space: nowrap; text-shadow: none; }
+.ping.good { color: #7be38a; } .ping.mid { color: #f6c845; } .ping.bad { color: #ff6b6b; } .ping.host { color: #e8e2c8; }
+#hudPing:empty { display: none; } #hudPing .ping { font-size: 12px; }
 .pp .who-name { font-size: 15px; } .pp .who-name .tagJ { color: var(--c); }
 .pp .bar { width: min(180px, 34vw); height: 8px; }
 .pp .xpmini { height: 3px; width: min(180px, 34vw); background: rgba(0,0,0,.55); border-radius: 3px; overflow: hidden; } .pp .xpmini > i { display: block; height: 100%; width: 0; background: var(--xp); }
@@ -574,7 +577,7 @@ h2 { font-family: var(--display); font-size: clamp(26px, 5vw, 38px); margin: 0; 
     <div class="pp" id="pp1" hidden></div><div class="pp" id="pp2" hidden></div><div class="pp" id="pp3" hidden></div>
   </div>
   <div class="timer"><span id="hudTime">0:00</span><small id="hudLevel">Forêt de Jade · 10:00</small></div>
-  <div class="score"><span><b id="hudKills">0</b> K.O.</span><button class="pause-btn" id="pauseBtn" type="button">Pause</button><canvas id="minimap" aria-label="Mini-carte"></canvas></div>
+  <div class="score"><span><b id="hudKills">0</b> K.O.</span><button class="pause-btn" id="pauseBtn" type="button">Pause</button><canvas id="minimap" aria-label="Mini-carte"></canvas><span id="hudPing"></span></div>
 </div>
 <div class="boss" id="boss" hidden></div><div class="netWait" id="netWait" hidden></div>
 <div class="xpbar" id="xpbar" hidden></div>
@@ -5219,6 +5222,18 @@ function camClamp(cx0, cy0) {
   return { x:cx0, y:cy0 };
 }
 const camFor = p => camClamp(p.x, p.y);
+// en ligne : un joueur K.O. regarde un coéquipier debout (le plus proche, et il le garde) en attendant d'être relevé
+function viewFor(p) {
+  let tgt = p;
+  if (p.down && !p.left) {
+    let q = S.players[p.specIdx];
+    if (!q || q === p || q.down) { q = null; let bd = Infinity; for (const o of S.players) if (o !== p && !o.down) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < bd) { bd = d; q = o; } } }
+    if (q) { p.specIdx = q.idx; tgt = q; } else p.specIdx = -1;
+  } else p.specIdx = -1;
+  const c = camFor(tgt), now = performance.now(), v = p.view, dt = Math.min(.2, (now - (p.viewT || now)) / 1000); p.viewT = now;
+  if (!v || (tgt === p && !p.down) || Math.hypot(c.x - v.x, c.y - v.y) < 2) return p.view = c; // debout : caméra centrée sur lui
+  const k = 1 - Math.exp(-dt * 5); v.x += (c.x - v.x) * k; v.y += (c.y - v.y) * k; return v; // glisse en douceur vers le coéquipier
+}
 function spawnNear() { // autour de qui faire apparaître : la caméra commune, ou en ligne un joueur debout au hasard
   if (!SPLIT()) return S.cam || S.P;
   const up = S.players.filter(p => !p.down && !p.choosing); return up.length ? up[Math.random() * up.length | 0] : S.cam;
@@ -5302,11 +5317,12 @@ function update(dt) {
   for (const sl of S.sludge) sl.life -= dt;
   S.sludge = S.sludge.filter(sl => sl.life > 0);
   { // caméra commune : centre des joueurs debout, et personne ne sort de l'écran (en ligne : chacun a sa caméra, voir camFor)
-    const up = S.players.filter(p => !p.down), list = SPLIT() ? [S.players[0]] : up.length ? up : S.players;
+    const up = S.players.filter(p => !p.down), list = up.length ? up : S.players;
+    if (SPLIT()) S.cam = viewFor(S.players[0]); else {
     let cx0 = 0, cy0 = 0; for (const p of list) { cx0 += p.x; cy0 += p.y; } cx0 /= list.length; cy0 /= list.length;
     if (S.players.length > 1 && !SPLIT()) { const hx = W / ZOOM / 2 - 40, hy = H / ZOOM / 2 - 50; for (const p of S.players) { p.x = Math.max(cx0 - hx, Math.min(cx0 + hx, p.x)); p.y = Math.max(cy0 - hy, Math.min(cy0 + hy, p.y)); } }
     S.cam = camClamp(cx0, cy0); // Ligue : la caméra reste dans la salle
-  }
+  } }
   P = S.P = nearP(S.cam.x, S.cam.y);
 
   // apparitions
@@ -6313,6 +6329,7 @@ function refreshHud() {
   for (const el of $("hudMoves").children) { const id = el.dataset.mv, m = id && P.moves[id]; if (!m) continue; // recharge : secteur sombre qui se vide
     const t = Math.max(0, m.t || 0); if (!(t <= hudCd[id]) || t > (hudCdT[id] ?? 0) + .05) hudCd[id] = Math.max(t, .01); hudCdT[id] = t;
     el.firstChild.style.setProperty("--cd", Math.min(1, t / hudCd[id]) * 360 + "deg"); }
+  { const hp = $("hudPing"), me = S.P, h = me && S.players.length > 1 ? netPingOf(me) : ""; if (hp.innerHTML !== h) hp.innerHTML = h; }
   for (let k = 1; k <= 3; k++) { // panneaux de J2, J3 et J4, empilés sous celui de J1
     const el = $("pp" + k), Q = S.players.filter(p => p !== S.P)[k - 1] || null, me = S.P;
     el.hidden = !Q; if (!Q) continue;
@@ -6323,10 +6340,11 @@ function refreshHud() {
     const key = name + Q.lvl + mvs + !!Q.down;
     if (el.dataset.key !== key) {
       el.dataset.key = key; el.style.setProperty("--c", PCOL[Q.idx]); el.classList.toggle("down", !!Q.down);
-      el.innerHTML = `<div class="who-name"><span><span class="tagJ">J${Q.idx + 1}</span> · ${name}${Q.down ? " (K.O.)" : ""}</span><span class="lvl">N.${Q.lvl}</span></div>`
+      el.innerHTML = `<div class="who-name"><span><span class="tagJ">J${Q.idx + 1}</span> · ${name}${Q.down ? " (K.O.)" : ""}</span><span class="lvl">N.${Q.lvl}</span><span class="pingSlot"></span></div>`
         + `<div class="hp-row"><div class="bar"><i></i></div><b></b></div><div class="xpmini"><i></i></div><div class="moves">${mvs}</div>`;
     }
     const fi = el.querySelector(".bar > i"); fi.style.width = (q * 100) + "%"; fi.style.background = col;
+    const pg = el.querySelector(".who-name .pingSlot"), ph = netPingOf(Q); if (pg && pg.innerHTML !== ph) pg.innerHTML = ph;
     el.querySelector(".hp-row b").textContent = `${Math.ceil(Q.hp)}/${Q.maxHp}`;
     el.querySelector(".xpmini > i").style.width = (Q.xp / Q.need * 100) + "%";
   }
@@ -9160,6 +9178,14 @@ function render(now) {
   if (S.dracoJump) arrowTo(S.dracoJump.tx, S.dracoJump.ty, `rgba(130,180,255,${.7 + .3 * Math.sin(t * 6)})`);
   for (const f of S.foes) if (f.d.rare && f.hp > 0) arrowTo(f.x, f.y, `rgba(255,170,200,${.7 + .3 * Math.sin(t * 6)})`);
   if (NET.started) for (const p of S.players) if (p.idx !== (NET.role === "guest" ? NET.idx : 0)) arrowTo(p.x, p.y, PCOL[p.idx]); // en ligne : coéquipiers hors de l'écran
+  const me = NET.started && S.players[NET.role === "guest" ? NET.idx : 0];
+  if (me && me.down && !me.left && me.specIdx >= 0 && S.players[me.specIdx]) { // spectateur : on suit un coéquipier en attendant d'être relevé
+    arrowTo(me.x, me.y, `rgba(255,255,255,${.6 + .4 * Math.sin(t * 6)})`); // flèche vers son propre Pokémon K.O.
+    const q = S.players[me.specIdx], txt = `👁 K.O. : tu regardes J${q.idx + 1} en attendant qu'un coéquipier te relève`;
+    cx.font = "600 15px 'Rubik', sans-serif"; cx.textAlign = "center"; const tw = Math.min(W - 32, cx.measureText(txt).width + 28);
+    cx.fillStyle = "rgba(0,0,0,.55)"; cx.beginPath(); cx.roundRect((W - tw) / 2, 78, tw, 30, 8); cx.fill();
+    cx.fillStyle = PCOL[q.idx]; cx.fillText(txt, W / 2, 98, tw - 20);
+  }
   const vg = cx.createRadialGradient(W/2, H/2, Math.min(W, H) * .35, W/2, H/2, Math.max(W, H) * .75);
   vg.addColorStop(0, "rgba(10,20,12,0)"); vg.addColorStop(1, "rgba(6,16,8,.5)"); cx.fillStyle = vg; cx.fillRect(0, 0, W, H);
   drawLight(t);
@@ -9578,6 +9604,14 @@ function netAccept(conn) {
   });
   conn.on("error", e => netDiag("erreur du joueur entrant : " + (e && (e.type || e.message) || "?")));
 }
+// indicateur de connexion : temps d'aller-retour avec l'hôte
+const netPingHtml = ms => { const c = ms < 80 ? "good" : ms < 160 ? "mid" : "bad"; return `<span class="ping ${c}" title="Temps de réponse avec l'hôte">📶 ${ms} ms</span>`; };
+function netPingOf(Q) { // ce qu'on affiche à côté d'un joueur (rien hors ligne)
+  if (!NET.started) return "";
+  if (Q.idx === 0) return `<span class="ping host" title="Ce joueur héberge la partie">🏠 hôte</span>`;
+  const ms = NET.role === "guest" && Q.idx === NET.idx ? Math.round(NET.rtt || 0) : Q.ping | 0;
+  return ms ? netPingHtml(ms) : `<span class="ping">📶 …</span>`;
+}
 const netStr = d => typeof d === "string" ? d : d instanceof ArrayBuffer ? new TextDecoder().decode(d) : String(d);
 function netGone(g) {
   if (!NET.conns.includes(g)) return;
@@ -9599,7 +9633,7 @@ function netHostData(g, raw) {
   if (m.t === "in") {
     const p = S && NET.started ? S.players[g.idx] : null;
     if (p && p.remote) { const c = v => Math.max(-1, Math.min(1, +v || 0)); p.net = { x:c(m.x), y:c(m.y), ax:c(m.ax), ay:c(m.ay), tc:!!m.tc }; }
-  } else if (m.t === "ping") netTo(g, { t:"pong", c:m.c }); // l'invité mesure son temps de réponse
+  } else if (m.t === "ping") { netTo(g, { t:"pong", c:m.c }); const p = S && NET.started ? S.players[g.idx] : null, r = +m.r; if (p && r > 0) p.ping = Math.round(Math.min(2000, r)); } // l'invité mesure son temps de réponse
   else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
   else if (m.t === "hi") netLobby();
   else if (NET.asks.has(g)) {
@@ -9766,13 +9800,13 @@ function netInput() {
 function netFrame(now, dt) {
   chooseTimer();
   if (NET.role === "host" && NET.started && S && NET.conns.length) {
-    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = 1 / 15; for (const g of NET.conns) { if (netBusy(g)) continue; const p = S.players[g.idx]; netTo(g, "S" + netSnap(p ? camFor(p) : S.cam)); } } // chacun reçoit ce qui entoure sa caméra // 15 fois par seconde
+    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = 1 / 15; for (const g of NET.conns) { if (netBusy(g)) continue; const p = S.players[g.idx]; netTo(g, "S" + netSnap(p ? viewFor(p) : S.cam)); } } // chacun reçoit ce qui entoure sa caméra // 15 fois par seconde
     if ((NET.dexT = (NET.dexT || 0) - dt) <= 0) { NET.dexT = 2; netDexFlush(); }
   }
   if (NET.role === "guest" && NET.started) {
     if (S && S.players) {
       netLerp(now); netPredict(now, dt);
-      if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netSend({ t:"ping", c:performance.now() }); }
+      if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netSend({ t:"ping", c:performance.now(), r:Math.round(NET.rtt || 0) }); }
       if (state === "netplay") { hudT -= dt; if (hudT <= 0) { refreshHud(); hudT = .08; } }
       if ((NET.achT = (NET.achT || 0) - dt) <= 0) { NET.achT = 1; achCheck(); } // succès de l'invité, sur sa partie
       playTrack(S.foes.some(f => f.d.boss) ? "boss" : LEVEL.track || (LEVEL.cave ? "cave" : "forest"));

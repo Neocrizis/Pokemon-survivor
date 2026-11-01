@@ -34,6 +34,7 @@ function refreshHud() {
   for (const el of $("hudMoves").children) { const id = el.dataset.mv, m = id && P.moves[id]; if (!m) continue; // recharge : secteur sombre qui se vide
     const t = Math.max(0, m.t || 0); if (!(t <= hudCd[id]) || t > (hudCdT[id] ?? 0) + .05) hudCd[id] = Math.max(t, .01); hudCdT[id] = t;
     el.firstChild.style.setProperty("--cd", Math.min(1, t / hudCd[id]) * 360 + "deg"); }
+  { const hp = $("hudPing"), me = S.P, h = me && S.players.length > 1 ? netPingOf(me) : ""; if (hp.innerHTML !== h) hp.innerHTML = h; }
   for (let k = 1; k <= 3; k++) { // panneaux de J2, J3 et J4, empilés sous celui de J1
     const el = $("pp" + k), Q = S.players.filter(p => p !== S.P)[k - 1] || null, me = S.P;
     el.hidden = !Q; if (!Q) continue;
@@ -44,10 +45,11 @@ function refreshHud() {
     const key = name + Q.lvl + mvs + !!Q.down;
     if (el.dataset.key !== key) {
       el.dataset.key = key; el.style.setProperty("--c", PCOL[Q.idx]); el.classList.toggle("down", !!Q.down);
-      el.innerHTML = `<div class="who-name"><span><span class="tagJ">J${Q.idx + 1}</span> · ${name}${Q.down ? " (K.O.)" : ""}</span><span class="lvl">N.${Q.lvl}</span></div>`
+      el.innerHTML = `<div class="who-name"><span><span class="tagJ">J${Q.idx + 1}</span> · ${name}${Q.down ? " (K.O.)" : ""}</span><span class="lvl">N.${Q.lvl}</span><span class="pingSlot"></span></div>`
         + `<div class="hp-row"><div class="bar"><i></i></div><b></b></div><div class="xpmini"><i></i></div><div class="moves">${mvs}</div>`;
     }
     const fi = el.querySelector(".bar > i"); fi.style.width = (q * 100) + "%"; fi.style.background = col;
+    const pg = el.querySelector(".who-name .pingSlot"), ph = netPingOf(Q); if (pg && pg.innerHTML !== ph) pg.innerHTML = ph;
     el.querySelector(".hp-row b").textContent = `${Math.ceil(Q.hp)}/${Q.maxHp}`;
     el.querySelector(".xpmini > i").style.width = (Q.xp / Q.need * 100) + "%";
   }
