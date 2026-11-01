@@ -9492,12 +9492,12 @@ window.addEventListener("gamepadconnected", () => { pad.used = true; });
 /* ---------- En ligne : salons avec code (PeerJS, connexion directe entre navigateurs) ----------
    L'hôte fait tourner la partie ; chaque invité envoie ses touches et reçoit 20 fois par seconde
    ce qu'il y a autour de la caméra (Pokémon, attaques, bonbons…). */
-var NET = { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], myLine:null, lobby:null, started:false, asks:new Map(), earned:0, achMsgs:[], sendT:0, inT:0, tArr:0, gap:50, lastIn:"", inRep:0, lastChest:null };
+var NET = { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], myLine:null, lobby:null, started:false, asks:new Map(), earned:0, achMsgs:[], sendT:0, inT:0, tArr:0, gap:50, rtt:0, hist:[], me:null, lastIn:"", inRep:0, lastChest:null };
 const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v207";
+const NET_VER = "v208";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -9597,7 +9597,8 @@ function netHostData(g, raw) {
   if (m.t === "in") {
     const p = S && NET.started ? S.players[g.idx] : null;
     if (p && p.remote) { const c = v => Math.max(-1, Math.min(1, +v || 0)); p.net = { x:c(m.x), y:c(m.y), ax:c(m.ax), ay:c(m.ay), tc:!!m.tc }; }
-  } else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
+  } else if (m.t === "ping") netTo(g, { t:"pong", c:m.c }); // l'invité mesure son temps de réponse
+  else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
   else if (m.t === "hi") netLobby();
   else if (NET.asks.has(g)) {
     const a = NET.asks.get(g), keep = S.P;
@@ -9720,27 +9721,56 @@ function netLerp(now) { // mouvements fluides entre deux instantanés
   const a = Math.min(1, (now - NET.tArr) / NET.gap), L = o => { if (o._bx === undefined) return; o.x = o._ax + (o._bx - o._ax) * a; o.y = o._ay + (o._by - o._ay) * a; };
   for (const f of S.foes) L(f); for (const p of S.players) L(p); L(S.cam);
 }
-function netInput() {
-  const P = S && S.P;
+// connexion encombrée : on saute un instantané plutôt que d'en empiler (sinon le retard grossit)
+const netBusy = g => { const c = g.conn, dc = c && c.dataChannel; return (c && c.bufferSize > 0) || (dc && dc.bufferedAmount > 64e3); };
+function netMove() { // déplacement voulu par l'invité (clavier, tactile, manette)
   let mx = 0, my = 0;
   if (keys.has("left")) mx -= 1; if (keys.has("right")) mx += 1; if (keys.has("up")) my -= 1; if (keys.has("down")) my += 1;
   if (touch.on) { const dx = touch.x - touch.ox, dy = touch.y - touch.oy, l = Math.hypot(dx, dy); if (l > 8) { mx = dx / Math.max(l, 50); my = dy / Math.max(l, 50); } }
   mx += pad.x; my += pad.y;
+  if (state !== "netplay") mx = my = 0;
+  return [Math.max(-1, Math.min(1, mx)), Math.max(-1, Math.min(1, my))];
+}
+// prédiction : l'invité déplace son Pokémon tout de suite, sans attendre l'aller-retour avec l'hôte.
+// Position affichée = dernière position reçue de l'hôte + ses propres pas que l'hôte n'avait pas encore reçus.
+function netPredict(now, dt) {
+  const p = S.players[NET.idx], H = NET.hist; if (!p || p._bx === undefined) return;
+  const off = state !== "netplay" || p.down || p.choosing || p.dashT > 0 || p.parT > 0 || p.kbx || p.kby || LEVEL.ice;
+  if (off) { H.length = 0; NET.me = null; return; } // cas rares : on suit simplement l'hôte
+  let [mx, my] = netMove(); const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
+  let v = 0; const keep = S.P;
+  try { S.P = p; v = speed() * (tallGrassAt(p._bx, p._by) ? .85 : 1) * (p.inSludge ? .75 : 1) * (p.inMud ? .6 : 1); } catch (e) { v = 0; }
+  const step = { t:now, dx:mx * v * dt, dy:my * v * dt }; H.push(step);
+  const from = NET.tArr - (NET.rtt || 120) - 17; // pas déjà pris en compte dans le dernier instantané
+  while (H.length && H[0].t < from - 500) H.shift();
+  const o = { x:p._bx, y:p._by }; for (const h of H) if (h.t > from) { o.x += h.dx; o.y += h.dy; }
+  try { if (!flyP(p)) collide(o, p.r || 12, ptype() === "eau"); arenaClamp(o, p.r || 12); } catch (e) {}
+  S.P = keep;
+  const me = NET.me;
+  if (!me || Math.hypot(o.x - me.x, o.y - me.y) > 140) NET.me = o; // trop d'écart (téléportation…) : on recale d'un coup
+  else { me.x += step.dx; me.y += step.dy; const k = 1 - Math.exp(-dt * 10); me.x += (o.x - me.x) * k; me.y += (o.y - me.y) * k; } // petit écart : on corrige en douceur
+  p.x = NET.me.x; p.y = NET.me.y;
+  if (S.players.length > 1) { const c = camClamp(p.x, p.y); S.cam.x = c.x; S.cam.y = c.y; } // la caméra suit le Pokémon affiché
+}
+function netInput() {
+  const P = S && S.P;
+  let [mx, my] = netMove();
   let ax = pad.ax, ay = pad.ay;
   if (!ax && !ay && mouse.on && P && S.cam) { ax = mouse.x - W / 2 - (P.x - S.cam.x) * ZOOM; ay = mouse.y - H / 2 - (P.y - S.cam.y) * ZOOM; const l = Math.hypot(ax, ay); if (l < 6) ax = ay = 0; else { ax /= l; ay /= l; } }
-  if (state !== "netplay") mx = my = ax = ay = 0;
+  if (state !== "netplay") ax = ay = 0;
   const msg = JSON.stringify({ t:"in", x:+mx.toFixed(2), y:+my.toFixed(2), ax:+ax.toFixed(2), ay:+ay.toFixed(2), tc:TOUCH ? 1 : 0 });
   if (msg !== NET.lastIn || ++NET.inRep % 10 === 0) { NET.lastIn = msg; netSend(msg); }
 }
 function netFrame(now, dt) {
   chooseTimer();
   if (NET.role === "host" && NET.started && S && NET.conns.length) {
-    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = 1 / 15; for (const g of NET.conns) { const p = S.players[g.idx]; netTo(g, "S" + netSnap(p ? camFor(p) : S.cam)); } } // chacun reçoit ce qui entoure sa caméra // 15 fois par seconde
+    NET.sendT -= dt; if (NET.sendT <= 0) { NET.sendT = 1 / 15; for (const g of NET.conns) { if (netBusy(g)) continue; const p = S.players[g.idx]; netTo(g, "S" + netSnap(p ? camFor(p) : S.cam)); } } // chacun reçoit ce qui entoure sa caméra // 15 fois par seconde
     if ((NET.dexT = (NET.dexT || 0) - dt) <= 0) { NET.dexT = 2; netDexFlush(); }
   }
   if (NET.role === "guest" && NET.started) {
     if (S && S.players) {
-      netLerp(now);
+      netLerp(now); netPredict(now, dt);
+      if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netSend({ t:"ping", c:performance.now() }); }
       if (state === "netplay") { hudT -= dt; if (hudT <= 0) { refreshHud(); hudT = .08; } }
       if ((NET.achT = (NET.achT || 0) - dt) <= 0) { NET.achT = 1; achCheck(); } // succès de l'invité, sur sa partie
       playTrack(S.foes.some(f => f.d.boss) ? "boss" : LEVEL.track || (LEVEL.cave ? "cave" : "forest"));
@@ -9790,6 +9820,7 @@ function netGuestData(raw) {
   if (raw[0] === "S") { if (NET.started) netLoad(raw.slice(1)); return; }
   let m; try { m = JSON.parse(raw); } catch (e) { return; }
   if (!m || typeof m !== "object") return;
+  if (m.t === "pong") { const r = Math.max(10, Math.min(1000, performance.now() - (+m.c || 0))); NET.rtt = NET.rtt ? NET.rtt * .7 + r * .3 : r; return; }
   if (m.t === "welcome") { NET.idx = m.idx | 0; netLobby(); if (NET.myLine) netSend({ t:"starter", line:NET.myLine }); }
   else if (m.t === "lobby") { NET.lobby = m; netLobby(); }
   else if (m.t === "full") netFail("Ce salon est complet (4 joueurs maximum).");
