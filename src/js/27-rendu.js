@@ -899,7 +899,12 @@ function render(now) {
   for (const f of S.foes) if (f.d.rare && f.hp > 0) arrowTo(f.x, f.y, `rgba(255,170,200,${.7 + .3 * Math.sin(t * 6)})`);
   if (NET.started) for (const p of S.players) if (p.idx !== (NET.role === "guest" ? NET.idx : 0)) arrowTo(p.x, p.y, PCOL[p.idx]); // en ligne : coéquipiers hors de l'écran
   const me = NET.started && S.players[NET.role === "guest" ? NET.idx : 0];
-  if (me && me.down && !me.left && me.specIdx >= 0 && S.players[me.specIdx]) { // spectateur : on suit un coéquipier en attendant d'être relevé
+  if (me && NET.spec) { // spectateur : qui on regarde, et comment changer
+    const txt = `👁 Spectateur : tu regardes J${me.idx + 1}${S.players.length > 1 ? (TOUCH ? " · touche l'écran pour changer" : " · ← → pour changer") : ""}`;
+    cx.font = "600 15px 'Rubik', sans-serif"; cx.textAlign = "center"; const tw = Math.min(W - 32, cx.measureText(txt).width + 28);
+    cx.fillStyle = "rgba(0,0,0,.55)"; cx.beginPath(); cx.roundRect((W - tw) / 2, 78, tw, 30, 8); cx.fill();
+    cx.fillStyle = PCOL[me.idx]; cx.fillText(txt, W / 2, 98, tw - 20);
+  } else if (me && me.down && !me.left && me.specIdx >= 0 && S.players[me.specIdx]) { // spectateur : on suit un coéquipier en attendant d'être relevé
     arrowTo(me.x, me.y, `rgba(255,255,255,${.6 + .4 * Math.sin(t * 6)})`); // flèche vers son propre Pokémon K.O.
     const q = S.players[me.specIdx], txt = `👁 K.O. : tu regardes J${q.idx + 1} en attendant qu'un coéquipier te relève`;
     cx.font = "600 15px 'Rubik', sans-serif"; cx.textAlign = "center"; const tw = Math.min(W - 32, cx.measureText(txt).width + 28);
