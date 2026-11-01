@@ -6,7 +6,7 @@ const NET_PFX = "pokesurv-";
 const NET_OPTS = { config:{ iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }, { urls:"stun:stun.cloudflare.com:3478" },
   // relais gratuit (Open Relay) : utilisé seulement si la liaison directe entre les deux box échoue
   { urls:["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username:"openrelayproject", credential:"openrelayproject" }] } };
-const NET_VER = "v212";
+const NET_VER = "v213";
 const netEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function netLib() {
   if (window.Peer) return Promise.resolve();
@@ -34,7 +34,7 @@ function netButtons() {
 }
 function netClose() {
   try { NET.peer && NET.peer.destroy(); } catch (e) {}
-  Object.assign(NET, { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], lobby:null, started:false, ask:null, myLine:null });
+  Object.assign(NET, { role:null, peer:null, conn:null, conns:[], code:null, idx:0, picks:[], lobby:null, started:false, ask:null, myLine:null, hostV:null });
   $("netWait").hidden = true; netButtons();
   netMsg("Un joueur crée le salon, les autres entrent son code (ou ouvrent son lien). Puis chacun choisit son starter ci-dessous.");
 }
@@ -42,16 +42,16 @@ const netName = l => LINES[l] ? LINES[l].names[0] : null;
 function netLobby() {
   netButtons();
   if (NET.role === "host") {
-    const list = [{ idx:0, line:NET.picks[0] }].concat(NET.conns.slice().sort((a, b) => a.idx - b.idx).map(g => ({ idx:g.idx, line:g.line })));
-    const rows = list.map(r => `<b>J${r.idx + 1}${r.idx ? "" : " (toi)"}</b> : ${netName(r.line) || (r.idx ? "choisit…" : "choisis ton starter ↓")}`).join(" · ");
+    const list = [{ idx:0, line:NET.picks[0] }].concat(NET.conns.slice().sort((a, b) => a.idx - b.idx).map(g => ({ idx:g.idx, line:g.line, old:g.v !== NET_VER ? g.v || "?" : "" })));
+    const rows = list.map(r => `<b>J${r.idx + 1}${r.idx ? "" : " (toi)"}</b> : ${netName(r.line) || (r.idx ? "choisit…" : "choisis ton starter ↓")}${r.old ? ` <span style="color:#ff8a7a">⚠ version ${netEsc(r.old === "?" ? "ancienne" : r.old)} : il doit rafraîchir sa page</span>` : ""}`).join(" · ");
     netMsg(`Salon <span class="netCodeBig">${NET.code}</span><br>Donne ce code à tes amis, ou ce lien : <input id="netLinkOut" readonly value="${netEsc(netLink())}"><br>${rows}<br>Niveau : <b>${netEsc(LEVEL.name)}</b> (c'est toi qui le choisis en haut)${NET.diag ? `<br><small style="opacity:.75">Réseau : ${netEsc(NET.diag)}</small>` : ""}`);
     $("netLinkOut").addEventListener("focus", e => e.target.select());
-    const ready = !!NET.picks[0] && NET.conns.length > 0 && NET.conns.every(g => g.line);
-    $("netGo").disabled = !ready; $("netGo").textContent = !NET.conns.length ? "En attente d'un autre joueur…" : ready ? "Lancer la partie" : "En attente des starters…"; $("netGo").classList.toggle("playIco", !!(NET.conns.length && ready));
+    const ready = !!NET.picks[0] && NET.conns.length > 0 && NET.conns.every(g => g.line && g.v === NET_VER); // une autre version ne sait pas lire les envois de l'hôte (écran vert) : on attend qu'il rafraîchisse
+    $("netGo").disabled = !ready; $("netGo").textContent = !NET.conns.length ? "En attente d'un autre joueur…" : ready ? "Lancer la partie" : NET.conns.some(g => g.v !== NET_VER) ? "Un joueur doit rafraîchir sa page…" : "En attente des starters…"; $("netGo").classList.toggle("playIco", !!(NET.conns.length && ready));
     netAll({ t:"lobby", level:LEVEL.name, list });
   } else if (NET.role === "guest") {
     const L = NET.lobby, rows = (L && Array.isArray(L.list) ? L.list : []).map(r => `<b>J${(r.idx | 0) + 1}${(r.idx | 0) === NET.idx ? " (toi)" : ""}</b> : ${netName(r.line) || "choisit…"}`).join(" · ");
-    netMsg(`Connecté au salon <span class="netCodeBig">${netEsc(NET.code)}</span> en tant que <b>J${NET.idx + 1}</b>.<br>${NET.myLine ? `Ton starter : <b>${netName(NET.myLine)}</b> (tu peux en changer)` : "Choisis ton starter ↓"} · Niveau choisi par l'hôte : <b>${netEsc(L && L.level || "…")}</b><br>${rows}<br>L'hôte lance la partie quand tout le monde a choisi.`);
+    netMsg(`Connecté au salon <span class="netCodeBig">${netEsc(NET.code)}</span> en tant que <b>J${NET.idx + 1}</b>.<br>${NET.myLine ? `Ton starter : <b>${netName(NET.myLine)}</b> (tu peux en changer)` : "Choisis ton starter ↓"}${NET.hostV && NET.hostV !== NET_VER ? `<br><span style="color:#ff8a7a">⚠ L'hôte est en ${netEsc(NET.hostV)} et toi en ${NET_VER} : rafraîchissez vos pages pour avoir la même version.</span>` : ""} · Niveau choisi par l'hôte : <b>${netEsc(L && L.level || "…")}</b><br>${rows}<br>L'hôte lance la partie quand tout le monde a choisi.`);
   }
 }
 function netHost() {
@@ -80,7 +80,7 @@ function netAccept(conn) {
     const g = { conn, idx, line:null }; NET.conns.push(g);
     conn.on("data", d => netHostData(g, netStr(d)));
     conn.on("close", () => netGone(g));
-    netTo(g, { t:"welcome", idx, code:NET.code });
+    netTo(g, { t:"welcome", idx, code:NET.code, v:NET_VER });
     sfx("click"); netLobby();
   });
   conn.on("error", e => netDiag("erreur du joueur entrant : " + (e && (e.type || e.message) || "?")));
@@ -109,7 +109,7 @@ function netPingOf(Q) { // ce qu'on affiche à côté d'un joueur (rien hors lig
 // instantanés compressés (deflate) : environ 3 fois moins de données à envoyer, donc moins de retard quand la connexion de l'hôte est juste
 const NET_Z = 0xC5, NET_CAN_Z = typeof CompressionStream === "function" && typeof DecompressionStream === "function";
 function netZip(g, s) {
-  if (!NET_CAN_Z) return netTo(g, s);
+  if (!NET_CAN_Z || !g.z) return netTo(g, s); // compressé seulement si l'invité sait le décompresser (sinon il ne voit rien)
   g.zPend = (g.zPend || 0) + 1; // file par invité : garde l'ordre ; au-delà de 2 en attente, l'instantané suivant est sauté
   const zip = new Response(new Blob([s]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer();
   g.zq = (g.zq || Promise.resolve()).then(() => zip).then(b => {
@@ -149,8 +149,8 @@ function netHostData(g, raw) {
   } else if (m.t === "ping") { netTo(g, { t:"pong", c:m.c }); const p = S && NET.started ? S.players[g.idx] : null, r = +m.r; if (p && r > 0) p.ping = Math.round(Math.min(2000, r));
     if (p && (m.lk === "relais" || m.lk === "direct")) p.link = m.lk;
     if (+m.vw > 0) { g.vw = Math.max(300, Math.min(1100, +m.vw)); g.vh = Math.max(200, Math.min(800, +m.vh || 560)); } } // l'invité mesure son temps de réponse
+  else if (m.t === "hi") { g.v = String(m.v || "").slice(0, 12); g.z = m.z === 1; netLobby(); } // version et décompression de l'invité
   else if (m.t === "starter") { if (!NET.started && starterOrder.includes(m.line)) { g.line = m.line; netLobby(); } }
-  else if (m.t === "hi") netLobby();
   else if (NET.asks.has(g)) {
     const a = NET.asks.get(g), keep = S.P;
     if (m.t === "pick" && a.kind !== "chest") { const ch = a.choices[m.i | 0]; if (!ch) return; netAskDone(g); applyChoice(ch, a.p); }
@@ -330,7 +330,7 @@ function netFrame(now, dt) {
     if (S && S.players) {
       netLerp(now); netPredict(now, dt);
       if ((NET.pingT = (NET.pingT || 0) - dt) <= 0) { NET.pingT = 1; netLinkType(); netSend({ t:"ping", c:performance.now(), r:Math.round(NET.rtt || 0), vw:Math.round(W / ZOOM / 2), vh:Math.round(H / ZOOM / 2), lk:NET.link || "" }); }
-      if (state === "netplay") { hudT -= dt; if (hudT <= 0) { refreshHud(); hudT = .08; } }
+      if (state === "netplay") { hudT -= dt; if (hudT <= 0) { hudT = .08; refreshHud(); } } // délai remis avant : une erreur du HUD ne bloque pas le reste
       if ((NET.achT = (NET.achT || 0) - dt) <= 0) { NET.achT = 1; achCheck(); } // succès de l'invité, sur sa partie
       playTrack(S.foes.some(f => f.d.boss) ? "boss" : LEVEL.track || (LEVEL.cave ? "cave" : "forest"));
     }
@@ -362,7 +362,7 @@ function netJoin(code) {
           if (stage < 2 && ice !== "new" && NET.role !== "guest") { stage = 2; netMsg(`Salon ${code} trouvé, liaison avec l'hôte…`); }
           if (ice === "failed" && NET.role !== "guest") { clearTimeout(timer); netFail(`Salon trouvé, mais la liaison entre vos deux ordinateurs a échoué (étape 3/3). [${NET_VER}]`); } }); };
       watchIce();
-      conn.on("open", () => { clearTimeout(timer); NET.role = "guest"; netLobby(); netSend({ t:"hi" }); });
+      conn.on("open", () => { clearTimeout(timer); NET.role = "guest"; netLobby(); netSend({ t:"hi", v:NET_VER, z:NET_CAN_Z ? 1 : 0 }); });
       conn.on("data", netGuestRaw);
       conn.on("close", () => netHostGone());
     });
@@ -380,7 +380,7 @@ function netGuestData(raw) {
   let m; try { m = JSON.parse(raw); } catch (e) { return; }
   if (!m || typeof m !== "object") return;
   if (m.t === "pong") { const r = Math.max(10, Math.min(1000, performance.now() - (+m.c || 0))); NET.rtt = NET.rtt ? NET.rtt * .7 + r * .3 : r; return; }
-  if (m.t === "welcome") { NET.idx = m.idx | 0; netLobby(); if (NET.myLine) netSend({ t:"starter", line:NET.myLine }); }
+  if (m.t === "welcome") { NET.idx = m.idx | 0; NET.hostV = String(m.v || "ancienne version").slice(0, 20); netLobby(); if (NET.myLine) netSend({ t:"starter", line:NET.myLine }); }
   else if (m.t === "lobby") { NET.lobby = m; netLobby(); }
   else if (m.t === "full") netFail("Ce salon est complet (4 joueurs maximum).");
   else if (m.t === "started") netFail("La partie de ce salon a déjà commencé. Attends la fin et rejoins-le à nouveau.");
