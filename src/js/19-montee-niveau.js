@@ -12,6 +12,7 @@ function buildChoices() {
     if (m.only && ![].concat(m.only).includes(ptype()) && !alt && !also) continue;
     if (m.only && (LINES[P.line].own || LINES[P.line].restricted) && !also && !alt) continue; // starters à capacités limitées
     if (m.line && ![].concat(m.line).includes(P.line)) continue;
+    if ((m.not || []).includes(P.line)) continue; // capacité interdite à ce starter
     if (!cur && owned.length >= MAX_MOVES()) continue;
     if (!cur && m.rare && P.lvl < m.rare.minLvl) continue;
     pool.push({ kind:"move", id, lv:cur + 1, w: cur ? 3 : alt ? m.alt.w : m.rare ? m.rare.w : 2 });

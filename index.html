@@ -1184,7 +1184,7 @@ const MOVES = {
       : ["Un puissant rayon d'eau traverse tous les ennemis en ligne droite.", "Rayon plus large.", "Dégâts +40 %.", "Un rayon toutes les 3,2 s.", "Double canon : deux rayons parallèles."][lv-1] },
   combogriffe: { name:"Combo-Griffe", type:"normal", only:"normal", max:5,
     desc: lv => ["Lacère l'ennemi le plus proche de 2 à 3 coups de griffes, de plus en plus forts.", "Jusqu'à 4 coups.", "Dégâts +30 %.", "Jusqu'à 5 coups, enchaînements plus rapides.", "Toujours 5 coups, griffes plus longues."][lv-1] },
-  jackpot:     { name:"Jackpot", type:"normal", only:"normal", max:5,
+  jackpot:     { name:"Jackpot", type:"normal", only:"normal", not:["evoli"], max:5, // Évoli ne l'apprend plus (Raphaël, v208)
     desc: lv => ["Lance une pièce d'or qui rebondit sur 3 ennemis. Un ennemi K.O. par une pièce lâche un Bonbon Exp. en plus.", "+1 pièce.", "Dégâts +40 %, +1 rebond.", "+1 pièce, recharge plus rapide.", "Les Bonbons des pièces valent triple."][lv-1] },
   morsure:     { name:"Morsure", type:"normal", only:"normal", max:5,
     desc: lv => ["Mord l'ennemi le plus proche, avec 30 % de chances de l'étourdir 1 s.", "Mord 2 ennemis à la fois.", "Dégâts +40 %.", "Morsures plus rapides.", "60 % de chances d'étourdir."][lv-1] },
@@ -5949,6 +5949,7 @@ function buildChoices() {
     if (m.only && ![].concat(m.only).includes(ptype()) && !alt && !also) continue;
     if (m.only && (LINES[P.line].own || LINES[P.line].restricted) && !also && !alt) continue; // starters à capacités limitées
     if (m.line && ![].concat(m.line).includes(P.line)) continue;
+    if ((m.not || []).includes(P.line)) continue; // capacité interdite à ce starter
     if (!cur && owned.length >= MAX_MOVES()) continue;
     if (!cur && m.rare && P.lvl < m.rare.minLvl) continue;
     pool.push({ kind:"move", id, lv:cur + 1, w: cur ? 3 : alt ? m.alt.w : m.rare ? m.rare.w : 2 });
@@ -9230,6 +9231,7 @@ const lineMoves = line => { // capacités que ce starter peut apprendre (même r
   const L = LINES[line], out = [];
   for (const [id, m] of Object.entries(MOVES)) {
     if (m.line && ![].concat(m.line).includes(line)) continue;
+    if ((m.not || []).includes(line)) continue;
     const alt = m.alt && m.alt.line === line, also = (m.also || []).includes(line);
     if (m.only && ![].concat(m.only).includes(L.type) && !alt && !also) continue;
     if (m.only && (L.own || L.restricted) && !also && !alt) continue;
@@ -10226,7 +10228,7 @@ function evoStages(line) {
 }
 // Évoli : clic sur une évolution = ses attaques dans le panneau de droite (même règle que buildChoices avec le type de l'évolution)
 const formMoves = k => { const t = EEVEE[k].type;
-  return Object.entries(MOVES).filter(([id, m]) => (!m.line || [].concat(m.line).includes("evoli")) && !m.tier && ((m.only && [].concat(m.only).includes(t)) || (m.also || []).includes("evoli") || id === EEVEE[k].move))
+  return Object.entries(MOVES).filter(([id, m]) => (!m.line || [].concat(m.line).includes("evoli")) && !(m.not || []).includes("evoli") && !m.tier && ((m.only && [].concat(m.only).includes(t)) || (m.also || []).includes("evoli") || id === EEVEE[k].move))
     .sort((a, b) => (b[0] === EEVEE[k].move) - (a[0] === EEVEE[k].move) || !!a[1].rare - !!b[1].rare); };
 function showFormMoves(k) {
   FICHE.ef = FICHE.ef === k ? null : k;
