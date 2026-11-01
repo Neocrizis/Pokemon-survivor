@@ -212,7 +212,7 @@ function updateMoves(dt) {
       const n = 1 + (lv >= 2) + (lv >= 4) + (lv >= 5 ? 2 : 0) + EXTRA(), pool = nearestFoes(30).filter(f => !(f.seedT > 0));
       for (let i = 0; i < n && pool.length; i++) {
         const f = pool.splice(Math.floor(Math.random() * Math.min(pool.length, 8)), 1)[0], a = Math.atan2(f.y - P.y, f.x - P.x);
-        S.shots.push({ kind:"seed", x:P.x, y:P.y, vx:Math.cos(a)*330, vy:Math.sin(a)*330, r:6, dmg:3, life:1.4, pierce:1, type:"plante", seed:{ dps:(4 + 1.5*lv) * (lv >= 3 ? 1.4 : 1), heal:(.3 + .1*lv) * (lv >= 3 ? 1.4 : 1) } });
+        S.shots.push({ kind:"seed", x:P.x, y:P.y, vx:Math.cos(a)*330, vy:Math.sin(a)*330, r:6, dmg:3, life:1.4, pierce:1, type:"plante", seed:{ dps:(4 + 1.5*lv) * (lv >= 3 ? 1.4 : 1), heal:(.15 + .05*lv) * (lv >= 3 ? 1.4 : 1) } }); // soin divisé par 2 (Raphaël, v207)
       }
       if (!pool.length && n) m.t = .4;
     } else if (id === "poudretoxik") {
